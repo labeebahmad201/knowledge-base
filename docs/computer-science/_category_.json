@@ -1,0 +1,10 @@
+{
+  "label": "Computer Science",
+  "position": 1,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Computer Science"
+  }
+}
