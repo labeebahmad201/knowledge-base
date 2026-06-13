@@ -89,10 +89,6 @@ const config: Config = {
               to: '/docs/category/artificial-intelligence',
             },
             {
-              label: 'Product',
-              to: '/docs/category/product',
-            },
-            {
               label: 'Labs',
               to: '/docs/category/labs',
             },
@@ -117,7 +113,7 @@ const config: Config = {
   } satisfies Preset.ThemeConfig,
 
   plugins: [
-    require.resolve('docusaurus-search-local', {})  
+    require.resolve('@easyops-cn/docusaurus-search-local'),
   ],
 };
 

@@ -7,7 +7,6 @@ const categories = [
   {name: 'Computer Science', path: '/docs/category/computer-science', desc: 'Algorithms, data structures, OS, networking, databases, design patterns'},
   {name: 'Software Engineering', path: '/docs/category/software-engineering', desc: 'Languages, tools, architecture, testing, DevOps, observability'},
   {name: 'Artificial Intelligence', path: '/docs/category/artificial-intelligence', desc: 'ML, LLMs, prompt engineering, RAG, AI engineering'},
-  {name: 'Product', path: '/docs/category/product', desc: 'Building, pricing, distribution, micro-SaaS, metrics'},
   {name: 'Labs', path: '/docs/category/labs', desc: 'Hands-on walkthroughs — Postgres, bash, Docker, cloud'},
 ];
 

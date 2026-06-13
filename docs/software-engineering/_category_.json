@@ -2,7 +2,7 @@
   "label": "Software Engineering",
   "position": 2,
   "collapsible": true,
-  "collapsed": false,
+  "collapsed": true,
   "link": {
     "type": "generated-index",
     "title": "Software Engineering"
