@@ -8,6 +8,7 @@ const categories = [
   {name: 'Software Engineering', path: '/docs/category/software-engineering', desc: 'Languages, tools, architecture, testing, DevOps, observability'},
   {name: 'Artificial Intelligence', path: '/docs/category/artificial-intelligence', desc: 'ML, LLMs, prompt engineering, RAG, AI engineering'},
   {name: 'Labs', path: '/docs/category/labs', desc: 'Hands-on walkthroughs — Postgres, bash, Docker, cloud'},
+  {name: 'Product', path: '/docs/category/product', desc: 'Product thinking, marketing, and building for users'},
 ];
 
 export default function Home(): ReactNode {

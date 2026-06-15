@@ -92,6 +92,10 @@ const config: Config = {
               label: 'Labs',
               to: '/docs/category/labs',
             },
+            {
+              label: 'Product',
+              to: '/docs/category/product',
+            },
           ],
         },
         {
