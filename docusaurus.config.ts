@@ -50,6 +50,7 @@ const config: Config = {
     colorMode: {
       respectPrefersColorScheme: true,
     },
+    metadata: [{name: 'keywords', content: 'knowledge base, computer science, engineering, ai, leetcode'}],
     navbar: {
       title: 'Knowledge Base',
       logo: {

@@ -9,4 +9,5 @@ Machine learning, LLMs, prompt engineering, and AI application development.
 - Large language models
 - Prompt engineering
 - AI engineering & tooling
+- AI agents
 - Retrieval-augmented generation
