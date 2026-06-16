@@ -18,11 +18,13 @@ But quality does drop. Vibe coding trades depth for speed. The output is broader
 
 Karpathy's framing of software evolution:
 
-| Era | Paradigm | Core idea |
-|-----|----------|-----------|
-| **Software 1.0** | Hand-written code | You write every line. You specify every behaviour. |
-| **Software 2.0** | Neural networks | You train a model on data instead of writing rules. But the training pipeline is still hand-coded. |
-| **Software 3.0** | AI-native development | You describe intent, and the model generates the implementation. |
+| Era | Paradigm | Core idea | Data |
+|-----|----------|-----------|------|
+| **Software 1.0** | Hand-written code | You write every line. You specify every behaviour. | **Structured** — schemas, types, parsers. You model the data shape in code before you can process it. |
+| **Software 2.0** | Neural networks | You train a model on data instead of writing rules. But the training pipeline is still hand-coded. | **Curated** — labelled datasets, hand-collected or generated. The training pipeline is still Software 1.0. |
+| **Software 3.0** | AI-native development | You describe intent, and the model generates the implementation. | **Any natural data** — text, images, audio, logs, code. The model handles structure implicitly. |
+
+This "Data" dimension captures a subtle but important shift. Software 1.0 could process unstructured data — it just needed you to write parsers, schema validators, and type coercions first. The *burden of structuring* was on the programmer. LLMs collapse that step: you dump in raw text, images, or logs and the model extracts the structure internally. This is why LLMs feel so much more flexible — not because Software 1.0 *couldn't* handle messy data, but because it made *you* do the messy work upfront.
 
 The key shift in Software 3.0:
 
