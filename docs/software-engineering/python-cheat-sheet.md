@@ -48,6 +48,44 @@ def get_canonical_form(input: str) -> str:
 | `ord(c) - ord('a')` | Map 'a'–'z' to 0–25 |
 | `tuple(count)` | Convert list → tuple for dict key |
 
+## Iterating Over Strings & Arrays
+
+```python
+s = "hello"
+arr = [1, 2, 3]
+
+# by element
+for ch in s:           # h e l l o
+for x in arr:          # 1 2 3
+
+# by index
+for i in range(len(s)):
+for i, ch in enumerate(s):
+
+# reverse
+for ch in reversed(s):
+for x in reversed(arr):
+
+# slice iteration (every 2nd)
+for ch in s[::2]:
+```
+
+## Sorting Strings
+
+Strings are **immutable** — `sorted()` always returns a **list** of characters internally:
+
+```python
+s = "leetcode"
+
+sorted(s)           # → ['c', 'd', 'e', 'e', 'l', 'o', 't']  (list)
+"".join(sorted(s))  # → "cdeelot"                             (string)
+
+# reverse sort
+"".join(sorted(s, reverse=True))  # → "tolledec"
+```
+
+`sorted(s)` creates a list from the string, sorts the list in place internally, and returns the sorted list. The original string is unchanged. To get a string back, use `"".join(...)`.
+
 ## Common Patterns
 
 | Task | Code |
