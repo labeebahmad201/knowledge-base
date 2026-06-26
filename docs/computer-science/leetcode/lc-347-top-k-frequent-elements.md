@@ -74,7 +74,7 @@ class Solution:
         return [num for freq, num in min_heap]
 ```
 
-- **Time:** O(n log k) - frequency count O(n), each heap push/pop is O(log k), with at most n operations. Since log k <= log n, this satisfies the "better than O(n log n)" requirement.
+- **Time:** O(n log k) - frequency count O(n), each heap push/pop is O(log k), with at most n operations. Since `log k <= log n`, this satisfies the "better than O(n log n)" requirement.
 - **Space:** O(n) - frequency map still holds all entries.
 
 ### Why this works
