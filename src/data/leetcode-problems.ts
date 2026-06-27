@@ -24,6 +24,14 @@ const problems: LeetCodeProblem[] = [
     tags: ['Hash Map', 'Heap', 'Sorting', 'Array'],
     path: '/docs/computer-science/leetcode/lc-347-top-k-frequent-elements',
   },
+  {
+    id: 271,
+    title: 'Encode and Decode Strings',
+    slug: 'encode-and-decode-strings',
+    difficulty: 'Medium',
+    tags: ['String', 'Design'],
+    path: '/docs/computer-science/leetcode/lc-271-encode-and-decode-strings',
+  },
 ]
 
 export default problems

@@ -196,3 +196,61 @@ A max-heap would keep the largest at the top, so when we pop (to stay at size `k
 | Min-heap push/pop | `heapq.heappush(h, x)` / `heapq.heappop(h)` |
 | Heap top k (keep largest) | `heappush; if len>k: heappop` (min-heap discards smallest) |
 | List comp with unpack | `[x for a, b, c in list_of_tuples]` |
+
+## String Building & Encoding Patterns
+
+### Joining and splitting with delimiters
+
+```python
+# joining a list of strings
+encoded = ''.join(arr)           # concatenate all pieces (no separator)
+encoded = '#'.join(strs)         # join with '#' — but breaks if '#' in input
+```
+
+A naive delimiter like `#` fails when that character appears in the strings. The solution is **length-prefix encoding**.
+
+### Length-prefix encoding (self-delimiting)
+
+```python
+# encode: prefix each string with #<length>#
+for string in strs:
+    arr.append('#' + str(len(string)) + '#' + string)
+encoded = ''.join(arr)
+
+# decode: read #, collect digits until next #, then read that many chars
+i = 0
+output = []
+while i < len(s):
+    if s[i] == '#':
+        i += 1
+        num_chars = []
+        while i < len(s) and s[i] != '#':
+            num_chars.append(s[i])
+            i += 1
+    length = int(''.join(num_chars))
+    i += 1
+    output.append(s[i: i + length])
+    i += length
+```
+
+### Key functions
+
+| Function | Why it's needed |
+|---|---|
+| `str(int_value)` | `len()` returns an `int`; you must convert to `str` before concatenating with other strings |
+| `int(str_value)` | Parses a string of digit characters into an integer (e.g., `int("05")` → `5`) |
+| `''.join(list)` | Concatenates a list of strings into one string efficiently |
+| `list.append(x)` | Adds `x` to the end of a list — the standard way to build lists incrementally |
+| `s[i: i + n]` | Slice that extracts `n` characters starting at index `i`; safely handles end-of-string |
+
+### The delimiter problem
+
+```python
+# ❌ What if the strings contain '#'?
+strs = ["hello", "wo#rld"]
+encoded = '#'.join(strs)     # → "hello#wo#rld"
+decoded = encoded.split('#')  # → ["hello", "wo", "rld"]  ❌ wrong!
+
+# ✅ Length-prefix fixes this — decoder reads exactly n chars, ignores content
+# "#5#hello#6#wo#rld"  →  knows to read 5 chars, then 6 chars  ✅
+```
