@@ -32,6 +32,14 @@ const problems: LeetCodeProblem[] = [
     tags: ['String', 'Design'],
     path: '/docs/computer-science/leetcode/lc-271-encode-and-decode-strings',
   },
+  {
+    id: 238,
+    title: 'Product of Array Except Self',
+    slug: 'product-of-array-except-self',
+    difficulty: 'Medium',
+    tags: ['Array', 'Prefix Sum'],
+    path: '/docs/computer-science/leetcode/lc-238-product-of-array-except-self',
+  },
 ]
 
 export default problems
