@@ -48,6 +48,14 @@ const problems: LeetCodeProblem[] = [
     tags: ['Hash Map', 'Set', 'Array', 'Matrix'],
     path: '/docs/computer-science/leetcode/lc-36-valid-sudoku',
   },
+  {
+    id: 128,
+    title: 'Longest Consecutive Sequence',
+    slug: 'longest-consecutive-sequence',
+    difficulty: 'Medium',
+    tags: ['Hash Map', 'Set', 'Array', 'Union Find'],
+    path: '/docs/computer-science/leetcode/lc-128-longest-consecutive-sequence',
+  },
 ]
 
 export default problems
