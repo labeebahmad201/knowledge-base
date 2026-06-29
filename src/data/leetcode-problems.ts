@@ -40,6 +40,14 @@ const problems: LeetCodeProblem[] = [
     tags: ['Array', 'Prefix Sum'],
     path: '/docs/computer-science/leetcode/lc-238-product-of-array-except-self',
   },
+  {
+    id: 36,
+    title: 'Valid Sudoku',
+    slug: 'valid-sudoku',
+    difficulty: 'Medium',
+    tags: ['Hash Map', 'Set', 'Array', 'Matrix'],
+    path: '/docs/computer-science/leetcode/lc-36-valid-sudoku',
+  },
 ]
 
 export default problems
