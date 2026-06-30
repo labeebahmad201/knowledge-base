@@ -64,6 +64,14 @@ const problems: LeetCodeProblem[] = [
     tags: ['Hash Map', 'Set', 'Array', 'Union Find'],
     path: '/docs/computer-science/leetcode/lc-128-longest-consecutive-sequence',
   },
+  {
+    id: 1,
+    title: 'Two Sum (Sorted)',
+    slug: 'two-sum-sorted',
+    difficulty: 'Medium',
+    tags: ['Two Pointers', 'Array'],
+    path: '/docs/computer-science/leetcode/lc-1-two-sum',
+  },
 ]
 
 export default problems
