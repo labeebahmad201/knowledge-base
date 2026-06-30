@@ -43,6 +43,11 @@ export default function LeetCodeSearchBar(): ReactNode {
           boxSizing: 'border-box',
         }}
       />
+      <p style={{margin: '0 0 0.75rem', fontSize: '0.9rem', color: 'var(--ifm-color-emphasis-600)'}}>
+        {filtered.length === problems.length
+          ? `${problems.length} problems`
+          : `${filtered.length} of ${problems.length} problems`}
+      </p>
       {filtered.length === 0 ? (
         <p style={{color: 'var(--ifm-color-emphasis-600)'}}>
           No problems match &ldquo;{query}&rdquo;.
