@@ -49,6 +49,14 @@ const problems: LeetCodeProblem[] = [
     path: '/docs/computer-science/leetcode/lc-36-valid-sudoku',
   },
   {
+    id: 125,
+    title: 'Valid Palindrome',
+    slug: 'valid-palindrome',
+    difficulty: 'Easy',
+    tags: ['Two Pointers', 'String'],
+    path: '/docs/computer-science/leetcode/lc-125-valid-palindrome',
+  },
+  {
     id: 128,
     title: 'Longest Consecutive Sequence',
     slug: 'longest-consecutive-sequence',
