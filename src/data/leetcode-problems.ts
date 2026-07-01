@@ -72,6 +72,14 @@ const problems: LeetCodeProblem[] = [
     tags: ['Two Pointers', 'Array'],
     path: '/docs/computer-science/leetcode/lc-1-two-sum',
   },
+  {
+    id: 15,
+    title: '3Sum',
+    slug: '3sum',
+    difficulty: 'Medium',
+    tags: ['Two Pointers', 'Sorting', 'Array'],
+    path: '/docs/computer-science/leetcode/lc-15-3sum',
+  },
 ]
 
 export default problems
