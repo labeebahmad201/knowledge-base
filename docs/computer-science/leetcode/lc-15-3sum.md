@@ -61,9 +61,27 @@ class Solution:
         return ans
 ```
 
-- **Time:** O(n^2) — O(n log n) for sort, then O(n^2) for the nested loops.
+- **Time:** O(n^2)
 - **Space:** O(1) extra (not counting the output list) or O(n) for sorting.
 - **Pattern:** Sort + two-pointer on the remaining subarray.
+
+---
+
+### Time complexity breakdown
+
+```
+sorted(nums)        => O(n log n)
+outer loop (i)      => O(n)
+  two-pointer scan  => O(n) per i
+```
+
+The outer `for i` loop runs `n` times. For each `i`, the inner `while left < right` two-pointer scan walks across the remaining subarray. In the worst case, `left` and `right` together visit every element to the right of `i` once — that's O(n) per `i`.
+
+Total inner work: O(n * n) = O(n^2).
+
+Adding the sort: O(n log n + n^2) = O(n^2), since n^2 dominates for large n.
+
+Why isn't it O(n^3)? Because we don't use a third nested loop. The two-pointer scan replaces what would be an O(n^2) brute-force search for `y` and `z` with a single O(n) pass. That is the whole reason the two-pointer technique matters here — it drops one factor of n.
 
 ---
 
