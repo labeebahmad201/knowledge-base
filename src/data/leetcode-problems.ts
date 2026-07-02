@@ -5,6 +5,7 @@ export interface LeetCodeProblem {
   difficulty: 'Easy' | 'Medium' | 'Hard'
   tags: string[]
   path: string
+  type?: 'problem' | 'concept'
 }
 
 const problems: LeetCodeProblem[] = [
@@ -87,6 +88,15 @@ const problems: LeetCodeProblem[] = [
     difficulty: 'Medium',
     tags: ['Two Pointers', 'Array', 'Greedy'],
     path: '/docs/computer-science/leetcode/lc-11-container-with-most-water',
+  },
+  {
+    id: 0,
+    title: 'Greedy Algorithms',
+    slug: 'greedy',
+    difficulty: 'Medium',
+    tags: ['Concept', 'Greedy'],
+    path: '/docs/computer-science/leetcode/lc-greedy',
+    type: 'concept',
   },
 ]
 

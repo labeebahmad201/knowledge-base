@@ -19,7 +19,8 @@ export default function LeetCodeSearchBar(): ReactNode {
         String(p.id).includes(q) ||
         p.title.toLowerCase().includes(q) ||
         p.difficulty.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q)),
+        p.tags.some((t) => t.toLowerCase().includes(q)) ||
+        (p.type ?? 'problem').includes(q),
     );
   }, [query]);
 
@@ -88,15 +89,27 @@ export default function LeetCodeSearchBar(): ReactNode {
                 LC-{p.id}
               </span>
               <span style={{flex: 1}}>{p.title}</span>
-              <span
-                style={{
-                  color: difficultyColors[p.difficulty],
-                  fontWeight: 600,
-                  fontSize: '0.85rem',
-                }}
-              >
-                {p.difficulty}
-              </span>
+              {p.type === 'concept' ? (
+                <span
+                  style={{
+                    color: 'var(--ifm-color-info)',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  Concept
+                </span>
+              ) : (
+                <span
+                  style={{
+                    color: difficultyColors[p.difficulty],
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                  }}
+                >
+                  {p.difficulty}
+                </span>
+              )}
             </Link>
           ))}
         </div>
