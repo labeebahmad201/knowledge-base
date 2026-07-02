@@ -80,6 +80,14 @@ const problems: LeetCodeProblem[] = [
     tags: ['Two Pointers', 'Sorting', 'Array'],
     path: '/docs/computer-science/leetcode/lc-15-3sum',
   },
+  {
+    id: 11,
+    title: 'Container With Most Water',
+    slug: 'container-with-most-water',
+    difficulty: 'Medium',
+    tags: ['Two Pointers', 'Array', 'Greedy'],
+    path: '/docs/computer-science/leetcode/lc-11-container-with-most-water',
+  },
 ]
 
 export default problems
