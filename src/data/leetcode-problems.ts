@@ -90,6 +90,14 @@ const problems: LeetCodeProblem[] = [
     path: '/docs/computer-science/leetcode/lc-11-container-with-most-water',
   },
   {
+    id: 42,
+    title: 'Trapping Rain Water',
+    slug: 'trapping-rain-water',
+    difficulty: 'Hard',
+    tags: ['Array', 'Two Pointers', 'Dynamic Programming', 'Stack', 'Prefix Sum'],
+    path: '/docs/computer-science/leetcode/lc-42-trapping-rain-water',
+  },
+  {
     id: 0,
     title: 'Greedy Algorithms',
     slug: 'greedy',
