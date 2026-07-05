@@ -98,6 +98,14 @@ const problems: LeetCodeProblem[] = [
     path: '/docs/computer-science/leetcode/lc-42-trapping-rain-water',
   },
   {
+    id: 121,
+    title: 'Best Time to Buy and Sell Stock',
+    slug: 'best-time-to-buy-and-sell-stock',
+    difficulty: 'Easy',
+    tags: ['Array', 'Greedy'],
+    path: '/docs/computer-science/leetcode/lc-121-best-time-to-buy-and-sell-stock',
+  },
+  {
     id: 0,
     title: 'Greedy Algorithms',
     slug: 'greedy',
