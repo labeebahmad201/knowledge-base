@@ -106,6 +106,14 @@ const problems: LeetCodeProblem[] = [
     path: '/docs/computer-science/leetcode/lc-121-best-time-to-buy-and-sell-stock',
   },
   {
+    id: 3,
+    title: 'Longest Substring Without Repeating Characters',
+    slug: 'longest-substring-without-repeating-characters',
+    difficulty: 'Medium',
+    tags: ['Sliding Window', 'Hash Map', 'String'],
+    path: '/docs/computer-science/leetcode/lc-3-longest-substring-without-repeating-characters',
+  },
+  {
     id: 0,
     title: 'Greedy Algorithms',
     slug: 'greedy',
