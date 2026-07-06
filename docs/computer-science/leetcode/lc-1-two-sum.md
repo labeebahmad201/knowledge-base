@@ -49,9 +49,3 @@ class Solution:
 - The array is **sorted**, so the two-pointer approach works: too large → move `right` down; too small → move `left` up.
 - Return `[left + 1, right + 1]` because the problem uses **1-indexed** positions.
 - No extra space needed (unlike the hash-map approach for the unsorted version).
-
----
-
-## Techniques
-
-- [Two-Pointer](techniques#two-pointer)

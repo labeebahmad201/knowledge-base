@@ -5,6 +5,7 @@ export interface LeetCodeProblem {
   difficulty: 'Easy' | 'Medium' | 'Hard'
   tags: string[]
   path: string
+  type?: 'problem' | 'concept'
 }
 
 const problems: LeetCodeProblem[] = [
@@ -119,6 +120,24 @@ const problems: LeetCodeProblem[] = [
     difficulty: 'Medium',
     tags: ['Sliding Window', 'Hash Map', 'String'],
     path: '/docs/computer-science/leetcode/lc-424-longest-repeating-character-replacement',
+  },
+  {
+    id: 0,
+    title: 'Sliding Window — Max Frequency Tracking',
+    slug: 'sliding-window-max-frequency',
+    difficulty: 'Medium',
+    tags: ['Concept', 'Sliding Window', 'Hash Map'],
+    path: '/docs/computer-science/leetcode/lc-sliding-window-max-frequency',
+    type: 'concept',
+  },
+  {
+    id: 0,
+    title: 'Greedy Algorithms',
+    slug: 'greedy',
+    difficulty: 'Medium',
+    tags: ['Concept', 'Greedy'],
+    path: '/docs/computer-science/leetcode/lc-greedy',
+    type: 'concept',
   },
 ]
 

@@ -76,9 +76,3 @@ class Solution:
 ## Key insight
 
 The `if num - 1 not in num_set` check is the crux. It ensures we only start counting at the **beginning** of each consecutive run, so each element is examined by at most one inner while loop. Without this guard, the algorithm degrades to O(n²).
-
----
-
-## Techniques
-
-- [Hash Map / Hash Set](techniques#hash-map--hash-set)

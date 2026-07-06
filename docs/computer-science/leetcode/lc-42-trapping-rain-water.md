@@ -61,9 +61,3 @@ The first and last rocks (indices `0` and `n-1`) will not store any water becaus
 
 - [LC-11 — Container With Most Water](lc-11-container-with-most-water) (two-pointer, greedy variant)
 - [LC-238 — Product of Array Except Self](lc-238-product-of-array-except-self) (similar prefix/suffix technique)
-
----
-
-## Techniques
-
-- [Prefix / Suffix Pre-computation](techniques#prefix--suffix-pre-computation)

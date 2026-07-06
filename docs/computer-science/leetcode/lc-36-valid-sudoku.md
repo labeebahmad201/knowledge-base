@@ -132,9 +132,3 @@ So `(0, 0)` → box (0,0), `(4, 7)` → box (1,2), and so on.
 - A set-based single-pass solution is the most idiomatic Python approach.
 - The `(i // 3, j // 3)` box-index mapping is a common LeetCode trick worth remembering.
 - Because the board is always 9×9, every solution runs in constant time — interviewers care more about code clarity and correctness than asymptotic complexity here.
-
----
-
-## Techniques
-
-- [Hash Map / Hash Set](techniques#hash-map--hash-set)

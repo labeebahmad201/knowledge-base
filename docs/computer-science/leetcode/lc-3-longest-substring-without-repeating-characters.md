@@ -82,9 +82,3 @@ The sliding window works because we're building the window incrementally. When `
 
 - [LC-125 — Valid Palindrome](lc-125-valid-palindrome) (two-pointer on string)
 - [LC-242 — Valid Anagram](lc-242-valid-anagram) (character frequency map)
-
----
-
-## Techniques
-
-- [Sliding Window](techniques#sliding-window)
