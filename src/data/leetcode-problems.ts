@@ -114,6 +114,14 @@ const problems: LeetCodeProblem[] = [
     path: '/docs/computer-science/leetcode/lc-3-longest-substring-without-repeating-characters',
   },
   {
+    id: 424,
+    title: 'Longest Repeating Character Replacement',
+    slug: 'longest-repeating-character-replacement',
+    difficulty: 'Medium',
+    tags: ['Sliding Window', 'Hash Map', 'String'],
+    path: '/docs/computer-science/leetcode/lc-424-longest-repeating-character-replacement',
+  },
+  {
     id: 0,
     title: 'Greedy Algorithms',
     slug: 'greedy',
