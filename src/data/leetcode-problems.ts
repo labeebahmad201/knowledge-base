@@ -123,6 +123,15 @@ const problems: LeetCodeProblem[] = [
   },
   {
     id: 0,
+    title: 'Sliding Window — Max Frequency Tracking',
+    slug: 'sliding-window-max-frequency',
+    difficulty: 'Medium',
+    tags: ['Concept', 'Sliding Window', 'Hash Map'],
+    path: '/docs/computer-science/leetcode/lc-sliding-window-max-frequency',
+    type: 'concept',
+  },
+  {
+    id: 0,
     title: 'Greedy Algorithms',
     slug: 'greedy',
     difficulty: 'Medium',
