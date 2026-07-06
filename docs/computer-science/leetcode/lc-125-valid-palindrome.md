@@ -92,3 +92,9 @@ class Solution:
 - Python's chained comparisons (`ord('a') <= x <= ord('z')`) are both readable and safe.
 - Always `.lower()` both sides when comparing case-insensitively.
 - The two-pointer skip pattern handles non-alphanumeric characters without extra space.
+
+---
+
+## Techniques
+
+- [Two-Pointer](techniques#two-pointer)

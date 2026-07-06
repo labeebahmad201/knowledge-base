@@ -176,3 +176,9 @@ This inner de-dup logic only goes in the `num_sum == target` branch. Putting it 
 - The outer loop skip (`nums[i] == nums[i-1]`) prevents duplicate **triplets** (not duplicate values within a triplet).
 - After finding a match, both pointers move because any single-pointer move would yield a sum that is either too large or too small given the sorted order.
 - The inner while loops for de-duplication are only needed in the `num_sum == target` branch.
+
+---
+
+## Techniques
+
+- [Two-Pointer](techniques#two-pointer)

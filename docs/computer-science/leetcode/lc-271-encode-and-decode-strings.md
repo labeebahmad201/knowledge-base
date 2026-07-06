@@ -82,3 +82,9 @@ A naive approach (e.g., joining with `#` and splitting on `#`) breaks if `#` app
 - `str()` and `int()` bridge the type conversion between integer length and string concatenation.
 - `''.join()` is the idiomatic way to assemble strings from a list.
 - Guard `i < len(s)` before `s[i]` in while conditions to avoid index-out-of-bounds.
+
+---
+
+## Techniques
+
+- [Hash Map / Hash Set](techniques#hash-map--hash-set)

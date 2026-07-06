@@ -94,3 +94,9 @@ class Solution:
 - Prefix/suffix product is the standard pattern for "product of everything except current".
 - The `1` placeholder elegantly avoids edge-case checks at the boundaries.
 - The space-optimized version (Solution 2) is the typical follow-up interview question.
+
+---
+
+## Techniques
+
+- [Prefix / Suffix Pre-computation](techniques#prefix--suffix-pre-computation)

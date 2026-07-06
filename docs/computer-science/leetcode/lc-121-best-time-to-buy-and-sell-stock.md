@@ -88,3 +88,9 @@ Compare with other approaches:
 | LC-123 Best Time to Buy and Sell Stock III | DP (at most 2 transactions) |
 
 See the [Greedy Algorithms concept page](lc-greedy) for more.
+
+---
+
+## Techniques
+
+- [Greedy](techniques#greedy)

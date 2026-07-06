@@ -160,3 +160,9 @@ process incrementally, merge to disk. In any case, for LeetCode-scale inputs
 - In-place sorting a string is impossible in Python — strings are immutable.
 - When constrained to lowercase letters, a `[0]*26` array is the fastest and leanest solution.
 - `collections.Counter` also works: `Counter(s) == Counter(t)` — concise, but the O(1) space argument is weaker since the internal hash table may hold more keys than 26 for general input.
+
+---
+
+## Techniques
+
+- [Hash Map / Hash Set](techniques#hash-map--hash-set)

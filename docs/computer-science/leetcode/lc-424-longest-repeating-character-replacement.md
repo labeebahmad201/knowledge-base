@@ -94,3 +94,9 @@ The sliding window works because we maintain a frequency map of characters in th
 
 - [LC-3 — Longest Substring Without Repeating Characters](lc-3-longest-substring-without-repeating-characters) (sliding window variant)
 - [LC-242 — Valid Anagram](lc-242-valid-anagram) (character frequency map)
+
+---
+
+## Techniques
+
+- [Sliding Window](techniques#sliding-window) — [Max Frequency Tracking](techniques#technique-max-frequency-tracking-in-sliding-window)

@@ -89,3 +89,9 @@ Python's `heapq` is a min-heap, so `(freq, num)` tuples are ordered by frequency
 - `heapq` is a **min-heap** in Python. To make it behave like a max-heap, you can negate values or (as we did here) pop the smallest when the heap is oversized.
 - Tuple `(freq, num)` ensures `heapq` sorts by frequency first, then by num as a tiebreaker.
 - The key insight: you don't need to sort everything. You just need to track the top `k` candidates, and a min-heap of size `k` does exactly that.
+
+---
+
+## Techniques
+
+- [Heap / Priority Queue](techniques#heap--priority-queue)
