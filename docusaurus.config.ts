@@ -22,6 +22,7 @@ const config: Config = {
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
+    mermaid: true,
   },
 
   i18n: {
@@ -45,6 +46,8 @@ const config: Config = {
     ],
   ],
 
+  themes: ['@docusaurus/theme-mermaid'],
+
   themeConfig: {
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
@@ -63,6 +66,11 @@ const config: Config = {
           sidebarId: 'docs',
           position: 'left',
           label: 'Docs',
+        },
+        {
+          to: '/concepts',
+          label: 'Concepts',
+          position: 'left',
         },
         {
           href: 'https://github.com/labeebahmad201/knowledge-base',
@@ -116,6 +124,10 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
   } satisfies Preset.ThemeConfig,
+
+  clientModules: [
+    require.resolve('./src/clientModules/mermaidLightbox.tsx'),
+  ],
 
   plugins: [
     require.resolve('@easyops-cn/docusaurus-search-local'),
