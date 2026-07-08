@@ -67,11 +67,7 @@ const config: Config = {
           position: 'left',
           label: 'Docs',
         },
-        {
-          to: '/concepts',
-          label: 'Concepts',
-          position: 'left',
-        },
+
         {
           href: 'https://github.com/labeebahmad201/knowledge-base',
           label: 'GitHub',
