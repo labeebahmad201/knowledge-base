@@ -1,4 +1,4 @@
-# PostgreSQL Locks for Humans: Read Locks vs Write Locks
+# PostgreSQL Table and Row Locks
 
 Why reader locks and writer locks are fundamentally different, and why this matters in practice.
 
@@ -217,9 +217,4 @@ sequenceDiagram
 
 The design is intentional: readers protect only against destructive schema changes. Writers protect against both schema changes and index builds (which would produce inconsistent indexes if writes ran concurrently). And row-level locks exist only where there is a risk of lost updates — on existing rows being modified.
 
-## Further Reading
 
-- [PostgreSQL Concurrency Control: Locks, MVCC, and Write Performance](./postgresql-locks)
-- [DDL vs DML: Two Sides of SQL](./ddl-vs-dml)
-- [PostgreSQL Inner Workings: MVCC & Architecture](./postgresql-mvcc)
-- [PostgreSQL Documentation: Explicit Locking](https://www.postgresql.org/docs/current/explicit-locking.html)
