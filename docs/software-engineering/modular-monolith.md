@@ -48,6 +48,46 @@ graph LR
     style Modular fill:#6f6,stroke:#333
 ```
 
+### Data ownership is the dividing line
+
+The fundamental difference between these architectures is **who owns the data**.
+
+| | Layered monolith | Modular monolith | Microservices |
+|---|---|---|---|
+| **Data ownership** | Nobody. Any code can query any table | Each module owns its tables. Access goes through interfaces | Each service owns its database. Access goes through network calls |
+| **Enforcement** | None -- conventions at best | Module boundaries and import rules | Database server isolation (separate credentials, separate hosts) |
+| **Violation** | Cross-layer queries inside the same database | Direct table access across modules | Shared database between services |
+| **Cost of mistake** | Hidden until you try to split | Creates coupling that blocks extraction | Creates coupling that blocks independent scaling |
+
+In a layered monolith, the database is a shared resource with no owner. The checkout code, the payment code, and the reporting code all query the same tables because they can. There is no mechanism to prevent it. The result is invisible coupling -- the system works until you try to separate anything.
+
+In a modular monolith, each module is the sole owner of its tables. If the reporting module needs order data, it asks the checkout module through its interface. The interface is the contract. The checkout module controls the queries, the schema, and the access patterns.
+
+In microservices, the same principle applies but enforced by network boundaries. The checkout service owns its database and exposes an API. The reporting service calls that API. There is no direct database access because the database is not accessible from outside the service.
+
+```mermaid
+graph LR
+    subgraph Layered["Layered Monolith<br/>No ownership"]
+        ANY["Any code can query<br/>any table"]
+        DB[("Single shared database<br/>one schema for everything")]
+    end
+    ANY --> DB
+    subgraph Modular["Modular Monolith<br/>Module ownership"]
+        CHK["Checkout Module"] -..-> CHKDB[("Checkout tables")]
+        PAY["Payments Module"] -..-> PAYDB[("Payments tables")]
+        RPT["Reporting Module"] -.->|"calls via interface"| CHK
+    end
+    subgraph Services["Microservices<br/>Service ownership"]
+        CHKS["Checkout Service"] -..-> CHKDBS[("Checkout DB")]
+        PAYS["Payments Service"] -..-> PAYDBS[("Payments DB")]
+        RPTS["Reporting Service"] -.->|"calls via API"| CHKS
+    end
+    style Layered fill:#f66,stroke:#333
+    style DB fill:#f66,stroke:#333
+    style Modular fill:#6bf,stroke:#333
+    style Services fill:#6f6,stroke:#333
+```
+
 The modular monolith solves this by drawing internal boundaries before they are needed externally. The same discipline is required whether you eventually extract services or not.
 
 ## Core principles
@@ -224,9 +264,44 @@ In a modular monolith, events can start as in-process calls (no network overhead
 
 ## Data ownership: the hardest rule to follow
 
-Shared database tables are the most common violation of modularity. It is tempting to let the reporting module query the checkout tables directly. But direct table access between modules creates invisible coupling.
+The evolution from layered monolith to modular monolith to microservices is largely an evolution of data ownership.
 
-| Practice | Modular monolith | Violation |
+| | Layered monolith | Modular monolith | Microservices |
+|---|---|---|---|
+| **Who owns the orders table?** | Everyone | The checkout module | The checkout service |
+| **How does reporting get data?** | Direct SQL | Calls checkout module interface | Calls checkout service API |
+| **Schema change impact** | Affects all code that queries the table | Affects only the owning module | Affects only the owning service |
+| **What enforces the boundary?** | Nothing | Import rules, module structure | Network, separate credentials |
+
+In a layered monolith, the database is a shared resource with no owner. The checkout code, the payment code, and the reporting code all query the same tables because they can. There is no mechanism to prevent it. The result is invisible coupling -- the system works until you try to separate anything.
+
+In a modular monolith, each module is the sole owner of its tables. If the reporting module needs order data, it asks the checkout module through its interface. The interface is the contract. The checkout module controls the queries, the schema, and the access patterns.
+
+In microservices, the same principle is enforced by network boundaries. The checkout service owns its database and exposes an API. The reporting service calls that API. Direct database access is impossible because the database is not accessible from outside the service.
+
+```mermaid
+graph TD
+    subgraph Layered["Layered Monolith: no ownership"]
+        ANY["Any code can query orders table"]
+        DB[("orders table")]
+    end
+    subgraph Modular["Modular Monolith: module ownership"]
+        CO["Checkout Module"] -->|"owns"| MODB[("orders table")]
+        RPT["Reporting Module"] -->|"calls CO.getOrders()"| CO
+    end
+    subgraph Services["Microservices: service ownership"]
+        CS["Checkout Service"] -->|"owns"| SVDB[("orders DB")]
+        RS["Reporting Service"] -->|"calls Checkout API"| CS
+    end
+    ANY --> DB
+    style Layered fill:#f66,stroke:#333
+    style Modular fill:#6bf,stroke:#333
+    style Services fill:#6f6,stroke:#333
+```
+
+The most common violation of data ownership is shared tables. It is tempting to let the reporting module query the checkout tables directly. But direct table access between modules creates invisible coupling.
+
+| Situation | Modular monolith (correct) | Layered monolith (violation) |
 |---|---|---|
 | Querying another module's data | Through its public interface | Direct SQL against its tables |
 | Schema changes | Module migrates its own tables | Global migration that affects all modules |
@@ -235,12 +310,12 @@ Shared database tables are the most common violation of modularity. It is tempti
 
 ```mermaid
 graph TD
-    subgraph Correct["Correct"]
+    subgraph Correct["Modular: ask the owner"]
         RPT["Reporting Module"] -->|"calls"| OS["OrderService.getOrders()"]
-        OS -->|"reads"| DB[("Orders DB")]
+        OS -->|"owns"| DB[("Orders tables")]
     end
-    subgraph Wrong["Wrong"]
-        RPT2["Reporting Module"] -->|"direct SQL"| DB2[("Orders DB")]
+    subgraph Wrong["Layered: direct query"]
+        RPT2["Reporting Module"] -->|"direct SQL"| DB2[("Orders tables")]
     end
     style Correct fill:#6f6,stroke:#333
     style Wrong fill:#f66,stroke:#333
