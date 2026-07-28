@@ -83,23 +83,23 @@ const config: Config = {
           items: [
             {
               label: 'Computer Science',
-              to: '/docs/category/computer-science',
+              to: '/docs/computer-science/overview',
             },
             {
               label: 'Software Engineering',
-              to: '/docs/category/software-engineering',
+              to: '/docs/software-engineering/overview',
             },
             {
               label: 'Artificial Intelligence',
-              to: '/docs/category/artificial-intelligence',
+              to: '/docs/artificial-intelligence/overview',
             },
             {
               label: 'Labs',
-              to: '/docs/category/labs',
+              to: '/docs/labs/overview',
             },
             {
               label: 'Product',
-              to: '/docs/category/product',
+              to: '/docs/product/overview',
             },
           ],
         },

@@ -2,10 +2,6 @@
 
 Core CS fundamentals for software engineering.
 
-## Topics
+import DocCategoryList from '@site/src/components/DocCategoryList';
 
-- Algorithms & data structures
-- Operating systems
-- Computer networking
-- Databases & query optimization
-- Design patterns
+<DocCategoryList />
