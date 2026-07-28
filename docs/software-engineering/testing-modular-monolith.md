@@ -84,44 +84,7 @@ graph TD
 
 A 30-minute test suite in a layered monolith is common. The same system as a modular monolith tests in under 5 minutes because the boundaries allow parallel, isolated test runs.
 
-## The microservices problem: orchestration hell
 
-Microservices replace the layered monolith's coupling problem with an orchestration problem.
-
-```
-// Microservices -- every test needs network
-test("checkout flow") {
-  startCheckoutService()         // wait for container
-  startPaymentService()          // wait for container
-  startNotificationService()     // wait for container
-  seedDatabase(CHECKOUT_DB)      // service-specific DB
-  seedDatabase(PAYMENT_DB)       // another DB
-  waitForHealthChecks()          // everything ready?
-  hitEndpoint("/checkout")
-  assertResponse()
-  tearDownContainers()
-}
-```
-
-Every test requires starting dependent services. Tests are flaky because network calls timeout. The developer workflow is: write code, run tests, wait for containers, debug a flaky network issue, fix the test, rerun.
-
-```mermaid
-graph LR
-    subgraph Microservices["Microservices test"]
-        A["Start 3 containers"] --> B["Wait for health checks"]
-        B --> C["Seed 2 databases"]
-        C --> D["Run test"]
-        D --> E["Tear down containers"]
-    end
-    subgraph Modular["Modular monolith test"]
-        F["Start 1 process"] --> G["Seed module tables"]
-        G --> H["Run test"]
-    end
-    style Microservices fill:#f96,stroke:#333
-    style Modular fill:#6f6,stroke:#333
-```
-
-The modular monolith removes the network layer from tests without removing the module boundaries. You test the same module structure that will eventually become services, without paying the distributed systems tax during development.
 
 ## Test levels in a modular monolith
 
@@ -281,7 +244,7 @@ graph TD
 | Integration tests | Dozens | Seconds each | Yes |
 | Smoke tests | A handful | Seconds total | Yes (or nightly) |
 
-A modular monolith can run all tests in under 5 minutes. A microservice system with the same functionality typically takes 15-30 minutes because of container startup, network calls, and distributed test coordination.
+
 
 ## What makes it possible: interfaces and data ownership
 
@@ -359,7 +322,7 @@ The boundaries that make testing easy also create new ways to write bad tests. H
 
 ### Mocking at the class level instead of stubbing at the module boundary
 
-The most common mistake. Teams bring their microservice or DDD testing habits and mock every class individually instead of providing a module-level test double through the interface.
+The most common mistake. Teams bring their DDD testing habits and mock every class individually instead of providing a module-level test double through the interface.
 
 ```
 // Bad: mock every class
@@ -456,7 +419,7 @@ graph LR
 
 ### Testing through HTTP when in-process works
 
-Starting the full HTTP server for every test because that is how you would test a microservice. A modular monolith lets you call module methods directly.
+Starting the full HTTP server for every test when you can call module methods directly.
 
 ```
 // Bad: HTTP for every test
@@ -534,12 +497,12 @@ test("checkout") {
 
 Circular dependencies in tests always reflect circular dependencies in the architecture. Fix the architecture first.
 
-### Treating the modular monolith like microservices
+### Container overuse
 
-Starting Docker containers, TestContainers, or service orchestration for tests that should run in-process. This is the most expensive anti-pattern because it adds minutes to every test run without benefit.
+Starting Docker containers, TestContainers, or service orchestration for tests that should run in-process. This adds minutes to every test run without benefit.
 
 ```
-// Bad: treating it like microservices
+// Bad: container for every test
 test("checkout flow") {
   startContainer("postgres")
   startContainer("redis")
@@ -579,13 +542,13 @@ graph TD
 
 ## Summary
 
-| | Layered monolith | Modular monolith | Microservices |
+| | Layered monolith | Modular monolith |
 |---|---|---|---|
-| **Test isolation** | None -- everything coupled | Module-level via interfaces | Service-level via network |
-| **Test speed** | Slow (30 min+) | Fast (under 5 min) | Medium (depends on orchestration) |
-| **Test flakiness** | Low (no network) | Low (no network) | High (network, containers) |
-| **Test setup** | Seed shared database | Seed module-specific tables | Start containers, seed per-service DB |
-| **Smoke test** | Start one process | Start one process | Start N containers |
-| **Refactoring confidence** | Low -- tests are brittle | High -- boundaries are tested | High but slow feedback |
+| **Test isolation** | None -- everything coupled | Module-level via interfaces |
+| **Test speed** | Slow (30 min+) | Fast (under 5 min) |
+| **Test flakiness** | Low (no network) | Low (no network) |
+| **Test setup** | Seed shared database | Seed module-specific tables |
+| **Smoke test** | Start one process | Start one process |
+| **Refactoring confidence** | Low -- tests are brittle | High -- boundaries are tested |
 
 A modular monolith gives you the best of both testing worlds: the isolation and speed of module tests with the simplicity of single-process smoke tests. The same interfaces that make the architecture clean make the testing fast.
