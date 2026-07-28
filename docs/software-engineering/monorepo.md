@@ -136,7 +136,7 @@ graph LR
 
 ## Relationship to modular monolith
 
-A monorepo is a **repository strategy** (where you store code at rest). A [modular monolith](/docs/software-engineering/modular-monolith) is an **architectural pattern** (how you structure code at runtime). They are orthogonal -- you can have either, both, or neither.
+A monorepo is a **repository strategy** (where you store code at rest). A modular monolith is an **architectural pattern** (how you structure code at runtime). They are orthogonal -- you can have either, both, or neither.
 
 | | Monorepo | Multirepo |
 |---|---|---|
