@@ -227,7 +227,7 @@ Microservices fix deployment coupling, scaling waste, and technology lock-in. Th
 - Team coordination -- service boundaries create new coordination problems (contracts, API versioning)
 - Slow feedback loops -- network calls add latency, distributed tracing adds complexity
 
-The right first step is almost always a [modular monolith](/docs/software-engineering/modular-monolith). Draw the boundaries, organize the code by capability, define the interfaces. If those boundaries cannot be drawn cleanly inside a monolith, they will not be cleanly drawn across services either.
+The right first step is almost always a modular monolith. Draw the boundaries, organize the code by capability, define the interfaces. If those boundaries cannot be drawn cleanly inside a monolith, they will not be cleanly drawn across services either.
 
 Only when the modular monolith is in place and the pain persists (team scaling, independent scaling needs) should you extract services.
 
@@ -248,6 +248,6 @@ These are the motivations to move away from a monolith. Each maps to a specific 
 | Database is a bottleneck | Data independence | Schema-per-module, then database-per-service |
 | One bug crashes everything | Blast radius isolation | Modular monolith (process isolation is a microservices concern) |
 
-Each pain points to a different solution. Not all of them require microservices. The first move is always the same: clean up the boundaries. That is the [modular monolith](/docs/software-engineering/modular-monolith). Extract to services only when the boundary is clean and the pain persists.
+Each pain points to a different solution. Not all of them require microservices. The first move is always the same: clean up the boundaries. That is the modular monolith. Extract to services only when the boundary is clean and the pain persists.
 
 The full decision framework is covered in [Monolith vs Microservices](/docs/software-engineering/monolith-vs-microservices).
