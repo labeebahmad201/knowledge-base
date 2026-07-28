@@ -2,9 +2,6 @@
 
 Hands-on walkthroughs and experiments.
 
-## Topics
+import DocCategoryList from '@site/src/components/DocCategoryList';
 
-- PostgreSQL query optimization
-- Bash scripting
-- Docker & containers
-- Cloud infrastructure
+<DocCategoryList />

@@ -4,7 +4,7 @@ A searchable collection of notes on computer science, software engineering, arti
 
 ## Categories
 
-- [Computer Science](/docs/category/computer-science) — algorithms, data structures, operating systems, networking, databases, design patterns
-- [Software Engineering](/docs/category/software-engineering) — languages, tools, architecture, testing, DevOps
-- [Artificial Intelligence](/docs/category/artificial-intelligence) — ML fundamentals, LLMs, prompting, AI engineering
-- [Labs](/docs/category/labs) — hands-on walkthroughs (Postgres, bash, etc.)
+- [Computer Science](/docs/computer-science/overview) — algorithms, data structures, operating systems, networking, databases, design patterns
+- [Software Engineering](/docs/software-engineering/overview) — languages, tools, architecture, testing, DevOps
+- [Artificial Intelligence](/docs/artificial-intelligence/overview) — ML fundamentals, LLMs, prompting, AI engineering
+- [Labs](/docs/labs/overview) — hands-on walkthroughs (Postgres, bash, etc.)

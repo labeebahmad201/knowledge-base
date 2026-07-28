@@ -4,12 +4,12 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 
 const categories = [
-  {name: 'Computer Science', path: '/docs/category/computer-science', desc: 'Algorithms, data structures, OS, networking, databases, design patterns', icon: '💻'},
+  {name: 'Computer Science', path: '/docs/computer-science/overview', desc: 'Algorithms, data structures, OS, networking, databases, design patterns', icon: '💻'},
   {name: 'LeetCode', path: '/docs/computer-science/leetcode/', desc: 'LeetCode solutions with multiple approaches, complexity analysis, and tradeoffs', icon: '🏆'},
-  {name: 'Software Engineering', path: '/docs/category/software-engineering', desc: 'Languages, tools, architecture, testing, DevOps, observability', icon: '🛠'},
-  {name: 'Artificial Intelligence', path: '/docs/category/artificial-intelligence', desc: 'ML, LLMs, prompt engineering, RAG, AI engineering', icon: '🤖'},
-  {name: 'Labs', path: '/docs/category/labs', desc: 'Hands-on walkthroughs — Postgres, bash, Docker, cloud', icon: '🧪'},
-  {name: 'Product', path: '/docs/category/product', desc: 'Product thinking, marketing, and building for users', icon: '📦'},
+  {name: 'Software Engineering', path: '/docs/software-engineering/overview', desc: 'Languages, tools, architecture, testing, DevOps, observability', icon: '🛠'},
+  {name: 'Artificial Intelligence', path: '/docs/artificial-intelligence/overview', desc: 'ML, LLMs, prompt engineering, RAG, AI engineering', icon: '🤖'},
+  {name: 'Labs', path: '/docs/labs/overview', desc: 'Hands-on walkthroughs — Postgres, bash, Docker, cloud', icon: '🧪'},
+  {name: 'Product', path: '/docs/product/overview', desc: 'Product thinking, marketing, and building for users', icon: '📦'},
 ];
 
 export default function Home(): ReactNode {

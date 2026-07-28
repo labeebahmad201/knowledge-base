@@ -4,7 +4,7 @@
   "collapsible": true,
   "collapsed": true,
   "link": {
-    "type": "generated-index",
-    "title": "Computer Science"
+    "type": "doc",
+    "id": "computer-science/overview"
   }
 }

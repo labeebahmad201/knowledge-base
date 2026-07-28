@@ -2,12 +2,6 @@
 
 Languages, tools, architecture, and engineering practices.
 
-## Topics
+import DocCategoryList from '@site/src/components/DocCategoryList';
 
-- Programming languages & runtimes
-- Software design & architecture
-- APIs & distributed systems
-- Testing & quality
-- DevOps & platform
-- Observability
-- Engineering process
+<DocCategoryList />

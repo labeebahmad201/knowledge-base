@@ -2,12 +2,6 @@
 
 Machine learning, LLMs, prompt engineering, and AI application development.
 
-## Topics
+import DocCategoryList from '@site/src/components/DocCategoryList';
 
-- ML fundamentals
-- Deep learning
-- Large language models
-- Prompt engineering
-- AI engineering & tooling
-- AI agents
-- Retrieval-augmented generation
+<DocCategoryList />

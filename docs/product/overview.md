@@ -28,3 +28,9 @@ That moment is what converts a trial into adoption. Everything before it is just
 For retention, it is critical that your product grows according to the needs of the user. Do not let the user's needs outgrow your product.
 
 If your product stays still while the user advances, they will leave. The product must evolve alongside them — adding depth, capability, and value as their requirements become more sophisticated.
+
+## Articles
+
+import DocCategoryList from '@site/src/components/DocCategoryList';
+
+<DocCategoryList />
