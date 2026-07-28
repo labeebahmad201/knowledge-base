@@ -233,22 +233,28 @@ This is called a **distributed monolith**: a system that runs as separate proces
 ```mermaid
 flowchart TD
     subgraph Monolith["Monolith (tightly coupled)"]
+        direction LR
         A["Module A"] -->|"direct call"| B["Module B"]
         B -->|"direct call"| C["Module C"]
         A -.->|"shared database"| C
     end
     subgraph Distributed["Distributed monolith"]
+        direction LR
         D["Service A"] -->|"HTTP/gRPC<br/>1-10ms"| E["Service B"]
         E -->|"HTTP/gRPC<br/>1-10ms"| F["Service C"]
         D -.->|"shared database"| F
     end
     subgraph Proper["Proper microservices"]
-        G["Service A"] -->|"well-defined API<br/>thin contract"| H["Service B"]
-        H -->|"well-defined API"| I["Service C"]
+        direction LR
+        EB[("Event Bus")]
+        G["Service A"] -->|"publishes event"| EB
+        H["Service B"] -->|"subscribes"| EB
+        I["Service C"] -->|"subscribes"| EB
         G -->|"own schema"| DB1[("DB A")]
         H -->|"own schema"| DB2[("DB B")]
         I -->|"own schema"| DB3[("DB C")]
     end
+    Monolith ~~~ Distributed ~~~ Proper
     style Monolith fill:#ff9,stroke:#333
     style Distributed fill:#f66,stroke:#333
     style Proper fill:#6f6,stroke:#333
@@ -260,6 +266,7 @@ flowchart TD
 - A change in one service requires coordinated changes in others
 - Most features require chaining calls across 3+ services
 - You cannot deploy one service without also deploying others
+- Services make synchronous calls to third-parties scattered across the system instead of contained behind an integration service ([see Third-Party Coupling](/docs/software-engineering/third-party-coupling))
 - The team structure does not match the service boundaries
 
 The root cause is almost always splitting along **technical layers** rather than **business domains**. Breaking a monolith into a "user service," "payment service," and "notification service" is splitting by layer. The real boundaries are business capabilities: "checkout," "fulfillment," "messaging."
