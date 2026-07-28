@@ -1,12 +1,57 @@
 # Testing a Modular Monolith
 
-Modular monoliths are the sweet spot for testing. The module boundaries give you clean isolation for fast, focused tests. The single-process deployment gives you simple smoke tests that do not require orchestrating multiple services.
+## The foundation: interfaces let you swap implementations
 
-This is not a compromise. A modular monolith avoids the two worst testing regimes: the layered monolith where everything is coupled so tests are slow and brittle, and microservices where every test requires network orchestration and deals with distributed flakiness.
+A modular monolith is organized around interfaces. Module A does not call module B directly. It calls an interface that module B implements.
+
+```mermaid
+graph LR
+    subgraph Checkout["Checkout Module"]
+        CO["Checkout service<br/>calls processPayment()"]
+    end
+    subgraph Interface["IPaymentService interface"]
+        I["processPayment(orderId, amount)"]
+    end
+    subgraph Payments["Payments Module"]
+        IMPL["StripePaymentService<br/>implements processPayment()"]
+    end
+    CO --> I
+    I --> IMPL
+    style Interface fill:#6f6,stroke:#333
+```
+
+In production, the interface is wired to `StripePaymentService` — it charges credit cards, talks to Stripe's API, and writes to the payment database.
+
+In a test, the same interface is wired to `DummyPaymentService` — a class that implements the same interface but returns a hardcoded success without touching any network or database.
+
+```
+// Production wiring
+payment = StripePaymentService(stripeApiKey)   // real implementation
+checkout = CheckoutModule(payment)
+
+// Test wiring
+payment = DummyPaymentService()                // test implementation
+checkout = CheckoutModule(payment)
+```
+
+No mocking framework. No reflection. No monkey-patching. The interface already exists because the architecture demands it. The test just provides a different implementation of the same contract.
+
+```mermaid
+graph TD
+    subgraph Interface["IPaymentService"]
+    end
+    Interface -->|"in production"| REAL["StripePaymentService<br/>hits Stripe API"]
+    Interface -->|"in tests"| DUMMY["DummyPaymentService<br/>returns success instantly"]
+    style Interface fill:#6f6,stroke:#333
+    style REAL fill:#6bf,stroke:#333
+    style DUMMY fill:#6f6,stroke:#333
+```
+
+This is the entire foundation. Everything else follows from it.
 
 ## The layered monolith problem: no seams
 
-In a layered monolith, there are no module boundaries. Every test sets up the entire system because there is no way to isolate a piece of it.
+In a layered monolith, there is no interface layer between modules. The checkout code imports `StripePaymentService` directly. There is no seam to insert a test double without a mocking framework.
 
 ```
 // Layered monolith -- every test needs everything
@@ -80,15 +125,17 @@ The modular monolith removes the network layer from tests without removing the m
 
 ## Test levels in a modular monolith
 
-### 1. Module tests (fastest)
+The tests form three levels. Each level answers a different question.
 
-A module test tests one module in isolation. Every dependency on other modules is replaced by a test double through the interface.
+### 1. Module tests (unit) — does this module work correctly?
+
+A module test tests one module in isolation. Every other module is replaced by a test double through its interface. The "unit" here is the module, not a class.
 
 ```mermaid
 graph TD
-    subgraph ModuleTest["Module test"]
+    subgraph ModuleTest["Module test (unit)"]
         MM["Checkout Module"] -->|"calls"| IF["IPaymentService"]
-        IF -->|"stubbed"| DBL["Dummy implementation<br/>returns success"]
+        IF -->|"dummy impl"| DBL["DummyPaymentService<br/>returns success<br/>records what was passed"]
         MM -..->|"owns"| DB[("Checkout tables")]
     end
     style ModuleTest fill:#6bf,stroke:#333
@@ -96,17 +143,31 @@ graph TD
 ```
 
 ```
-// Module test -- only checkout, stub payment
+// Module test -- test the checkout module's logic
+// Payment is not being tested -- we swap it with a dummy
 test("checkout submits order successfully") {
-  paymentService = DummyPaymentService()  // always succeeds
-  checkout = CheckoutModule(paymentService)
+  dummyPayment = DummyPaymentService()    // implements IPaymentService
+  checkout = CheckoutModule(dummyPayment)
 
   checkout.submitOrder(customerId, items)
 
+  // Assert that checkout module did its job
   assert(checkout.orderRepository.count() === 1)
   assert(checkout.orderRepository.lastOrder().status === "confirmed")
+  // Also assert that checkout called the payment interface correctly
+  assert(dummyPayment.lastOrderId === customerId)
+  assert(dummyPayment.lastAmount === expected)
 }
 ```
+
+What this tests:
+- The checkout module's business logic
+- That checkout calls the payment interface with the right arguments
+- That checkout handles the payment response correctly
+
+What this does not test:
+- The payment module's implementation (that is a different module test)
+- Whether the checkout module and payment module agree on the interface contract (that is integration)
 
 This test:
 - Does not start a server or hit a network
@@ -114,15 +175,15 @@ This test:
 - Runs in milliseconds
 - Can run in parallel with every other module test
 
-### 2. Integration tests (medium)
+### 2. Integration tests — do the modules agree on the contract?
 
-An integration test wires multiple real modules together. External dependencies (third-party APIs, databases, message brokers) are still stubbed or use test containers.
+An integration test wires multiple real modules together. The interfaces are real — checkout calls the real payment module, payment calls the real notification module. What is still stubbed is the external infrastructure (Stripe, email service, message broker).
 
 ```mermaid
 graph TD
     subgraph IntegrationTest["Integration test"]
-        CO["Checkout Module"] -->|"real"| PS["Payment Module"]
-        PS -->|"stubbed"| SA["Stripe Adapter<br/>returns success"]
+        CO["Checkout Module"] -->|"real call"| PS["Payment Module"]
+        PS -->|"stubbed"| SA["DummyStripeAdapter<br/>never hits Stripe"]
         CO -..->|"owns"| CDB[("Checkout tables")]
         PS -..->|"owns"| PDB[("Payment tables")]
     end
@@ -131,7 +192,8 @@ graph TD
 ```
 
 ```
-// Integration test -- real checkout + real payment, stub Stripe
+// Integration test -- real checkout + real payment together
+// Stripe is still stubbed -- we do not want to hit a real payment gateway
 test("checkout creates payment transaction") {
   stripe = DummyStripeAdapter()            // never hits Stripe's API
   payment = PaymentModule(stripe)
@@ -139,12 +201,28 @@ test("checkout creates payment transaction") {
 
   checkout.submitOrder(customerId, items)
 
+  // Assert that the real payment module did its job
   assert(payment.transactionRepository.count() === 1)
   assert(payment.transactionRepository.last().amount === expected)
+
+  // Assert that checkout module's state is consistent with payment
+  assert(checkout.lastOrder().paymentTransactionId !== null)
 }
 ```
 
-This test exercises the real interface between two modules. It catches contract issues that module tests miss. It still does not require network calls because both modules run in the same process.
+What this tests that the module test does not:
+- Whether the checkout module and payment module agree on the interface contract. In a module test, checkout calls `DummyPaymentService`. In this test, checkout calls the real `StripePaymentService.processPayment()` — which calls `DummyStripeAdapter`. If the interface contract is wrong (wrong argument type, wrong method name), the integration test catches it.
+- Whether the two modules interact correctly end-to-end. A module test says "checkout calls the interface with these args." An integration test says "checkout calls the interface with these args AND payment receives them correctly."
+
+In summary:
+
+| | Module test (unit) | Integration test |
+|---|---|---|
+| **Checkout module** | Real | Real |
+| **Payment module** | Dummy (implementing IPaymentService) | Real |
+| **Stripe adapter** | Not needed | Dummy |
+| **What it proves** | Checkout logic is correct | Checkout and payment work together correctly |
+| **What it does not prove** | That payment module exists | That Stripe works (that is a different test) |
 
 ### 3. Deployment smoke tests (slowest but simplest)
 
