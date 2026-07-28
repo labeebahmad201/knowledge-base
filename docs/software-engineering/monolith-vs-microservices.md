@@ -224,6 +224,66 @@ graph LR
 
 The real question is not monorepo vs multirepo. It is: do your services own their own deploy pipeline and data store, or are they all tied to the same deploy button and database?
 
+## The distributed monolith anti-pattern
+
+A common mistake is assuming that splitting a monolith into services automatically removes coupling. It does not. If two modules were tightly coupled inside the monolith, extracting them into separate services does not uncouple them -- it just turns in-process calls into network calls. The same logical dependency now has added latency, serialization overhead, and potential network failures.
+
+This is called a **distributed monolith**: a system that runs as separate processes but remains as coupled as if it were a single deployment. It has all the operational cost of microservices with none of the benefits.
+
+```mermaid
+flowchart TD
+    subgraph Monolith["Monolith (tightly coupled)"]
+        A["Module A"] -->|"direct call"| B["Module B"]
+        B -->|"direct call"| C["Module C"]
+        A -.->|"shared database"| C
+    end
+    subgraph Distributed["Distributed monolith"]
+        D["Service A"] -->|"HTTP/gRPC<br/>1-10ms"| E["Service B"]
+        E -->|"HTTP/gRPC<br/>1-10ms"| F["Service C"]
+        D -.->|"shared database"| F
+    end
+    subgraph Proper["Proper microservices"]
+        G["Service A"] -->|"well-defined API<br/>thin contract"| H["Service B"]
+        H -->|"well-defined API"| I["Service C"]
+        G -->|"own schema"| DB1[("DB A")]
+        H -->|"own schema"| DB2[("DB B")]
+        I -->|"own schema"| DB3[("DB C")]
+    end
+    style Monolith fill:#ff9,stroke:#333
+    style Distributed fill:#f66,stroke:#333
+    style Proper fill:#6f6,stroke:#333
+```
+
+### How to spot a distributed monolith
+
+- Services share a database schema (or even a database)
+- A change in one service requires coordinated changes in others
+- Most features require chaining calls across 3+ services
+- You cannot deploy one service without also deploying others
+- The team structure does not match the service boundaries
+
+The root cause is almost always splitting along **technical layers** rather than **business domains**. Breaking a monolith into a "user service," "payment service," and "notification service" is splitting by layer. The real boundaries are business capabilities: "checkout," "fulfillment," "messaging."
+
+```mermaid
+graph LR
+    subgraph Wrong["Split by technical layer (distributed monolith)"]
+        A["User<br/>Service"] -->|"calls"| B["Payment<br/>Service"]
+        B -->|"calls"| C["Notification<br/>Service"]
+        A -->|"shares"| DB1[("Same DB")]
+    end
+    subgraph Right["Split by business domain"]
+        D["Checkout<br/>Domain"] -->|"event"| E["Fulfillment<br/>Domain"]
+        E -->|"event"| F["Messaging<br/>Domain"]
+        D --> DB2[("Checkout DB")]
+        E --> DB3[("Fulfillment DB")]
+        F --> DB4[("Messaging DB")]
+    end
+    style Wrong fill:#f66,stroke:#333
+    style Right fill:#6f6,stroke:#333
+```
+
+The lesson: microservices **enforce** boundaries, they do not create them. If the logical boundaries are not clean in the monolith, splitting makes the coupling more expensive without removing it. Start monolithic, discover the real seams, then extract along those seams.
+
 ## Summary
 
 | Keep the monolith when... | Extract services when... |
