@@ -2,6 +2,6 @@
 
 Languages, tools, architecture, and engineering practices.
 
-import DocCategoryList from '@site/src/components/DocCategoryList';
+import ArticleFilter from '@site/src/components/ArticleFilter';
 
-<DocCategoryList />
+<ArticleFilter />
