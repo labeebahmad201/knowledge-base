@@ -8,6 +8,38 @@ The question is not "should we use abstractions?" The question is "does this abs
 
 An abstraction is a simplified interface that hides implementation details. The caller interacts with the interface, not the concrete code behind it.
 
+## What indirection is
+
+Indirection is the cost of abstraction. Instead of calling the implementation directly, you call the interface which then calls the implementation. That extra step is indirection.
+
+```
+// Direct call (no indirection)
+checkoutTotal = calculateTotal(items)
+
+// Indirect call (indirection via interface)
+checkoutTotal = pricingService.calculateTotal(items)
+//              |                    |
+//              |                    +-- Implementation
+//              +-- Interface call (extra step)
+```
+
+Indirection is not inherently bad. It is a tradeoff. Every abstraction adds a layer you must navigate through to understand what the code actually does. When you read `pricingService.calculateTotal()`, you cannot see the calculation — you must open the implementation. That is the cost.
+
+```mermaid
+graph LR
+    subgraph Direct["No indirection"]
+        A["Checkout code"] --> B["calculateTotal(items)<br/>(implementation right here)"]
+    end
+    subgraph Indirect["Indirection"]
+        C["Checkout code"] --> D["pricingService.calculateTotal()<br/>(interface)"]
+        D --> E["TaxInclusivePricing.calculateTotal()<br/>(implementation)"]
+    end
+    style Direct fill:#6f6,stroke:#333
+    style Indirect fill:#f96,stroke:#333
+```
+
+The justification for indirection is that the abstraction provides value that outweighs the extra step. If the value is not there, the indirection is pure waste.
+
 ```mermaid
 graph LR
     subgraph WithoutAbstraction["Without abstraction"]
@@ -163,6 +195,19 @@ interface IFileStorage {
 ```
 
 The caller passes a logical filename. The implementation maps it to the storage backend. The interface is simpler than any specific backend.
+
+### Testability is not a valid reason
+
+Mocking frameworks (Jest, Mockito, unittest.mock) can mock concrete classes directly. You do not need an interface to swap implementations in tests.
+
+```
+// Mock a concrete class directly -- no interface needed
+jest.mock('./StripePaymentProvider')
+const stripe = new StripePaymentProvider()
+stripe.processPayment.mockResolvedValue(success)
+```
+
+The interface earns its place when it serves an architectural purpose — multiple implementations, wrapping a volatile dependency, defining a module boundary. Testability is a free byproduct, not a justification. If the only reason an interface exists is so you can mock in tests, the abstraction is adding indirection without architectural value.
 
 ### 3. Abstracting before you know what varies
 
