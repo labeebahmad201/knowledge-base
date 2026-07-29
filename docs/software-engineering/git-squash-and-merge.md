@@ -146,17 +146,9 @@ Use rebase and merge when each commit on the feature branch is a coherent, indep
 
 ## What about the commit author?
 
-When you squash and merge, the author of the squash commit is the person who performed the merge (typically the reviewer who clicked the button), not the original developer. The individual commits are still visible on the feature branch in the pull request, but in the main branch history, the feature is credited to the merger.
+When you use GitHub's squash and merge, the commit author defaults to the person who performed the merge. But you can change it before confirming — the author field is editable in the merge confirmation dialog. Set it to the original developer and the credit goes where it belongs.
 
-Some teams solve this by having the original developer squash their branch locally before pushing, then using a regular merge:
-
-```bash
-git rebase -i main
-# mark all commits except the first as "squash"
-git push --force-with-lease
-```
-
-This way the squash commit retains the original author, and the merge is a simple fast-forward or merge commit.
+The simplest approach: the developer who owns the changes does the squash and merge themselves from the PR. They click the button, set the commit message, and they are the author. No extra steps needed.
 
 ## Summary
 
