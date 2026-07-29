@@ -10,6 +10,29 @@ Michael Feathers defined a seam in *Working Effectively with Legacy Code* as:
 
 A seam exists at every module boundary. If module A calls module B through an interface, that interface is a seam. In a test, you swap module B for a test double at that seam — without editing module A.
 
+```typescript
+// A seam in TypeScript: the IPaymentService interface
+interface IPaymentService {
+  charge(amount: number, currency: string): Promise<Receipt>
+}
+
+class StripePaymentService implements IPaymentService {
+  async charge(amount: number, currency: string): Promise<Receipt> {
+    // real Stripe API call
+    return stripe.charges.create({ amount, currency })
+  }
+}
+
+// Checkout depends on the seam, not on Stripe
+class CheckoutService {
+  constructor(private payment: IPaymentService) {}
+
+  async submitOrder(order: Order): Promise<Receipt> {
+    return this.payment.charge(order.total, order.currency)
+  }
+}
+```
+
 ```mermaid
 graph LR
     subgraph Production["Production"]
@@ -29,7 +52,7 @@ A real seam is a type in your codebase — an interface, an abstract class, or a
 
 A fake seam is a mocking framework (Jest, Mockito, unittest.mock) that intercepts the call at runtime without changing the code. The code depends on the concrete class directly, but the framework hijacks the dependency.
 
-```
+```typescript
 // Real seam: IPaymentService exists in code
 class CheckoutService {
   constructor(private payment: IPaymentService) {}
@@ -37,8 +60,9 @@ class CheckoutService {
 
 // Fake seam: no interface, but Jest intercepts anyway
 jest.mock('./StripePaymentService')
-const stripe = new StripePaymentService()
-stripe.processPayment.mockResolvedValue(success)
+const { StripePaymentService } = await import('./StripePaymentService')
+const stripe = jest.mocked(new StripePaymentService())
+stripe.processPayment.mockResolvedValue({ status: 'succeeded' })
 ```
 
 Both approaches let you swap dependencies in tests. The difference is what the production code looks like.
@@ -64,15 +88,17 @@ graph TD
 
 A fixture is not a seam. A fixture is test data — the objects, database records, or files that set up the state for a test.
 
-```
+```typescript
 // Seam: where you swap the implementation
 jest.mock('./StripePaymentService')         // seam via mock
 
 // Fixture: the test data
-const testOrder = {                          // fixture
+const testOrder: Order = {                  // fixture
   id: 'order-123',
   customerId: 'cust-456',
   items: [{ sku: 'PROD-1', qty: 2 }],
+  total: 4999,
+  currency: 'usd',
 }
 ```
 
@@ -103,9 +129,27 @@ Each of these is a 1:1 pair. The interface exists only to create a seam for mock
 
 The thing you plug into the seam is a test double — a fake or dummy implementation. It replaces the real dependency.
 
-```
-// Seam (interface in code or mock framework) lets you plug in a test double
-// The test double provides controlled behavior without side effects
+```typescript
+// Test double via real seam (interface)
+class DummyPaymentService implements IPaymentService {
+  async charge(amount: number, currency: string): Promise<Receipt> {
+    return { id: 'txn-dummy', status: 'succeeded', amount, currency }
+  }
+}
+
+it('submits order successfully', async () => {
+  const checkout = new CheckoutService(new DummyPaymentService())
+  const receipt = await checkout.submitOrder(testOrder)
+  expect(receipt.status).toBe('succeeded')
+})
+
+// Same test via fake seam (jest.mock)
+it('submits order with mocked stripe', async () => {
+  const checkout = new CheckoutService(stripe)
+  const receipt = await checkout.submitOrder(testOrder)
+  expect(stripe.processPayment).toHaveBeenCalledWith(4999, 'usd')
+  expect(receipt.status).toBe('succeeded')
+})
 ```
 
 | Concept | What it is | Example |
