@@ -12,7 +12,6 @@ const articles: Article[] = [
   {title: 'Architecture is Not the Starting Point', path: '/docs/software-engineering/architecture-is-not-the-starting-point', category: 'Architecture'},
   {title: 'Cohesion: Capability vs Layer', path: '/docs/software-engineering/cohesion-capability-vs-layer', category: 'Architecture'},
   {title: 'Cross-Module Queries', path: '/docs/software-engineering/cross-module-queries', category: 'Architecture'},
-  {title: 'Design & Architecture', path: '/docs/software-engineering/design-architecture', category: 'Architecture'},
   {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
   {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},
   {title: 'Modular Monolith', path: '/docs/software-engineering/modular-monolith', category: 'Architecture'},
