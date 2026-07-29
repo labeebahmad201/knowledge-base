@@ -75,7 +75,7 @@ Even within a capability, what goes in and what stays out? An order repository b
 
 This question is answered by looking at **change reasons**. If two files change for the same reason (an update to the checkout flow), they belong together. If they change for different reasons (adding a database column vs adding a new endpoint), they do not.
 
-[Cohesion: Capability vs Layer](/docs/software-engineering/cohesion-capability-vs-layer) covers this in depth. The deeper problem is that teams reach for architecture patterns before understanding the domain — see [Architecture is Not the Starting Point](/docs/software-engineering/architecture-is-not-the-starting-point).
+[Cohesion: Capability vs Layer](/docs/software-engineering/architecture/cohesion-capability-vs-layer) covers this in depth. The deeper problem is that teams reach for architecture patterns before understanding the domain — see [Architecture is Not the Starting Point](/docs/software-engineering/architecture/architecture-is-not-the-starting-point).
 
 ### 3. Where might we need to split?
 

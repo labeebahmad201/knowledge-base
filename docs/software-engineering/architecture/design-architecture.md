@@ -4,7 +4,7 @@
 
 ## Coupling & Cohesion
 
-Module boundaries. [Related by capability, not by layer](/docs/software-engineering/cohesion-capability-vs-layer).
+Module boundaries. [Related by capability, not by layer](/docs/software-engineering/architecture/cohesion-capability-vs-layer).
 
 ## Composition over Inheritance
 

@@ -22,11 +22,11 @@ This is not a compromise. It is a deliberate choice. A modular monolith gives yo
 
 ## The problem it solves
 
-[When the Monolith Breaks](/docs/software-engineering/when-the-monolith-breaks) covers the seven ways a monolith can fail. Most of those failures are not caused by the deploy model. They are caused by the absence of boundaries.
+[When the Monolith Breaks](/docs/software-engineering/architecture/when-the-monolith-breaks) covers the seven ways a monolith can fail. Most of those failures are not caused by the deploy model. They are caused by the absence of boundaries.
 
 Layered monoliths group by technology -- all controllers together, all services together, all repositories together. The layers are tidy but the dependencies are not. Every module reaches into every other module's data. A change in one domain leaks into unrelated domains because there is no wall between them.
 
-[Architecture by Neglect](/docs/software-engineering/architecture-by-neglect) describes how this happens: the default structure (layers) guarantees that any future split will be expensive.
+[Architecture by Neglect](/docs/software-engineering/architecture/architecture-by-neglect) describes how this happens: the default structure (layers) guarantees that any future split will be expensive.
 
 ```mermaid
 graph LR
@@ -96,7 +96,7 @@ The modular monolith solves this by drawing internal boundaries before they are 
 
 Modules are organized by what they do, not what technology they use. The checkout module owns everything related to checkout: the HTTP handler, the business logic, the data access, the database schema, the events it emits.
 
-[Cohesion: Capability vs Layer](/docs/software-engineering/cohesion-capability-vs-layer) explains this in depth. The key insight: two files that change for the same reason belong together, even if one is a controller and the other is a repository.
+[Cohesion: Capability vs Layer](/docs/software-engineering/architecture/cohesion-capability-vs-layer) explains this in depth. The key insight: two files that change for the same reason belong together, even if one is a controller and the other is a repository.
 
 ```mermaid
 graph TD
@@ -403,7 +403,7 @@ Amazon Prime Video's 2023 case study is the counter-example for a reason: when t
 
 ## Relationship to monorepo
 
-A modular monolith and a monorepo are orthogonal. A modular monolith can live in a [monorepo](/docs/software-engineering/monorepo) or in a single-project repo. A monorepo can contain a modular monolith, microservices, or both.
+A modular monolith and a monorepo are orthogonal. A modular monolith can live in a [monorepo](/docs/software-engineering/architecture/monorepo) or in a single-project repo. A monorepo can contain a modular monolith, microservices, or both.
 
 | | Modular monolith in a monorepo | Modular monolith in its own repo |
 |---|---|---|
@@ -412,7 +412,7 @@ A modular monolith and a monorepo are orthogonal. A modular monolith can live in
 | CI | One pipeline | One pipeline |
 | Module extraction | Move code to new service in same repo | Move code to new repo |
 
-The common sweet spot is a monorepo containing a modular monolith. As modules are extracted to services, they stay in the same repo with independent CI pipelines. This is covered in detail in the [Monorepo article](/docs/software-engineering/monorepo).
+The common sweet spot is a monorepo containing a modular monolith. As modules are extracted to services, they stay in the same repo with independent CI pipelines. This is covered in detail in the [Monorepo article](/docs/software-engineering/architecture/monorepo).
 
 ## Summary
 

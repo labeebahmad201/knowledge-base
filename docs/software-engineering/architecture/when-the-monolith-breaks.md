@@ -250,4 +250,4 @@ These are the motivations to move away from a monolith. Each maps to a specific 
 
 Each pain points to a different solution. Not all of them require microservices. The first move is always the same: clean up the boundaries. That is the modular monolith. Extract to services only when the boundary is clean and the pain persists.
 
-The full decision framework is covered in [Monolith vs Microservices](/docs/software-engineering/monolith-vs-microservices).
+The full decision framework is covered in [Monolith vs Microservices](/docs/software-engineering/architecture/monolith-vs-microservices).
