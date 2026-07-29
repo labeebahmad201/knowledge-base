@@ -26,6 +26,7 @@ const articles: Article[] = [
   {title: 'Testing & Quality', path: '/docs/software-engineering/testing-quality', category: 'Testing'},
   {title: 'APIs & Distributed Systems', path: '/docs/software-engineering/apis-distributed-systems', category: 'Engineering'},
   {title: 'Backend', path: '/docs/software-engineering/backend', category: 'Engineering'},
+  {title: 'Capability-First Design', path: '/docs/software-engineering/capability-first-design', category: 'Architecture'},
   {title: 'Behavioral', path: '/docs/software-engineering/behavioral', category: 'Engineering'},
   {title: 'Caching, Messaging & Search', path: '/docs/software-engineering/caching-messaging-search', category: 'Engineering'},
   {title: 'DevOps', path: '/docs/software-engineering/devops', category: 'Engineering'},
