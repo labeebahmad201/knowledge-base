@@ -1,0 +1,117 @@
+import {type ReactNode, useState, useMemo} from 'react';
+
+interface Article {
+  title: string
+  path: string
+  category: string
+}
+
+const articles: Article[] = [
+  // Architecture
+  {title: 'Architecture by Neglect', path: '/docs/software-engineering/architecture-by-neglect', category: 'Architecture'},
+  {title: 'Architecture is Not the Starting Point', path: '/docs/software-engineering/architecture-is-not-the-starting-point', category: 'Architecture'},
+  {title: 'Cohesion: Capability vs Layer', path: '/docs/software-engineering/cohesion-capability-vs-layer', category: 'Architecture'},
+  {title: 'Cross-Module Queries', path: '/docs/software-engineering/cross-module-queries', category: 'Architecture'},
+  {title: 'Design & Architecture', path: '/docs/software-engineering/design-architecture', category: 'Architecture'},
+  {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
+  {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},
+  {title: 'Modular Monolith', path: '/docs/software-engineering/modular-monolith', category: 'Architecture'},
+  {title: 'Monolith vs Microservices', path: '/docs/software-engineering/monolith-vs-microservices', category: 'Architecture'},
+  {title: 'Monorepo', path: '/docs/software-engineering/monorepo', category: 'Architecture'},
+  {title: 'Seams and Testability', path: '/docs/software-engineering/seams-and-testability', category: 'Architecture'},
+  {title: 'Third-Party Coupling', path: '/docs/software-engineering/third-party-coupling', category: 'Architecture'},
+  {title: 'When the Monolith Breaks', path: '/docs/software-engineering/when-the-monolith-breaks', category: 'Architecture'},
+  {title: 'When to Abstract', path: '/docs/software-engineering/when-to-abstraction', category: 'Architecture'},
+  // Testing
+  {title: 'Integration Test Rollback', path: '/docs/software-engineering/integration-test-rollback', category: 'Testing'},
+  {title: 'Testing a Modular Monolith', path: '/docs/software-engineering/testing-modular-monolith', category: 'Testing'},
+  {title: 'Testing & Quality', path: '/docs/software-engineering/testing-quality', category: 'Testing'},
+  // Engineering
+  {title: 'APIs & Distributed Systems', path: '/docs/software-engineering/apis-distributed-systems', category: 'Engineering'},
+  {title: 'Backend', path: '/docs/software-engineering/backend', category: 'Engineering'},
+  {title: 'Behavioral', path: '/docs/software-engineering/behavioral', category: 'Engineering'},
+  {title: 'Caching, Messaging & Search', path: '/docs/software-engineering/caching-messaging-search', category: 'Engineering'},
+  {title: 'DevOps', path: '/docs/software-engineering/devops', category: 'Engineering'},
+  {title: 'Engineering Process', path: '/docs/software-engineering/engineering-process', category: 'Engineering'},
+  {title: 'Frontend', path: '/docs/software-engineering/frontend', category: 'Engineering'},
+  {title: 'Languages & Runtimes', path: '/docs/software-engineering/languages-runtimes', category: 'Engineering'},
+  {title: 'Leadership', path: '/docs/software-engineering/leadership', category: 'Engineering'},
+  {title: 'Observability', path: '/docs/software-engineering/observability', category: 'Engineering'},
+  {title: 'Python Cheat Sheet', path: '/docs/software-engineering/python-cheat-sheet', category: 'Engineering'},
+  {title: 'Reliability & Performance', path: '/docs/software-engineering/reliability-performance', category: 'Engineering'},
+  {title: 'Security', path: '/docs/software-engineering/security', category: 'Engineering'},
+  {title: 'System Design', path: '/docs/software-engineering/system-design', category: 'Engineering'},
+];
+
+const categoryOrder = ['Architecture', 'Testing', 'Engineering'];
+
+export default function ArticleFilter(): ReactNode {
+  const [query, setQuery] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return articles;
+    const q = query.toLowerCase();
+    return articles.filter(
+      (a) =>
+        a.title.toLowerCase().includes(q) ||
+        a.category.toLowerCase().includes(q),
+    );
+  }, [query]);
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, Article[]>();
+    for (const a of filtered) {
+      if (!map.has(a.category)) map.set(a.category, []);
+      map.get(a.category)!.push(a);
+    }
+    return categoryOrder
+      .filter((c) => map.has(c))
+      .map((c) => ({category: c, items: map.get(c)!}));
+  }, [filtered]);
+
+  return (
+    <div>
+      <input
+        type="text"
+        placeholder="Filter articles by title or category…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '0.75rem 1rem',
+          fontSize: '1rem',
+          border: '2px solid var(--ifm-color-emphasis-300)',
+          borderRadius: '8px',
+          outline: 'none',
+          background: 'var(--ifm-background-color)',
+          color: 'var(--ifm-font-color-base)',
+          marginBottom: '1.5rem',
+          boxSizing: 'border-box',
+        }}
+      />
+      {filtered.length === 0 ? (
+        <p style={{color: 'var(--ifm-color-emphasis-600)'}}>
+          No articles match &ldquo;{query}&rdquo;.
+        </p>
+      ) : (
+        grouped.map(({category, items}) => (
+          <section key={category} style={{marginBottom: '2rem'}}>
+            <h2>{category}</h2>
+            <ul style={{paddingLeft: '1.25rem', margin: 0}}>
+              {items.map((a) => (
+                <li key={a.path} style={{marginBottom: '0.4rem'}}>
+                  <a
+                    href={a.path}
+                    style={{fontWeight: 600, fontSize: '0.95rem'}}
+                  >
+                    {a.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      )}
+    </div>
+  );
+}
