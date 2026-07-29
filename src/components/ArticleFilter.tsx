@@ -1,5 +1,4 @@
-import {type ReactNode, useState, useMemo, useRef, useEffect} from 'react';
-import Fuse from 'fuse.js';
+import {type ReactNode, useState, useMemo} from 'react';
 
 interface Article {
   title: string
@@ -43,23 +42,8 @@ const articles: Article[] = [
 
 const categoryOrder = ['Architecture', 'Testing', 'Engineering'];
 
-const fuse = new Fuse(articles, {
-  keys: ['title', 'category'],
-  threshold: 0.4,
-  distance: 100,
-});
-
 export default function ArticleFilter(): ReactNode {
   const [query, setQuery] = useState('');
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-
-  const suggestions = useMemo(() => {
-    if (!query.trim()) return [];
-    return fuse.search(query).slice(0, 10).map((r) => r.item);
-  }, [query]);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return articles;
@@ -82,54 +66,13 @@ export default function ArticleFilter(): ReactNode {
       .map((c) => ({category: c, items: map.get(c)!}));
   }, [filtered]);
 
-  useEffect(() => {
-    setFocusedIndex(-1);
-  }, [suggestions]);
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (
-        inputRef.current &&
-        !inputRef.current.contains(e.target as Node) &&
-        listRef.current &&
-        !listRef.current.contains(e.target as Node)
-      ) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (!showSuggestions || suggestions.length === 0) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setFocusedIndex((i) => (i < suggestions.length - 1 ? i + 1 : 0));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setFocusedIndex((i) => (i > 0 ? i - 1 : suggestions.length - 1));
-    } else if (e.key === 'Enter' && focusedIndex >= 0) {
-      e.preventDefault();
-      window.location.href = suggestions[focusedIndex].path;
-    } else if (e.key === 'Escape') {
-      setShowSuggestions(false);
-    }
-  }
-
   return (
     <div style={{position: 'relative', marginBottom: '1.5rem'}}>
       <input
-        ref={inputRef}
         type="text"
         placeholder="Search articles by title or category…"
         value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setShowSuggestions(true);
-        }}
-        onFocus={() => setShowSuggestions(true)}
-        onKeyDown={handleKeyDown}
+        onChange={(e) => setQuery(e.target.value)}
         style={{
           width: '100%',
           padding: '0.75rem 1rem',
@@ -143,81 +86,29 @@ export default function ArticleFilter(): ReactNode {
         }}
       />
 
-      {showSuggestions && suggestions.length > 0 && (
-        <div
-          ref={listRef}
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            background: 'var(--ifm-background-surface-color)',
-            border: '1px solid var(--ifm-color-emphasis-300)',
-            borderRadius: '0 0 8px 8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            zIndex: 100,
-            overflow: 'hidden',
-          }}
-        >
-          {suggestions.map((a, i) => (
-            <a
-              key={a.path}
-              href={a.path}
-              onMouseEnter={() => setFocusedIndex(i)}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '0.6rem 1rem',
-                textDecoration: 'none',
-                color: 'var(--ifm-font-color-base)',
-                background:
-                  i === focusedIndex
-                    ? 'var(--ifm-hover-overlay)'
-                    : 'transparent',
-                fontSize: '0.95rem',
-              }}
-            >
-              <span style={{fontWeight: 500}}>{a.title}</span>
-              <span
-                style={{
-                  fontSize: '0.8rem',
-                  color: 'var(--ifm-color-emphasis-600)',
-                  background: 'var(--ifm-color-emphasis-200)',
-                  padding: '0.15rem 0.5rem',
-                  borderRadius: '4px',
-                }}
-              >
-                {a.category}
-              </span>
-            </a>
-          ))}
-        </div>
-      )}
-
-      {query.trim() && suggestions.length === 0 && filtered.length === 0 ? (
+      {query.trim() && filtered.length === 0 ? (
         <p style={{color: 'var(--ifm-color-emphasis-600)', marginTop: '0.75rem'}}>
           No articles match &ldquo;{query}&rdquo;.
         </p>
       ) : (
         <div style={{marginTop: '0.75rem'}}>
-        {grouped.map(({category, items}) => (
-          <section key={category} style={{marginBottom: '2rem'}}>
-            <h2>{category}</h2>
-            <ul style={{paddingLeft: '1.25rem', margin: 0}}>
-              {items.map((a) => (
-                <li key={a.path} style={{marginBottom: '0.4rem'}}>
-                  <a
-                    href={a.path}
-                    style={{fontWeight: 600, fontSize: '0.95rem'}}
-                  >
-                    {a.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+          {grouped.map(({category, items}) => (
+            <section key={category} style={{marginBottom: '2rem'}}>
+              <h2>{category}</h2>
+              <ul style={{paddingLeft: '1.25rem', margin: 0}}>
+                {items.map((a) => (
+                  <li key={a.path} style={{marginBottom: '0.4rem'}}>
+                    <a
+                      href={a.path}
+                      style={{fontWeight: 600, fontSize: '0.95rem'}}
+                    >
+                      {a.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
         </div>
       )}
     </div>
