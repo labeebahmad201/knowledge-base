@@ -31,6 +31,7 @@ const articles: Article[] = [
   {title: 'DevOps', path: '/docs/software-engineering/devops', category: 'Engineering'},
   {title: 'Engineering Process', path: '/docs/software-engineering/engineering-process', category: 'Engineering'},
   {title: 'Frontend', path: '/docs/software-engineering/frontend', category: 'Engineering'},
+  {title: 'Git Squash and Merge', path: '/docs/software-engineering/git-squash-and-merge', category: 'Engineering'},
   {title: 'Languages & Runtimes', path: '/docs/software-engineering/languages-runtimes', category: 'Engineering'},
   {title: 'Leadership', path: '/docs/software-engineering/leadership', category: 'Engineering'},
   {title: 'Observability', path: '/docs/software-engineering/observability', category: 'Engineering'},
