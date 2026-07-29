@@ -266,7 +266,7 @@ flowchart TD
 - A change in one service requires coordinated changes in others
 - Most features require chaining calls across 3+ services
 - You cannot deploy one service without also deploying others
-- Services make synchronous calls to third-parties scattered across the system instead of contained behind an integration service ([see Third-Party Coupling](/docs/software-engineering/architecture/third-party-coupling))
+- Services make synchronous calls to third-parties scattered across the system instead of contained behind an integration service ([see Third-Party Coupling](/docs/software-engineering/third-party-coupling))
 - The team structure does not match the service boundaries
 
 The root cause is almost always splitting along **technical layers** rather than **business domains**. Breaking a monolith into a "user service," "payment service," and "notification service" is splitting by layer. The real boundaries are business capabilities: "checkout," "fulfillment," "messaging."
