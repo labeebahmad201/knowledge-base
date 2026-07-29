@@ -195,7 +195,7 @@ export default function ArticleFilter(): ReactNode {
         </div>
       )}
 
-      {!query.trim() ? null : suggestions.length === 0 && filtered.length === 0 ? (
+      {query.trim() && suggestions.length === 0 && filtered.length === 0 ? (
         <p style={{color: 'var(--ifm-color-emphasis-600)', marginTop: '0.5rem'}}>
           No articles match &ldquo;{query}&rdquo;.
         </p>
