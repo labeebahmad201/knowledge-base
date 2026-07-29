@@ -1,4 +1,5 @@
 import {type ReactNode, useState, useMemo} from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 
 interface Article {
   title: string
@@ -43,6 +44,8 @@ const articles: Article[] = [
 const categoryOrder = ['Architecture', 'Testing', 'Engineering'];
 
 export default function ArticleFilter(): ReactNode {
+  const {siteConfig} = useDocusaurusContext();
+  const baseUrl = siteConfig.baseUrl;
   const [query, setQuery] = useState('');
 
   const filtered = useMemo(() => {
@@ -99,7 +102,7 @@ export default function ArticleFilter(): ReactNode {
                 {items.map((a) => (
                   <li key={a.path} style={{marginBottom: '0.4rem'}}>
                     <a
-                      href={a.path}
+                      href={`${baseUrl}${a.path.replace(/^\//, '')}`}
                       style={{fontWeight: 600, fontSize: '0.95rem'}}
                     >
                       {a.title}
