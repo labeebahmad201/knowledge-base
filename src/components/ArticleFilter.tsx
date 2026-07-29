@@ -196,11 +196,12 @@ export default function ArticleFilter(): ReactNode {
       )}
 
       {query.trim() && suggestions.length === 0 && filtered.length === 0 ? (
-        <p style={{color: 'var(--ifm-color-emphasis-600)', marginTop: '0.5rem'}}>
+        <p style={{color: 'var(--ifm-color-emphasis-600)', marginTop: '0.75rem'}}>
           No articles match &ldquo;{query}&rdquo;.
         </p>
       ) : (
-        grouped.map(({category, items}) => (
+        <div style={{marginTop: '0.75rem'}}>
+        {grouped.map(({category, items}) => (
           <section key={category} style={{marginBottom: '2rem'}}>
             <h2>{category}</h2>
             <ul style={{paddingLeft: '1.25rem', margin: 0}}>
@@ -216,7 +217,8 @@ export default function ArticleFilter(): ReactNode {
               ))}
             </ul>
           </section>
-        ))
+        ))}
+        </div>
       )}
     </div>
   );
