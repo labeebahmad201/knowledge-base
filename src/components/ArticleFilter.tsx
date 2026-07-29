@@ -91,7 +91,7 @@ export default function ArticleFilter(): ReactNode {
           No articles match &ldquo;{query}&rdquo;.
         </p>
       ) : (
-        <div style={{marginTop: '0.75rem'}}>
+        <div style={{marginTop: '1.25rem'}}>
           {grouped.map(({category, items}) => (
             <section key={category} style={{marginBottom: '2rem'}}>
               <h2>{category}</h2>
