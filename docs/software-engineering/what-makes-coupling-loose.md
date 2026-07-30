@@ -24,7 +24,31 @@ graph LR
 
 TechTarget (2023) defines coupling directly in terms of knowledge: "Coupling refers to the degree of direct knowledge that one element has of another." Wikipedia (2024) agrees: "each of its components has, or makes use of, little or no knowledge of the definitions of other separate components."
 
-## The definition: coupling is knowledge
+## What coupling and cohesion are
+
+Coupling and cohesion are the two fundamental dimensions of module quality. They were first formalized by Stevens, Myers, and Constantine in their 1974 paper *Structured Design*.
+
+**Coupling** is the degree to which one module depends on another. High coupling means a change in one module forces changes in another. Low coupling means modules can change independently.
+
+**Cohesion** is the degree to which the elements inside a module belong together. High cohesion means a module has a single, well-defined purpose. Low cohesion means a module does many unrelated things.
+
+The two are related. High cohesion enables low coupling because a module that does one thing needs fewer things from outside. Low cohesion forces high coupling because unrelated logic gets tangled across module boundaries.
+
+```mermaid
+graph LR
+    subgraph Good["High cohesion + low coupling"]
+        A["Rental Module<br/>(all rental logic inside)"] -->|"small, stable interface"| B["Inventory Module<br/>(all inventory logic inside)"]
+    end
+    subgraph Bad["Low cohesion + high coupling"]
+        C["Rental Module<br/>(has billing logic,<br/>inventory logic scatteblack)"] -->|"many volatile dependencies"| D["Inventory Module<br/>(has rental logic scattered)"]
+    end
+    style Good fill:#6f6,stroke:#333
+    style Bad fill:#f66,stroke:#333
+```
+
+The goal is high cohesion inside each module and low coupling between them.
+
+## Coupling is knowledge, not transport
 
 When module A depends on module B, the degree of coupling is measured by how much A must know about B to function. The knowledge can take many forms:
 
