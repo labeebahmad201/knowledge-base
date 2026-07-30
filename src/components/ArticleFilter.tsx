@@ -23,6 +23,7 @@ const articles: Article[] = [
   {title: 'One Model Per Context', path: '/docs/software-engineering/one-model-per-context', category: 'Architecture'},
   {title: 'Seams and Testability', path: '/docs/software-engineering/seams-and-testability', category: 'Architecture'},
   {title: 'Third-Party Coupling', path: '/docs/software-engineering/third-party-coupling', category: 'Architecture'},
+  {title: 'What Makes Coupling Loose', path: '/docs/software-engineering/what-makes-coupling-loose', category: 'Architecture'},
   {title: 'When the Monolith Breaks', path: '/docs/software-engineering/when-the-monolith-breaks', category: 'Architecture'},
   {title: 'When to Abstract', path: '/docs/software-engineering/when-to-abstraction', category: 'Architecture'},
   {title: 'Integration Test Rollback', path: '/docs/software-engineering/integration-test-rollback', category: 'Testing'},
