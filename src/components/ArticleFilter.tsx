@@ -104,7 +104,7 @@ export default function ArticleFilter(): ReactNode {
           {grouped.map(({category, items}) => (
             <section key={category} style={{marginBottom: '2rem'}}>
               <h2>{category}</h2>
-              <ul style={{paddingLeft: '1.25rem', margin: 0}}>
+              <ol style={{paddingLeft: '1.25rem', margin: 0}}>
                 {items.map((a) => (
                   <li key={a.path} style={{marginBottom: '0.4rem'}}>
                     <a
@@ -115,7 +115,7 @@ export default function ArticleFilter(): ReactNode {
                     </a>
                   </li>
                 ))}
-              </ul>
+              </ol>
             </section>
           ))}
         </div>
