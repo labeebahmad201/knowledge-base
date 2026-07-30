@@ -160,6 +160,64 @@ graph LR
     style Tomorrow fill:#6bf,stroke:#333
 ```
 
+## Deployment is a configuration choice
+
+When modules are truly decoupled — own model, own data, communicate only through interfaces — the decision to deploy them together or separately becomes a deployment configuration, not an architecture decision.
+
+The same codebase can be wired two ways:
+
+```typescript
+// Monolith wiring -- modules call each other in-process
+const app = new App()
+app.register(new RentalModule())
+app.register(new MaintenanceModule())
+app.register(new BillingModule())
+app.start()
+
+// Microservice wiring -- modules become separate processes
+// Service A
+const appA = new App()
+appA.register(new RentalModule())
+appA.registerHttpClient('maintenance', 'http://service-b:3001')
+appA.registerHttpClient('billing', 'http://service-c:3002')
+appA.start()
+
+// Service B
+const appB = new App()
+appB.register(new MaintenanceModule())
+appB.registerHttpClient('rental', 'http://service-a:3000')
+appB.start()
+
+// Service C
+const appC = new App()
+appC.register(new BillingModule())
+appC.registerHttpClient('rental', 'http://service-a:3000')
+appC.start()
+```
+
+The modules themselves do not change. Each module exposes the same interface regardless of how it is deployed. When everything runs in one process, the interface resolves to an in-memory call. When split into services, the same interface resolves to an HTTP, gRPC, or message queue call. The module does not know or care.
+
+```mermaid
+graph TD
+    subgraph Monolith["Monolith deployment"]
+        M_RENTAL["Rental<br/>Module"] -->|"in-memory"| M_MAINT["Maintenance<br/>Module"]
+        M_RENTAL -->|"in-memory"| M_BILL["Billing<br/>Module"]
+    end
+    subgraph Services["Microservices deployment"]
+        S_RENTAL["Rental<br/>Service"] -->|"HTTP/gRPC"| S_MAINT["Maintenance<br/>Service"]
+        S_RENTAL -->|"HTTP/gRPC"| S_BILL["Billing<br/>Service"]
+    end
+    Monolith -->|"same modules<br/>different wiring"| Services
+    style Monolith fill:#6f6,stroke:#333
+    style Services fill:#6bf,stroke:#333
+```
+
+This is the promise of loose coupling. The module boundaries are drawn correctly, so the deployment topology is a runtime concern. Switch from monolith to microservices by changing a configuration file and restarting. No code changes, no rewrites, no months-long migration projects.
+
+A common anti-pattern is building modules that "might become services someday" but are tightly coupled to shared types, shared tables, and in-process assumptions. When the time comes to split, the team discovers that the module cannot run independently because it depends on another module's database, or uses types that do not serialize over the wire, or makes synchronous calls that timeout under network latency. The separation becomes a rewrite, not a configuration change.
+
+The goal of one-model-per-context is not to enable microservices. It is to build modules that are independently understandable and independently changeable. The deployment flexibility is a side effect — but it is a powerful one. It means you can start as a monolith (fast iteration, simple operations) and extract services when the scaling pressure or team structure demands it, without ever changing the module code.
+
 ## Data ownership makes this work
 
 Logical separation means nothing without data ownership. If every module still reads and writes the same database tables, the models are paper-thin. The real coupling is in the schema.
