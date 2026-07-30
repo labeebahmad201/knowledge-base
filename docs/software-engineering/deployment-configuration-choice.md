@@ -6,6 +6,8 @@ Most teams treat the choice between monolith and microservices as permanent. Pic
 
 When modules are loosely coupled, each with its own model and its own data, the deployment topology becomes a runtime concern. The same codebase can run as a single process or as separate services. The switch is configuration, not a rewrite.
 
+For a detailed look at how this wiring works in practice — ports, adapters, and the composition root — see [Module Wiring: Ports and Adapters](/docs/software-engineering/module-wiring-ports-adapters).
+
 ```mermaid
 graph LR
     subgraph SingleCodebase["Same codebase"]
