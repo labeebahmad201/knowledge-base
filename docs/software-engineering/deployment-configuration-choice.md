@@ -1,4 +1,4 @@
-# Deployment is a Configuration Choice
+# Deployment is a Configuration Choice (If You Have Boundaries)
 
 ## The problem: architecture and deployment are treated as the same decision
 

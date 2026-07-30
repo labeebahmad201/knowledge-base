@@ -160,7 +160,7 @@ graph LR
     style Tomorrow fill:#6bf,stroke:#333
 ```
 
-The deployment flexibility this enables is covered in more detail in the separate article [Deployment is a Configuration Choice](/docs/software-engineering/deployment-configuration-choice).
+The deployment flexibility this enables is covered in more detail in the separate article [Deployment is a Configuration Choice (If You Have Boundaries)](/docs/software-engineering/deployment-configuration-choice).
 
 ## Data ownership makes this work
 
