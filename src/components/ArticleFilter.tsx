@@ -17,6 +17,7 @@ const articles: Article[] = [
   {title: 'Modular Monolith', path: '/docs/software-engineering/modular-monolith', category: 'Architecture'},
   {title: 'Monolith vs Microservices', path: '/docs/software-engineering/monolith-vs-microservices', category: 'Architecture'},
   {title: 'Monorepo', path: '/docs/software-engineering/monorepo', category: 'Architecture'},
+  {title: 'One Model Per Context', path: '/docs/software-engineering/one-model-per-context', category: 'Architecture'},
   {title: 'Seams and Testability', path: '/docs/software-engineering/seams-and-testability', category: 'Architecture'},
   {title: 'Third-Party Coupling', path: '/docs/software-engineering/third-party-coupling', category: 'Architecture'},
   {title: 'When the Monolith Breaks', path: '/docs/software-engineering/when-the-monolith-breaks', category: 'Architecture'},
