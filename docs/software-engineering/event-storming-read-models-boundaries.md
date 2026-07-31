@@ -804,6 +804,53 @@ graph LR
     style BILL fill:#e8e8e8,stroke:#999
 ```
 
+## The full loop: one flow ends where the next begins
+
+A single flow never ends at the event. It ends at the *next* Read Model. The event updates projections, policies fire, other aggregates change, and the actor — or another actor — sees the result as a fresh Read Model. The chain is:
+
+```
+Read Model → Actor → Command → Aggregate → Event → Policy → Command → Event → ... → new Read Model
+```
+
+Here is a complete flow, start to finish, built from the patterns in this article. It starts with a Read Model, crosses a policy, and lands on a new Read Model.
+
+```mermaid
+graph LR
+    RM1["Book Details Form<br/>(read model)<br/>{ title, author, price,<br/>availability, rating }"] --> ACTOR["Customer<br/>(actor)"]
+    ACTOR --> CMD1["Purchase Book<br/>(command)<br/>{ isbn, quantity,<br/>shippingAddress }"]
+    CMD1 --> AGG1["Book Order<br/>(aggregate)"]
+    AGG1 --> EVT1["Book Purchased<br/>(event)<br/>{ orderId, isbn, quantity,<br/>shippingAddress }"]
+    EVT1 --> POL1["Create Shipment<br/>(policy)"]
+    POL1 --> CMD2["Create Shipment<br/>(command)<br/>{ orderId, isbn, quantity,<br/>warehouseLocation }"]
+    CMD2 --> AGG2["Shipment<br/>(aggregate)"]
+    AGG2 --> EVT2["Shipment Created<br/>(event)<br/>{ shipmentId, orderId,<br/>trackingNumber }"]
+    EVT2 --> RM2["Shipment Tracking<br/>(read model)<br/>{ orderId, trackingNumber,<br/>status, location }"]
+    style RM1 fill:#b2f2bb,stroke:#333
+    style ACTOR fill:#ffe680,stroke:#333
+    style CMD1 fill:#80b3ff,stroke:#333
+    style AGG1 fill:#ffe680,stroke:#333
+    style EVT1 fill:#ffa07a,stroke:#333
+    style POL1 fill:#d0bfff,stroke:#333
+    style CMD2 fill:#80b3ff,stroke:#333
+    style AGG2 fill:#ffe680,stroke:#333
+    style EVT2 fill:#ffa07a,stroke:#333
+    style RM2 fill:#b2f2bb,stroke:#333
+```
+
+Walk through it:
+
+1. The Customer reads the **Book Details Form** Read Model. The actor *sees* before they *act*.
+2. They issue **Purchase Book** with the payload relevant to their intent — not the whole Read Model.
+3. The command works on one aggregate, **Book Order**, which validates and emits **Book Purchased**.
+4. **Book Purchased** is an event, not a return value. Nobody is waiting for it. It is published for whoever cares.
+5. The **Create Shipment** policy in the Fulfillment context subscribes to it. Policies have no actor — they react automatically.
+6. The policy issues its own command, **Create Shipment**, against its own aggregate, **Shipment**.
+7. **Shipment Created** is emitted, and the customer's next screen is the **Shipment Tracking** Read Model — fed by the event that just happened.
+
+The end of the chain is a new Read Model, which is exactly where the *next* flow starts. Two actors (Customer, then Customer again) and two contexts (Catalog, then Fulfillment) were touched, connected only by events.
+
+**What this means for the workshop:** when you lay out a flow, do not stop at the event. Ask *"what Read Model does this event update?"* — that is the seam where the next actor action begins. If you can point at a Read Model after every event, your timeline is complete; if you cannot, the flow is missing an actor, a command, or a policy that the system must have.
+
 ## From Workshop Output to Documented Boundaries
 
 ### Where Event Storming ends
