@@ -10,6 +10,67 @@ Same noun. Three different models. If you force them into a single `Book` class,
 
 Event Storming alone cannot catch this. The sticky notes say "Book" in both places, but they do not show what attributes each context needs. You need a second step: write the Read Models and event payloads for each cluster and compare them.
 
+## Why Event Storming exists: the silo problem
+
+This same-noun-different-meaning situation is not a coincidence of Amazon. It is the natural state of every organization with departments. Silos form because people in different departments speak different languages. Each person has a deep, accurate understanding of *their own* slice, and a distorted view of everyone else's.
+
+The catalog person knows what "book" means: title, author, price, cover. The warehouse person knows what "book" means: weight, dimensions, fragility. Both are right. Both use the same word. Neither is wrong, and neither will change.
+
+```mermaid
+graph TD
+    subgraph SILOS["Organization with silos"]
+        CAT["Catalog dept.<br/>language: book = listing"]
+        WH["Warehouse dept.<br/>language: book = physical item"]
+        SHIP["Shipping dept.<br/>language: book = package"]
+    end
+    ARCH["Engineer building the system"] --> CAT
+    ARCH --> WH
+    ARCH --> SHIP
+    ARCH --> GOD["Forced single Book model<br/>(god object, breaks constantly)"]
+    style SILOS fill:#f5f5f5,stroke:#999
+    style CAT fill:#ffe680,stroke:#333
+    style WH fill:#ffe680,stroke:#333
+    style SHIP fill:#ffe680,stroke:#333
+    style ARCH fill:#80b3ff,stroke:#333
+    style GOD fill:#ffc9c9,stroke:#fa5252
+```
+
+The problem the engineer faces: they must build one system that satisfies all of these people. If they model "book" the way catalog wants, warehouse cannot do their job. If they model it the way warehouse wants, catalog cannot. The tempting answer is a 50-field `Book` that contains everything — which satisfies nobody and breaks every time one department changes a field.
+
+How do you discover the differences? The naive answer is email threads. Ask catalog what "book" means, then ask warehouse, then compare. This takes weeks, and it fails in a specific way: the engineer becomes the messenger between departments, re-telling each side's words in their own words. The message gets distorted, and the departments never hear each other.
+
+```mermaid
+graph LR
+    CAT2["Catalog says 'book = listing'"] --> EMAIL["Email thread (weeks)"]
+    WH2["Warehouse says 'book = item'"] --> EMAIL
+    EMAIL --> DIST["Engineer re-tells each side<br/>(distorted, filtered)"]
+    DIST --> WRONG["Misunderstood model"]
+    style EMAIL fill:#ffc9c9,stroke:#fa5252
+    style DIST fill:#ffc9c9,stroke:#fa5252
+    style WRONG fill:#ffc9c9,stroke:#fa5252
+```
+
+The better way, and the reason Event Storming exists: gather everyone in the room — all the stakeholders, typically 15 to 20 people — and run the exercise together. Everyone writes their events on the wall. The catalog person writes "Book Listed." The warehouse person writes "Shipment Created." The wall becomes a shared canvas where each department sees the other's language directly, not through the engineer's filter.
+
+When two departments disagree in the room, the developers watch it happen. They learn that these people want different things, and that is fine. The disagreement is not a bug to resolve; it is the boundary. It becomes a bounded context.
+
+```mermaid
+graph LR
+    ROOM["All stakeholders in one room<br/>(15-20 people)"] --> WRITE["Everyone writes events together"]
+    WRITE --> DISAGREE["Departments disagree"]
+    DISAGREE --> MODEL["Developers model the difference"]
+    MODEL --> BC["Separate bounded contexts<br/>per language"]
+    ROOM --> SEE["Each side sees the other's language<br/>directly, no filter"]
+    style ROOM fill:#80b3ff,stroke:#333
+    style WRITE fill:#ffe680,stroke:#333
+    style DISAGREE fill:#ffe680,stroke:#333
+    style MODEL fill:#80cc80,stroke:#333
+    style BC fill:#80cc80,stroke:#333
+    style SEE fill:#80cc80,stroke:#333
+```
+
+This is why Event Storming is a workshop and not a document. The point is not just the sticky notes; the point is the conversation that produces them. The exercise surfaces the differences that email threads hide.
+
 ## The setup
 
 We model three teams at Amazon for the journey of a book from listing to delivery. We follow the correct Event Storming color coding throughout:
@@ -100,9 +161,210 @@ graph LR
 
 At this level we only have events. No commands, no actors. The goal is to see the full lifecycle.
 
+## Which events belong on the timeline: domain events vs everything else
+
+Not every event in your system is a domain event. Event Storming models **domain events** — things that changed domain state and matter to the business. The classic pitfall is filling the timeline with UI and telemetry events that change nothing.
+
+Take "Homepage Visited." No aggregate is modified, no business rule is triggered, no downstream process starts. It is a user-interface event, and it does not belong on the timeline. The same goes for "Button Clicked," "Page Loaded," and "API Called."
+
+Domain events come in four types, classified by their trigger:
+
+| Type | Trigger | Example |
+|---|---|---|
+| Command-derived event | A human command | Order Placed (after Place Order) |
+| Policy-driven event | An automated rule | Stock Low (after a policy checks a threshold) |
+| External event | An outside system | Package Scanned by Carrier (from the carrier API) |
+| Temporal event | Time passing | Subscription Renewed, Session Expired |
+
+Everything else is a user-interface or telemetry event. They stay off the wall.
+
+```mermaid
+graph TD
+    subgraph ALL["All events in your system"]
+        D["Domain events (orange)"] --> DM["Belong on the timeline"]
+        I["Integration events"] --> DM
+        U["UI / telemetry events:<br/>Homepage Visited, Button Clicked"] --> X["Stay off the timeline"]
+        DM --> MODEL["Model what they cause"]
+    end
+    style ALL fill:#f5f5f5,stroke:#999
+    style D fill:#ffa07a,stroke:#333
+    style I fill:#ffa07a,stroke:#333
+    style U fill:#f5f5f5,stroke:#999
+    style X fill:#ffc9c9,stroke:#fa5252
+    style MODEL fill:#80cc80,stroke:#333
+```
+
+**The one exception:** if viewing content *is* the business, a page visit becomes a domain event. A media site where "Article Viewed" drives ad revenue, or a search engine where "Query Performed" is the product. In that rare case it is command-derived (the user's request to load the page is the command) and it triggers real domain behavior like analytics aggregation or ad bidding.
+
+**The test to separate them:** ask "does the business care about this state change itself?" If the answer is "only for analytics," it stays off the timeline. Then ask the productive follow-up: "what domain event does this UI action *cause*?" — `Search Initiated`, `Promo Displayed`, `Recommendation Requested`. Those are the events worth modeling, because they trigger real behavior.
+
+### What about "User Logged In"?
+
+Unlike "Homepage Visited", login **is** a domain event in most systems — because it changes domain state and triggers real behavior.
+
+| | Homepage Visited | User Logged In |
+|---|---|---|
+| State change | None | `lastLoggedInAt` set, failed attempts reset, Session created |
+| Aggregate touched | None | `UserAccount`, `Session` |
+| Downstream behavior | None | Audit log, fraud-detection policy, MFA, device notification |
+| Business cares? | Only analytics | Yes — security, compliance, fraud |
+
+```mermaid
+graph LR
+    ACTOR["User<br/>(actor)"] --> CMD["Log In<br/>(command)"]
+    CMD --> AGG["UserAccount<br/>(aggregate)"]
+    AGG --> EVT["User Logged In<br/>(event)"]
+    EVT --> POL["Fraud Detection<br/>(policy)"]
+    EVT --> AUD["Audit Log<br/>(integration)"]
+    style ACTOR fill:#ffe680,stroke:#333
+    style CMD fill:#80b3ff,stroke:#333
+    style AGG fill:#ffe680,stroke:#333
+    style EVT fill:#ffa07a,stroke:#333
+    style POL fill:#d0bfff,stroke:#333
+    style AUD fill:#fcc2d7,stroke:#333
+```
+
+It is a **command-derived domain event**: the `Log In` command modifies the `UserAccount` aggregate (setting `lastLoggedInAt`, resetting failed attempts, creating a session), which produces `User Logged In`. Downstream policies and integrations consume it — the audit log writes a record, a fraud-detection policy checks the device and location, an MFA policy decides whether to require a second factor.
+
+The boundary case: if your login is a pass-through with no business rules attached (no lockouts, no MFA, no security events), it drifts toward technical plumbing and you can model it as infrastructure instead of domain. But the moment the business cares about *who* logs in, *from where*, and *how often* — which is most real systems — it is a domain event.
+
+### What about "Notifications Fetched"?
+
+"Notifications Fetched" is one step further than "Homepage Visited" — it is not an event at all, it is a **Read Model being displayed**. Fetching is a query, not a state change. Nothing is modified, no aggregate is touched, no rule triggers.
+
+The fetch produces the green Read Model (the notification list the user sees), which then *enables* the next command:
+
+```
+[Notification List (read model)] → [Mark Notification Read] (command)
+   → Notification Marked Read (DOMAIN EVENT — readAt set, unreadCount changes)
+```
+
+| | Notifications Fetched | Notification Marked Read |
+|---|---|---|
+| What it is | Read model (green sticky) | Domain event (orange sticky) |
+| State change | None | `readAt` set, unread count decremented |
+| Aggregate touched | None | `Notification` |
+| Triggered by | The user opening the app | The `Mark Notification Read` command |
+| Downstream | Enables the next command | Updates badge count, clears unread |
+
+**Read models do not emit events; they enable commands that do.** If you are tempted to write "X Fetched" on the timeline, you are describing the green sticky, not the orange one. The orange event is whatever the user does *after* seeing the fetched data.
+
+### What about "Password Reset Email Sent"?
+
+"Password Reset Email Sent" is the policy case. Sending an email is a mechanical consequence of a policy, not a domain state change — no aggregate is touched, nothing new happens in the domain.
+
+```
+User → [Request Password Reset] (command)
+     → Password Reset Requested (DOMAIN EVENT — reset token created,
+        request recorded, abuse counter bumped)
+     → policy: Send Reset Email → email goes out (TECHNICAL, no aggregate changed)
+     → User → [Reset Password] (command)
+     → Password Reset Completed (DOMAIN EVENT — new password hash,
+        token invalidated, sessions revoked)
+```
+
+| Event | Domain event? | Why |
+|---|---|---|
+| Password Reset Requested | Yes | Security-sensitive state change, triggers rate-limiting/abuse policies |
+| Password Reset Email Sent | No | The transport for the reset link. Nobody cares that an email was dispatched |
+| Password Reset Completed | Yes | The credential changed; sessions die; that matters |
+
+The nuance, same as login: if the *delivery* of the email is itself a business concern, it becomes domain-relevant. Then you model `Password Reset Email Bounced` or `Password Reset Email Delivered` — those trigger real rules (flag the account, compliance proof, re-send policies). But "Email Sent" alone is the policy firing, not a domain event.
+
+## The spine and the lanes: how the timeline handles parallel events
+
+The timeline is a **time axis, not an actor axis**. It shows the order of the business process even though many people participate. The commands and actors are *annotations* attached to events — they do not rearrange them. The timeline encodes the causal order, which is the most valuable information on the wall.
+
+But not everything is causally ordered. Two events are **parallel** when neither causes nor enables the other — they can happen in either order, or at the same time.
+
+**The test:** if event A causes or enables event B, they share the spine (ordered). If there is no dependency, the event goes in a parallel lane.
+
+```mermaid
+graph LR
+    subgraph Spine["The spine (causally ordered)"]
+        E1["Bid Submitted"] --> E2["Bid Accepted"]
+        E2 --> E3["Job Assigned"]
+        E3 --> E4["Job Completed"]
+    end
+    subgraph Lanes["Parallel lanes (no dependency)"]
+        L1["Profile Verified"]
+        L2["Message Sent"]
+        L3["Analytics Compiled"]
+    end
+    style Spine fill:#f5f5f5,stroke:#999
+    style Lanes fill:#f5f5f5,stroke:#999,stroke-dasharray: 5 5
+    style E1 fill:#ffa07a,stroke:#333
+    style E2 fill:#ffa07a,stroke:#333
+    style E3 fill:#ffa07a,stroke:#333
+    style E4 fill:#ffa07a,stroke:#333
+    style L1 fill:#ffa07a,stroke:#333
+    style L2 fill:#ffa07a,stroke:#333
+    style L3 fill:#ffa07a,stroke:#333
+```
+
+The spine is the main process. Profile events, messages, notifications, and background jobs hang in lanes above or below it — causally independent, so no fake ordering between them. If a real rule ever connects a lane to the spine (for example "only verified pros can bid"), that is when you draw the dependency arrow and it becomes explicit and correct.
+
+Parallel events are also a boundary signal: when two activities run side-by-side with different nouns and different actors, that is a strong hint they belong to different clusters or contexts.
+
+### One event, one sticky: never duplicate
+
+**An event appears in exactly one place on the wall.** The timeline position encodes causality — what caused it and what it enables. Duplicating an event gives it two different causes and two different effects, which confuses anyone reading the wall.
+
+But an event that is part of a process can also happen independently. `Profile Verified` happens during onboarding, and a pro might also get verified later. You still place it once. The independent occurrence is expressed through the **command layer**: one event can have multiple commands that trigger it.
+
+```mermaid
+graph LR
+    subgraph Onboard["Onboarding path"]
+        C1["Complete Onboarding<br/>(command)"] --> E["Profile Verified<br/>(event, ONE sticky)"]
+    end
+    subgraph Independent["Independent path"]
+        C2["Submit Verification<br/>(command)"] --> E
+    end
+    style Onboard fill:#e8e8e8,stroke:#999
+    style Independent fill:#e8e8e8,stroke:#999
+    style E fill:#ffa07a,stroke:#333
+    style C1 fill:#80b3ff,stroke:#333
+    style C2 fill:#80b3ff,stroke:#333
+```
+
+**One event, multiple commands.** That is how "part of the process but also independent" is expressed. When you add commands, attach *every* command that can produce the event, including the independent one.
+
+The rule of thumb: if you feel the urge to duplicate an event, either it is really two different events (so rename one), or it is the same event (so let it live in one place and let the command layer show its multiple triggers).
+
 ## Level 2: Process Modeling — add commands and actors
 
-Go event by event. Add blue commands (what triggered it) and small yellow actors (who triggered it).
+Go event by event. Add blue commands (what triggered it) and small yellow actors (who triggered it). For each event ask: *what command caused this?* and *who issued it?*
+
+### Command naming
+
+Commands are **imperative, present tense** — what the actor wants to happen. The event names the result in the past; the command names the intent in the present:
+
+| Command (imperative) | Event (past tense) |
+|---|---|
+| Sign Up | User Signed Up |
+| Place Order | Order Placed |
+| Mark Notification Read | Notification Marked Read |
+| Submit Bid | Bid Submitted |
+
+The check: a command answers "what should I do?" — an event answers "what happened?" If your command reads like a noun or a past-tense phrase, it is an event wearing a command's hat.
+
+### The command sticky and its payload
+
+The blue command sticky conventionally holds just the command name (`Sign Up`). The payload can be written directly on the sticky, or on a small note stuck next to it:
+
+```
+┌──────────────┐     ┌──────────────┐
+│   Sign Up    │     │   Sign Up    │
+│              │     │ payload:     │
+│ (name only)  │     │ email        │
+│              │     │ password     │
+│              │     │ name         │
+│              │     │ role         │
+└──────────────┘     └──────────────┘
+   (a) name only       (b) name + payload
+```
+
+Writing the payload is better for boundary analysis — the payload is what you compare across clusters in the five-check table. The only hard rule is the name: imperative, present tense.
 
 ### Catalog process
 
@@ -185,7 +447,7 @@ The full flow is **Read Model → Command (with payload) → Event (with payload
 [Read Model] → Actor looks → [Command + Payload] → System → [Event + Payload]
 ```
 
-Every command requires a Read Model — the information the actor needs to *see* before they can act. The Read Model comes *before* the command, not after.
+Every command requires a Read Model — the information the actor needs to *see* before they can act. The Read Model comes *before* the command, not after. It sits **between the actor and the command**: the actor consumes the read model to decide, then issues the command. The actor needs to see something to act.
 
 One subtlety: the Read Model does not have to mirror a single aggregate. A Customer's Book Listing read model might pull `averageRating` from the Review aggregate even though `Purchase Book` only touches the Book aggregate's price and availability. Read Models are denormalized views built for the actor's convenience. They span aggregates — only the command targets a specific one.
 
@@ -352,11 +614,11 @@ The attribute sets barely overlap. Each cluster cares about a fundamentally diff
 This is one of three signals you triangulate. The others are:
 
 - **Invariants**: "price cannot be negative" (Catalog) vs "weight cannot exceed 30kg" (Fulfillment) — different rules means different context, even if the noun is the same.
-- **Actors**: different people touch different clusters — see the next section.
+- **Actors**: different people touch different clusters. This is a *smell* that tells you where to look, not a rule that decides the boundary — see the next section.
 
-Attributes alone are usually enough to spot the split, but invariants and actors catch the edge cases where attribute sets happen to overlap.
+Attributes alone are usually enough to spot the split, but invariants catch the edge cases where attribute sets happen to overlap. The actor check only raises suspicion; the invariants and attributes confirm it.
 
-## How different actors affect the boundary
+## How actors affect the boundary: a smell, not a rule
 
 Look at the actors column from the event cluster table:
 
@@ -367,13 +629,131 @@ Look at the actors column from the event cluster table:
 | Fulfillment | Warehouse Staff, Carrier |
 | Delivery | Customer, Customer Support |
 
-**Different actors = different language = different context.** The Content Manager talks about "book" as a product listing. The Warehouse Staff talks about "book" as a physical object with weight and location. The Customer talks about "book" as a purchase to be delivered.
+Two facts about this table prove that actors alone cannot decide the boundary:
 
-If two clusters share the same actor, they are candidates for merging. If they have different actors, they are candidates for separation. The actor check is the fastest way to validate a boundary.
+1. **The same actor spans contexts.** Customer appears in both Catalog and Delivery. Same person, two contexts.
+2. **Multiple actors share a context.** Content Manager and Customer both live in Catalog. Different people, one context.
+
+So "different actors" is never enough to split, and "same actor" is never enough to merge. Actors are a **smell** — they tell you where to run the real checks, not the answer.
+
+### The counter-example: roles sharing one context
+
+Three roles log into a system: Client, Professional, Super Admin. All three issue the same `Log In` command with the same payload `{ email, password }`, producing the same `User Logged In` event `{ userId, sessionId, loggedInAt }`, enforced by the same `UserAccount` aggregate rules. The roles are just three values of a "role" attribute — the process does not change shape based on which value is stored. One Identity/Auth context handles all three.
+
+A role change only creates a new context when it changes the *shape* of the process, never because the job title changed.
+
+### The decision procedure: five checks
+
+When you see two actors in different clusters, do not split based on the actor. Run these five comparisons:
+
+| Check | What to compare | Split contexts if... | Same context if... |
+|---|---|---|---|
+| Command | names and payloads | command or payload differs | identical |
+| Event | names and payloads | event or payload differs | identical |
+| Aggregate | attributes of the noun | same noun, different attributes | attributes match |
+| Invariant | business rules | rules differ (price ≥ 0 vs weight ≤ 30kg) | rules match |
+| Language | word meanings | "book" means different things | words mean the same thing |
+
+**Split only when at least one of the five differs. If all five match, the actors are role variants sharing one context.**
+
+This is why Catalog and Fulfillment split even though both mention "book": the Content Manager's Book has `{ price, title, author }` while the Warehouse Staff's Book has `{ weight, dimensions, fragility }`. The attributes differ (check 3), the rules differ (check 4), and the word "book" means different things (check 5). Three of the five checks diverge.
+
+### Role values vs structural difference
+
+| | Role value | Structural difference |
+|---|---|---|
+| Example | Client vs Pro vs Admin logging in | Content Manager's "book" vs Warehouse Worker's "book" |
+| Command | Same `Log In`, same payload | Different commands, different payloads |
+| Aggregate | Same `UserAccount` | Different aggregates, different attributes |
+| Rules | Same invariants | price ≥ 0 vs weight ≤ 30kg |
+| Verdict | One context | Two contexts |
+
+A role value is data — a column on a table. A structural difference is a different model with different rules and different language. The five checks tell you which one you are looking at.
 
 ## Step 6: Define the aggregates
 
 Within each bounded context, define the aggregates — the entities that enforce business rules.
+
+### A worked example: User Signed Up
+
+Walk the full chain for one event, from read model to event payload:
+
+```
+Read Model → Actor → Command → Aggregate → Event
+```
+
+| Element | What it is | Details |
+|---|---|---|
+| Read Model | Sign Up Form | `{ email, password, name, role }` — what the actor sees before acting |
+| Actor | The person registering | A client *or* a professional — same event, role is a value in the payload |
+| Command | Sign Up | Imperative, present tense. Payload: `{ email, password, name, role }` |
+| Aggregate | UserAccount | The entity worked on. Validates (email unique, password strength), mutates (sets email, hashes password) |
+| Event | User Signed Up | `{ userId, email, name, role, signedUpAt, emailVerified }` — the enriched result |
+
+```mermaid
+graph LR
+    RM["Sign Up Form<br/>(read model)<br/>{ email, password, name, role }"] --> ACTOR["User<br/>(actor)"]
+    ACTOR --> CMD["Sign Up<br/>(command)<br/>{ email, password, name, role }"]
+    CMD --> AGG["UserAccount<br/>(aggregate)"]
+    AGG --> EVT["User Signed Up<br/>(event)<br/>{ userId, email, name, role,<br/>signedUpAt, emailVerified }"]
+    style RM fill:#b2f2bb,stroke:#333
+    style ACTOR fill:#ffe680,stroke:#333
+    style CMD fill:#80b3ff,stroke:#333
+    style AGG fill:#ffe680,stroke:#333
+    style EVT fill:#ffa07a,stroke:#333
+```
+
+**The command works on the aggregate, the aggregate emits the event.** The command is the instruction, the aggregate is the entity the instruction acts on, the event is the record of what changed. Without the aggregate in the middle, nothing validates the command or owns the state that changes. The aggregate is the thing that *does* the work.
+
+The command payload and event payload differ on purpose. The user sends `{ email, password, name, role }`; the system records `{ userId, signedUpAt, emailVerified: false }` on top — the `userId` is generated, the timestamp is added, the verification flag is set. The event payload is the *enriched* superset.
+
+The actor being both client and professional does not split the context. Same command, same payload shape, same event, same aggregate — that is the role-variant case from the earlier section. One Identity context handles both, with `role` as a value in the payload.
+
+### One command, one aggregate
+
+**A command is applied to exactly one aggregate.** That is the rule — one command, one aggregate, one transactional boundary. The aggregate is the unit that must stay internally consistent. If a command mutated two aggregates at once, you would have a cross-aggregate transaction spanning two consistency boundaries, and one could fail while the other commits.
+
+**The wrong way — a command directly touching two aggregates:**
+
+```mermaid
+graph LR
+    CMD["Sign Up<br/>(command)"] --> AGG1["UserAccount<br/>(aggregate)"]
+    CMD --> AGG2["EmailDelivery<br/>(aggregate)"]
+    style CMD fill:#ffc9c9,stroke:#fa5252
+    style AGG1 fill:#ffe680,stroke:#333
+    style AGG2 fill:#ffe680,stroke:#333
+```
+
+One transaction now spans two consistency boundaries. If the email fails but the account saved, the transaction must roll back both — or you accept partial state. This is the anti-pattern: the command is reaching outside its aggregate.
+
+**The right way — the event chases the second aggregate through a policy:**
+
+```mermaid
+graph LR
+    CMD["Sign Up<br/>(command)"] --> AGG1["UserAccount<br/>(aggregate)"]
+    AGG1 --> EVT1["User Signed Up<br/>(event)"]
+    EVT1 --> POL["Send Verification Email<br/>(policy)"]
+    POL --> AGG2["EmailDelivery<br/>(aggregate)"]
+    AGG2 --> EVT2["Verification Email Sent<br/>(event)"]
+    style CMD fill:#80b3ff,stroke:#333
+    style AGG1 fill:#ffe680,stroke:#333
+    style EVT1 fill:#ffa07a,stroke:#333
+    style POL fill:#d0bfff,stroke:#333
+    style AGG2 fill:#ffe680,stroke:#333
+    style EVT2 fill:#ffa07a,stroke:#333
+```
+
+The command touches `UserAccount` only. It emits `User Signed Up`. A policy reacts to that event and drives `EmailDelivery` in a separate step. Each aggregate stays internally consistent; each step is its own transaction. If the email fails, the account still exists — and a retry policy handles the email.
+
+**One aggregate, multiple events.** The `UserAccount` can emit both `User Signed Up` and `Verification Requested` from a single command. The command is not reaching further; it is just announcing more about the same change.
+
+The mental model:
+
+- **One command → one aggregate** (transactional)
+- **One aggregate → can emit multiple events**
+- **Each event → can trigger policies** that drive *other* aggregates, asynchronously
+
+Two aggregates *after* a command never happens. Two aggregates *downstream of a policy* happens all the time — and that is the correct, decoupled shape.
 
 ### Catalog context
 
@@ -423,6 +803,53 @@ graph LR
     style FUL fill:#e8e8e8,stroke:#999
     style BILL fill:#e8e8e8,stroke:#999
 ```
+
+## The full loop: one flow ends where the next begins
+
+A single flow never ends at the event. It ends at the *next* Read Model. The event updates projections, policies fire, other aggregates change, and the actor — or another actor — sees the result as a fresh Read Model. The chain is:
+
+```
+Read Model → Actor → Command → Aggregate → Event → Policy → Command → Event → ... → new Read Model
+```
+
+Here is a complete flow, start to finish, built from the patterns in this article. It starts with a Read Model, crosses a policy, and lands on a new Read Model.
+
+```mermaid
+graph LR
+    RM1["Book Details Form<br/>(read model)<br/>{ title, author, price,<br/>availability, rating }"] --> ACTOR["Customer<br/>(actor)"]
+    ACTOR --> CMD1["Purchase Book<br/>(command)<br/>{ isbn, quantity,<br/>shippingAddress }"]
+    CMD1 --> AGG1["Book Order<br/>(aggregate)"]
+    AGG1 --> EVT1["Book Purchased<br/>(event)<br/>{ orderId, isbn, quantity,<br/>shippingAddress }"]
+    EVT1 --> POL1["Create Shipment<br/>(policy)"]
+    POL1 --> CMD2["Create Shipment<br/>(command)<br/>{ orderId, isbn, quantity,<br/>warehouseLocation }"]
+    CMD2 --> AGG2["Shipment<br/>(aggregate)"]
+    AGG2 --> EVT2["Shipment Created<br/>(event)<br/>{ shipmentId, orderId,<br/>trackingNumber }"]
+    EVT2 --> RM2["Shipment Tracking<br/>(read model)<br/>{ orderId, trackingNumber,<br/>status, location }"]
+    style RM1 fill:#b2f2bb,stroke:#333
+    style ACTOR fill:#ffe680,stroke:#333
+    style CMD1 fill:#80b3ff,stroke:#333
+    style AGG1 fill:#ffe680,stroke:#333
+    style EVT1 fill:#ffa07a,stroke:#333
+    style POL1 fill:#d0bfff,stroke:#333
+    style CMD2 fill:#80b3ff,stroke:#333
+    style AGG2 fill:#ffe680,stroke:#333
+    style EVT2 fill:#ffa07a,stroke:#333
+    style RM2 fill:#b2f2bb,stroke:#333
+```
+
+Walk through it:
+
+1. The Customer reads the **Book Details Form** Read Model. The actor *sees* before they *act*.
+2. They issue **Purchase Book** with the payload relevant to their intent — not the whole Read Model.
+3. The command works on one aggregate, **Book Order**, which validates and emits **Book Purchased**.
+4. **Book Purchased** is an event, not a return value. Nobody is waiting for it. It is published for whoever cares.
+5. The **Create Shipment** policy in the Fulfillment context subscribes to it. Policies have no actor — they react automatically.
+6. The policy issues its own command, **Create Shipment**, against its own aggregate, **Shipment**.
+7. **Shipment Created** is emitted, and the customer's next screen is the **Shipment Tracking** Read Model — fed by the event that just happened.
+
+The end of the chain is a new Read Model, which is exactly where the *next* flow starts. Two actors (Customer, then Customer again) and two contexts (Catalog, then Fulfillment) were touched, connected only by events.
+
+**What this means for the workshop:** when you lay out a flow, do not stop at the event. Ask *"what Read Model does this event update?"* — that is the seam where the next actor action begins. If you can point at a Read Model after every event, your timeline is complete; if you cannot, the flow is missing an actor, a command, or a policy that the system must have.
 
 ## From Workshop Output to Documented Boundaries
 
@@ -630,13 +1057,13 @@ Each arrow implies a **policy** in the consuming context. When Fulfillment subsc
 8. Write Event Payloads for each event — the event is the contract between contexts
 9. Check invariants — if the same noun enforces different business rules in different clusters, they are separate contexts
 10. Check policies — if a policy reaches into another context's aggregates (beyond consuming events), that is a boundary violation. Policies should only consume events across contexts
-11. If actors differ across clusters → separate contexts
+11. If actors differ across clusters, investigate — run the five checks (command, event, aggregate, invariants, language). Split only if at least one diverges; if all match, they are role variants sharing one context
 12. Name each context after its business capability (not after an entity)
 13. Map aggregates to contexts — aggregates sharing actors and invariants go together
 14. Document each context with its language, aggregates, commands, events, policies, and invariants
 15. Draw the context map showing event flows between contexts
 
-Event Storming gives you the clusters. The payloads and actors validate the boundaries. The documentation artifacts make them permanent.
+Event Storming gives you the clusters. The five checks validate the boundaries. The documentation artifacts make them permanent.
 
 ## References
 
