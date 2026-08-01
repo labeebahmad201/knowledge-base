@@ -1,0 +1,10 @@
+{
+  "label": "DDIA",
+  "position": 1,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "doc",
+    "id": "software-engineering/books/ddia/index"
+  }
+}
