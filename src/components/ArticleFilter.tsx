@@ -9,6 +9,7 @@ interface Article {
 
 const articles: Article[] = [
   {title: 'Architecture by Neglect', path: '/docs/software-engineering/architecture-by-neglect', category: 'Architecture'},
+  {title: 'The Real Justification for Boundaries', path: '/docs/software-engineering/real-justification-for-boundaries', category: 'Architecture'},
   {title: 'Architecture is Not the Starting Point', path: '/docs/software-engineering/architecture-is-not-the-starting-point', category: 'Architecture'},
   {title: 'Cohesion: Capability vs Layer', path: '/docs/software-engineering/cohesion-capability-vs-layer', category: 'Architecture'},
   {title: 'Cross-Module Queries', path: '/docs/software-engineering/cross-module-queries', category: 'Architecture'},
@@ -46,9 +47,10 @@ const articles: Article[] = [
   {title: 'Reliability & Performance', path: '/docs/software-engineering/reliability-performance', category: 'Engineering'},
   {title: 'Security', path: '/docs/software-engineering/security', category: 'Engineering'},
   {title: 'System Design', path: '/docs/software-engineering/system-design', category: 'Engineering'},
+  {title: 'DDIA: Designing Data-Intensive Applications', path: '/docs/software-engineering/books/ddia', category: 'Books'},
 ];
 
-const categoryOrder = ['Architecture', 'Testing', 'Engineering'];
+const categoryOrder = ['Architecture', 'Testing', 'Engineering', 'Books'];
 
 export default function ArticleFilter(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
