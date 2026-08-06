@@ -11,6 +11,7 @@ const articles: Article[] = [
   {title: 'Architecture by Neglect', path: '/docs/software-engineering/architecture-by-neglect', category: 'Architecture'},
   {title: 'The Real Justification for Boundaries', path: '/docs/software-engineering/real-justification-for-boundaries', category: 'Architecture'},
   {title: 'Architecture is Not the Starting Point', path: '/docs/software-engineering/architecture-is-not-the-starting-point', category: 'Architecture'},
+  {title: 'Architecture Decision Records', path: '/docs/software-engineering/architecture-decision-records', category: 'Architecture'},
   {title: 'Cohesion: Capability vs Layer', path: '/docs/software-engineering/cohesion-capability-vs-layer', category: 'Architecture'},
   {title: 'Cross-Module Queries', path: '/docs/software-engineering/cross-module-queries', category: 'Architecture'},
   {title: 'Deployment is a Configuration Choice (If You Have Boundaries)', path: '/docs/software-engineering/deployment-configuration-choice', category: 'Architecture'},
