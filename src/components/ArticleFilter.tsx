@@ -15,6 +15,7 @@ const articles: Article[] = [
   {title: 'Abstractions Must Earn Their Place', path: '/docs/software-engineering/abstractions-are-contextual', category: 'Architecture'},
   {title: 'Cohesion: Capability vs Layer', path: '/docs/software-engineering/cohesion-capability-vs-layer', category: 'Architecture'},
   {title: 'Cross-Module Queries', path: '/docs/software-engineering/cross-module-queries', category: 'Architecture'},
+  {title: 'Decoupling Moves Complexity', path: '/docs/software-engineering/decoupling-moves-complexity', category: 'Architecture'},
   {title: 'Deployment is a Configuration Choice (If You Have Boundaries)', path: '/docs/software-engineering/deployment-configuration-choice', category: 'Architecture'},
   {title: 'From Event Storming to Bounded Contexts', path: '/docs/software-engineering/event-storming-read-models-boundaries', category: 'Architecture'},
 
