@@ -26,3 +26,4 @@ Don't keep paragraph too shot but don't make it verbose as well.
 Include examples.
 Make article exhaustive.
 Article should be in 'problem' and solution format. It should clearly show what this solution is for. Thereby making sure that readers learn to apply knowledge to situations and not just know it.
+Write article based on human written sources instead of generating AI based non sense, make it  properly sourced and backed.
