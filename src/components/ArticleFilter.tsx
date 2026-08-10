@@ -22,6 +22,10 @@ const articles: Article[] = [
 
   {title: 'DDD: The Complete Process Step by Step', path: '/docs/software-engineering/ddd-process', category: 'DDD'},
   {title: 'From Event Storming to Bounded Contexts (DDD)', path: '/docs/software-engineering/event-storming-read-models-boundaries', category: 'DDD'},
+  {title: 'Aggregate Sizing: How Big Should an Aggregate Be?', path: '/docs/software-engineering/aggregate-sizing', category: 'DDD'},
+  {title: 'Transaction Locking: How Two Updates Block Each Other', path: '/docs/software-engineering/transaction-locking', category: 'DDD'},
+  {title: 'Strong vs Eventual Consistency', path: '/docs/software-engineering/strong-vs-eventual-consistency', category: 'DDD'},
+  {title: 'Transactions Live Outside the Aggregate', path: '/docs/software-engineering/transactions-outside-aggregate', category: 'DDD'},
   {title: 'Aggregates and Bounded Contexts', path: '/docs/software-engineering/aggregates-and-boundaries', category: 'DDD'},
   {title: 'Bounded Contexts', path: '/docs/software-engineering/bounded-contexts', category: 'DDD'},
   {title: 'One Model Per Context', path: '/docs/software-engineering/one-model-per-context', category: 'DDD'},

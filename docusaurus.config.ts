@@ -69,6 +69,12 @@ const config: Config = {
         },
 
         {
+          to: '/insights',
+          label: 'Insights',
+          position: 'left',
+        },
+
+        {
           href: 'https://github.com/labeebahmad201/knowledge-base',
           label: 'GitHub',
           position: 'right',
