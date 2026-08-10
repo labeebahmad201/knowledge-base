@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import {useState} from 'react';
 import Head from '@docusaurus/Head';
 import Layout from '@theme/Layout';
 
@@ -54,6 +55,16 @@ const insights: Insight[] = [
   },
 ];
 
+function getAllTags(insights: Insight[]): string[] {
+  const tagSet = new Set<string>();
+  for (const insight of insights) {
+    for (const tag of insight.tags) {
+      tagSet.add(tag);
+    }
+  }
+  return Array.from(tagSet).sort();
+}
+
 function InsightCard({insight}: {insight: Insight}) {
   return (
     <div
@@ -106,6 +117,12 @@ function InsightCard({insight}: {insight: Insight}) {
 }
 
 export default function Insights(): ReactNode {
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const allTags = getAllTags(insights);
+  const filtered = activeTag
+    ? insights.filter((insight) => insight.tags.includes(activeTag))
+    : insights;
+
   return (
     <Layout title="Insights" description="Short, high-signal observations on software and architecture">
       <Head>
@@ -125,8 +142,53 @@ export default function Insights(): ReactNode {
       </header>
       <main>
         <div style={{maxWidth: '1100px', margin: '0 auto', padding: '3rem 1rem 4rem'}}>
+          <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem'}}>
+            <button
+              onClick={() => setActiveTag(null)}
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: activeTag === null ? 'var(--ifm-color-primary)' : 'var(--ifm-color-emphasis-600)',
+                backgroundColor: activeTag === null
+                  ? 'var(--ifm-color-primary-contrast-background)'
+                  : 'var(--ifm-color-emphasis-100)',
+                border: 'none',
+                padding: '0.35rem 0.8rem',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              All
+            </button>
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  color: activeTag === tag ? 'var(--ifm-color-primary)' : 'var(--ifm-color-emphasis-600)',
+                  backgroundColor: activeTag === tag
+                    ? 'var(--ifm-color-primary-contrast-background)'
+                    : 'var(--ifm-color-emphasis-100)',
+                  border: 'none',
+                  padding: '0.35rem 0.8rem',
+                  borderRadius: '999px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
           <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem'}}>
-            {insights.map((insight) => (
+            {filtered.map((insight) => (
               <InsightCard key={insight.title} insight={insight} />
             ))}
           </div>
