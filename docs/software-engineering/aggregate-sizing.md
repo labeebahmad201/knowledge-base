@@ -26,6 +26,36 @@ graph TD
 
 </div>
 
+## Why this matters: right side up vs upside down
+
+Most teams design upside down. They start with the database schema, map objects to tables, and let the schema dictate the boundaries. The business logic follows the schema. The result: large aggregates because the schema says "these tables are related," locking behavior nobody chose, and performance problems nobody understands.
+
+The right way is right side up. Start with the business rules. Ask what must be consistent together. That decides the aggregate boundary. That decides how many rows get locked. That decides your concurrency characteristics. The database is a consequence, not a starting point.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+    subgraph UPSIDE["Upside down (DB first)"]
+        DB1["Design schema"] --> OBJ1["Map objects to tables"]
+        OBJ1 --> LOGIC1["Business logic follows schema"]
+        LOGIC1 --> LOCK1["Locking behavior nobody chose"]
+    end
+    subgraph RIGHT["Right side up (DDD first)"]
+        RULES["Business rules"] --> CONSISTENT["What must be consistent"]
+        CONSISTENT --> BOUNDARY["Aggregate boundary"]
+        BOUNDARY --> LOCK2["Locking is a natural consequence"]
+    end
+    style UPSIDE fill:#f96,stroke:#333
+    style RIGHT fill:#6bf,stroke:#333,stroke-width:3px
+```
+
+</div>
+
+The aggregate boundary *is* the lock boundary. When you update two entities in the same aggregate, the database locks both rows. That is not an accident. It is the direct result of your design decision. If you design the aggregate first, you choose the locking behavior. If you design the database first, the locking behavior chooses you.
+
+This is why DDD and database design are not separate concerns. The aggregate tells you what rows must be locked together. The database enforces it. The direction you design in determines whether you get the system you intended.
+
 ## The rule: aggregate boundary = consistency boundary = transaction boundary
 
 An aggregate is not a folder for related entities. It is a **consistency boundary**. After a transaction commits, every invariant inside the aggregate must hold. The aggregate root (the entity you load and save through) enforces all invariants.
