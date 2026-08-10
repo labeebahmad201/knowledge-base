@@ -1,5 +1,7 @@
 # When Events Are Events and When They Are Not
 
+Not every event from event storming becomes an event in code. An orange sticky means "something happened in the business." A code event means "something else needs to react." If no other context needs to know, it is a method call, not an event. And when you do emit an event to another context, that tells you something about the relationship: those two contexts are coupled through that moment.
+
 Here is an event storming wall for an online bookstore:
 
 <div style={{display: 'flex', justifyContent: 'center'}}>
