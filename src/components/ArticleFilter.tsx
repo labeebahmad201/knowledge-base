@@ -60,9 +60,11 @@ const articles: Article[] = [
   {title: 'Security', path: '/docs/software-engineering/security', category: 'Engineering'},
   {title: 'System Design', path: '/docs/software-engineering/system-design', category: 'Engineering'},
   {title: 'DDIA: Designing Data-Intensive Applications', path: '/docs/software-engineering/books/ddia', category: 'Books'},
+
+  {title: 'The AI Application Stack', path: '/docs/software-engineering/ai-application-stack', category: 'AI'},
 ];
 
-const categoryOrder = ['Architecture', 'Testing', 'Engineering', 'Books', 'DDD'];
+const categoryOrder = ['Architecture', 'Testing', 'Engineering', 'Books', 'AI', 'DDD'];
 
 export default function ArticleFilter(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
