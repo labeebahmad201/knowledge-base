@@ -33,6 +33,8 @@ const articles: Article[] = [
   {title: 'How Architecture Styles Changed and Event Storming Survived', path: '/docs/software-engineering/architecture-styles-and-event-storming', category: 'DDD'},
   {title: 'When Events Are Events and When They Are Not', path: '/docs/software-engineering/events-are-discovery-not-code', category: 'DDD'},
 
+  {title: 'Data Ownership in Redis', path: '/docs/software-engineering/redis-data-ownership', category: 'Engineering'},
+
   {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
   {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},
   {title: 'Modular Monolith', path: '/docs/software-engineering/modular-monolith', category: 'Architecture'},
