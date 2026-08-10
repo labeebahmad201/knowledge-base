@@ -174,5 +174,6 @@ The direction matters: problem first, deployment second. Event storming gives yo
 
 ## See also
 
-- [DDD: The Complete Process Step by Step](/docs/software-engineering/ddd-process) walks through event storming to working code.
-- [From Event Storming to Bounded Contexts](/docs/software-engineering/event-storming-read-models-boundaries) covers how event storming leads to bounded contexts.
+- [Aggregate Sizing: How Big Should an Aggregate Be?](/docs/software-engineering/aggregate-sizing) explains how aggregate boundaries determine locking behavior.
+- [Strong vs Eventual Consistency](/docs/software-engineering/strong-vs-eventual-consistency) explains when things belong in the same aggregate vs separate aggregates.
+- [Transactions Live Outside the Aggregate](/docs/software-engineering/transactions-outside-aggregate) explains why the aggregate does not manage its own transactions.
