@@ -31,6 +31,9 @@ const articles: Article[] = [
   {title: 'Bounded Contexts', path: '/docs/software-engineering/bounded-contexts', category: 'DDD'},
   {title: 'One Model Per Context', path: '/docs/software-engineering/one-model-per-context', category: 'DDD'},
   {title: 'How Architecture Styles Changed and Event Storming Survived', path: '/docs/software-engineering/architecture-styles-and-event-storming', category: 'DDD'},
+  {title: 'When Events Are Events and When They Are Not', path: '/docs/software-engineering/events-are-discovery-not-code', category: 'DDD'},
+
+  {title: 'Data Ownership in Redis', path: '/docs/software-engineering/redis-data-ownership', category: 'Engineering'},
 
   {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
   {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},

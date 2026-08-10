@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import {useState} from 'react';
 import Head from '@docusaurus/Head';
 import Layout from '@theme/Layout';
 
@@ -46,7 +47,23 @@ const insights: Insight[] = [
     date: 'Aug 2026',
     body: 'An aggregate like Order appears in many contexts, but those are separate copies — never one shared model. The rule "one model per context" governs events and the concepts they express, not the nouns. Merging the copies is what turns contextual flexibility back into a global model.',
   },
+  {
+    title: 'Event storming events are discovery tools, not code events',
+    tags: ['DDD', 'Event Storming'],
+    date: 'Aug 2026',
+    body: 'Most orange stickies from event storming become method calls, not emitted domain events. Events exist only when another aggregate or context needs to react — cross-aggregate side effects, not intra-aggregate state changes. Brandolini: "It\'s the developer understanding, not the expert knowledge, that becomes working code." The workshop produces discovery; the developer decides what becomes a communication mechanism.',
+  },
 ];
+
+function getAllTags(insights: Insight[]): string[] {
+  const tagSet = new Set<string>();
+  for (const insight of insights) {
+    for (const tag of insight.tags) {
+      tagSet.add(tag);
+    }
+  }
+  return Array.from(tagSet).sort();
+}
 
 function InsightCard({insight}: {insight: Insight}) {
   return (
@@ -100,6 +117,12 @@ function InsightCard({insight}: {insight: Insight}) {
 }
 
 export default function Insights(): ReactNode {
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const allTags = getAllTags(insights);
+  const filtered = activeTag
+    ? insights.filter((insight) => insight.tags.includes(activeTag))
+    : insights;
+
   return (
     <Layout title="Insights" description="Short, high-signal observations on software and architecture">
       <Head>
@@ -119,8 +142,53 @@ export default function Insights(): ReactNode {
       </header>
       <main>
         <div style={{maxWidth: '1100px', margin: '0 auto', padding: '3rem 1rem 4rem'}}>
+          <div style={{display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem'}}>
+            <button
+              onClick={() => setActiveTag(null)}
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: activeTag === null ? 'var(--ifm-color-primary)' : 'var(--ifm-color-emphasis-600)',
+                backgroundColor: activeTag === null
+                  ? 'var(--ifm-color-primary-contrast-background)'
+                  : 'var(--ifm-color-emphasis-100)',
+                border: 'none',
+                padding: '0.35rem 0.8rem',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              All
+            </button>
+            {allTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  color: activeTag === tag ? 'var(--ifm-color-primary)' : 'var(--ifm-color-emphasis-600)',
+                  backgroundColor: activeTag === tag
+                    ? 'var(--ifm-color-primary-contrast-background)'
+                    : 'var(--ifm-color-emphasis-100)',
+                  border: 'none',
+                  padding: '0.35rem 0.8rem',
+                  borderRadius: '999px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
           <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem'}}>
-            {insights.map((insight) => (
+            {filtered.map((insight) => (
               <InsightCard key={insight.title} insight={insight} />
             ))}
           </div>
