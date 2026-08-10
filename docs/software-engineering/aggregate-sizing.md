@@ -179,6 +179,173 @@ graph TD
 
 </div>
 
+## How people actually mess this up
+
+The theory is simple. The practice is where it falls apart. Here are real patterns that show up in production codebases.
+
+### Mistake 1: modifying two aggregates in one transaction
+
+This is the most common violation. A service loads two aggregates, modifies both, and saves them in one transaction. It looks clean. It breaks the rule.
+
+```typescript
+// From Dandoescode.com: "Bad: Trying to modify multiple aggregates
+// in one transaction"
+class OrderService {
+  processOrder(orderId: OrderId, customerId: CustomerId) {
+    const transaction = this.context.beginTransaction();
+    const order = this.orderRepository.getById(orderId);
+    const customer = this.customerRepository.getById(customerId);
+
+    // This violates the one-transaction-per-aggregate rule
+    order.markAsProcessed();
+    customer.updateLastOrderDate(new Date());
+
+    this.orderRepository.save(order);
+    this.customerRepository.save(customer);
+    transaction.commit();
+  }
+}
+```
+
+The problem: Order and Customer are separate aggregates. They have independent lifecycles. Locking both in one transaction means a slow customer update blocks the order operation, and vice versa. If the customer table is hot (many concurrent updates), every order operation waits.
+
+The fix: use domain events. Order publishes `OrderProcessed`. A separate handler updates the customer. No shared transaction.
+
+```typescript
+// Correct: cross-aggregate coordination via events
+class Order {
+  markAsProcessed() {
+    this.status = OrderStatus.Processed;
+    this.processedAt = new Date();
+    this.domainEvents.push(new OrderProcessed(this.id, this.customerId));
+  }
+}
+
+class OrderProcessedHandler {
+  handle(event: OrderProcessed) {
+    const customer = this.customerRepository.getById(event.customerId);
+    customer.updateLastOrderDate(new Date());
+    this.customerRepository.save(customer);
+  }
+}
+```
+
+### Mistake 2: loading everything to enforce one rule
+
+The chat group example from CodeOpinion. A group chat has a rule: "cannot have more than 100,000 members." The naive implementation loads all members into memory to count them.
+
+```typescript
+// From CodeOpinion: "Model Rules, Not Relationships"
+class GroupChat {
+  id: string;
+  members: User[]; // could be millions
+
+  addMember(user: User) {
+    if (this.members.length >= 100000) {
+      throw new Error("Group chat is full");
+    }
+    this.members.push(user);
+  }
+}
+```
+
+The problem: loading the GroupChat aggregate loads every User entity into memory. Each User has a username, email, relationships, preferences. The aggregate is enormous. The database query is slow. The JVM heap fills up. Garbage collection pauses. All to enforce one simple count.
+
+The fix: model the rule, not the relationship. Store only the count.
+
+```typescript
+class GroupChat {
+  id: string;
+  memberCount: number = 0;
+
+  addMember() {
+    if (this.memberCount >= 100000) {
+      throw new Error("Group chat is full");
+    }
+    this.memberCount++;
+  }
+}
+```
+
+The invariant is enforced. The aggregate is tiny. Members are a separate aggregate (or even just a database table) that does not need to be loaded into the domain model.
+
+### Mistake 3: the anemic domain model
+
+The entity is a data holder. All logic lives in a service class. The service loads the entity, reads its fields, makes decisions, and writes them back. The entity does nothing.
+
+```typescript
+// From AbstractAlgorithms: "The Anemic Domain Model (Anti-Pattern)"
+class AnemicOrder {
+  id: number;
+  status: string;
+  totalAmount: number;
+  items: AnemicOrderItem[];
+
+  // Getters and setters only, no behavior
+  getId() { return this.id; }
+  getStatus() { return this.status; }
+  getTotalAmount() { return this.totalAmount; }
+}
+
+class OrderService {
+  addItem(order: AnemicOrder, item: AnemicOrderItem) {
+    // Business logic in the service, not the entity
+    order.items.push(item);
+    order.totalAmount = order.items.reduce(
+      (sum, i) => sum + i.price * i.quantity, 0
+    );
+    if (order.totalAmount > 10000) {
+      order.status = "NEEDS_APPROVAL";
+    }
+    this.orderRepository.save(order);
+  }
+}
+```
+
+The problem: the invariant "totalAmount must match sum of items" is enforced in the service, not the entity. Any code that modifies `order.items` directly (another service, a script, a test) bypasses the invariant. The entity is a bag of fields with no guarantees.
+
+The fix: move the behavior into the entity. The entity enforces its own invariants.
+
+```typescript
+class Order {
+  private items: OrderLine[] = [];
+  private totalAmount: number = 0;
+
+  addItem(productId: string, price: number, quantity: number) {
+    const item = new OrderLine(productId, price, quantity);
+    this.items.push(item);
+    this.recalculateTotal(); // invariant enforced here
+    if (this.totalAmount > 10000) {
+      this.status = "NEEDS_APPROVAL";
+    }
+  }
+
+  private recalculateTotal() {
+    this.totalAmount = this.items.reduce(
+      (sum, i) => sum + i.total, 0
+    );
+  }
+}
+```
+
+The invariant is now enforced inside the entity. No external code can bypass it. The aggregate root is the gatekeeper.
+
+### Mistake 4: over-modeling (everything is an aggregate root)
+
+Every entity gets its own repository, its own lifecycle, its own transaction. LineItem, OrderNote, ShippingAddress are all separate aggregates. Now adding a line item to an order requires three repositories and three transactions.
+
+```typescript
+// From Dandoescode.com: "Over-modeling"
+class Order { }
+class OrderLine { } // should be inside Order
+class OrderLineItem { } // should be inside Order
+class OrderNote { } // should be inside Order
+```
+
+The problem: the invariant "Order total must equal sum of line items" now spans two aggregates. You need a policy to keep them consistent. The system is more complex, slower, and harder to debug.
+
+The fix: keep things that share invariants in the same aggregate. LineItem is inside Order. OrderNote can be inside Order too (it does not have its own lifecycle). ShippingAddress is a value object inside Order.
+
 ## The cost of getting it wrong
 
 ### Too big: contention
