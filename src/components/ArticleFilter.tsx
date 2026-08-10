@@ -25,6 +25,7 @@ const articles: Article[] = [
   {title: 'Aggregates and Bounded Contexts', path: '/docs/software-engineering/aggregates-and-boundaries', category: 'DDD'},
   {title: 'Bounded Contexts', path: '/docs/software-engineering/bounded-contexts', category: 'DDD'},
   {title: 'One Model Per Context', path: '/docs/software-engineering/one-model-per-context', category: 'DDD'},
+  {title: 'How Architecture Styles Changed and Event Storming Survived', path: '/docs/software-engineering/architecture-styles-and-event-storming', category: 'DDD'},
 
   {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
   {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},
@@ -32,6 +33,7 @@ const articles: Article[] = [
   {title: 'Module Wiring: Ports and Adapters', path: '/docs/software-engineering/module-wiring-ports-adapters', category: 'Architecture'},
   {title: 'MVC: When the Request-Response Shape Fits', path: '/docs/software-engineering/mvc-when-to-use', category: 'Architecture'},
   {title: 'Monolith vs Microservices', path: '/docs/software-engineering/monolith-vs-microservices', category: 'Architecture'},
+  {title: 'Refactoring', path: '/docs/software-engineering/refactoring', category: 'Architecture'},
   {title: 'Monorepo', path: '/docs/software-engineering/monorepo', category: 'Architecture'},
   {title: 'One Model Per Context', path: '/docs/software-engineering/one-model-per-context', category: 'Architecture'},
   {title: 'Seams and Testability', path: '/docs/software-engineering/seams-and-testability', category: 'Architecture'},
