@@ -46,6 +46,12 @@ const insights: Insight[] = [
     date: 'Aug 2026',
     body: 'An aggregate like Order appears in many contexts, but those are separate copies — never one shared model. The rule "one model per context" governs events and the concepts they express, not the nouns. Merging the copies is what turns contextual flexibility back into a global model.',
   },
+  {
+    title: 'Event storming events are discovery tools, not code events',
+    tags: ['DDD', 'Event Storming'],
+    date: 'Aug 2026',
+    body: 'Most orange stickies from event storming become method calls, not emitted domain events. Events exist only when another aggregate or context needs to react — cross-aggregate side effects, not intra-aggregate state changes. Brandolini: "It\'s the developer understanding, not the expert knowledge, that becomes working code." The workshop produces discovery; the developer decides what becomes a communication mechanism.',
+  },
 ];
 
 function InsightCard({insight}: {insight: Insight}) {
