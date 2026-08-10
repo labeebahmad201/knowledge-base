@@ -20,6 +20,12 @@ const articles: Article[] = [
   {title: 'Deployment is a Configuration Choice (If You Have Boundaries)', path: '/docs/software-engineering/deployment-configuration-choice', category: 'Architecture'},
   {title: 'From Event Storming to Bounded Contexts', path: '/docs/software-engineering/event-storming-read-models-boundaries', category: 'Architecture'},
 
+  {title: 'DDD: The Complete Process Step by Step', path: '/docs/software-engineering/ddd-process', category: 'DDD'},
+  {title: 'From Event Storming to Bounded Contexts (DDD)', path: '/docs/software-engineering/event-storming-read-models-boundaries', category: 'DDD'},
+  {title: 'Aggregates and Bounded Contexts', path: '/docs/software-engineering/aggregates-and-boundaries', category: 'DDD'},
+  {title: 'Bounded Contexts', path: '/docs/software-engineering/bounded-contexts', category: 'DDD'},
+  {title: 'One Model Per Context', path: '/docs/software-engineering/one-model-per-context', category: 'DDD'},
+
   {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
   {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},
   {title: 'Modular Monolith', path: '/docs/software-engineering/modular-monolith', category: 'Architecture'},
@@ -56,7 +62,7 @@ const articles: Article[] = [
   {title: 'DDIA: Designing Data-Intensive Applications', path: '/docs/software-engineering/books/ddia', category: 'Books'},
 ];
 
-const categoryOrder = ['Architecture', 'Testing', 'Engineering', 'Books'];
+const categoryOrder = ['Architecture', 'Testing', 'Engineering', 'Books', 'DDD'];
 
 export default function ArticleFilter(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
