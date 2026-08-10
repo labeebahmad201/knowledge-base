@@ -230,7 +230,76 @@ class OrderProcessedHandler {
 }
 ```
 
-### Mistake 2: loading everything to enforce one rule
+### Mistake 2: the large aggregate that locks everything
+
+An e-commerce order aggregate that includes Order, all LineItems, Payment, Shipment, Invoice, and Customerpreferences. Every operation on any of these locks the entire aggregate.
+
+```typescript
+class Order {
+  id: string;
+  lineItems: LineItem[];
+  payment: Payment;
+  shipment: Shipment;
+  invoice: Invoice;
+  customerPrefs: CustomerPreferences;
+
+  updateShipmentAddress(address: Address) {
+    this.shipment.address = address;
+    // This locks: order, all line items, payment, invoice, customer prefs
+    // Every concurrent operation on ANY of these now waits
+  }
+
+  applyDiscount(code: string) {
+    this.invoice.discount = this.calculateDiscount(code);
+    this.recalculateTotal();
+    // Same lock. If payment is processing, it waits for this.
+    // If another user is adding a line item, it waits for this.
+  }
+}
+```
+
+The real-world symptom: you see database row locks piling up in monitoring. Transaction times spike during peak hours. Two users modifying different parts of the same order (one updates shipping, one applies a coupon) serialize on the same lock. The payment service calls time out because the order aggregate is locked by a slow invoice calculation.
+
+The fix: split into focused aggregates.
+
+```typescript
+class Order {
+  id: string;
+  private lineItems: LineItem[] = [];
+
+  addItem(productId: string, price: number, quantity: number) {
+    this.lineItems.push(new LineItem(productId, price, quantity));
+  }
+}
+
+class OrderFulfillment {
+  id: string;
+  orderId: string;
+  address: Address;
+  status: FulfillmentStatus;
+
+  updateAddress(address: Address) {
+    this.address = address;
+    // Only locks this row. Order is not affected.
+  }
+}
+
+class Payment {
+  id: string;
+  orderId: string;
+  amount: number;
+  status: PaymentStatus;
+
+  applyDiscount(code: string) {
+    this.discount = this.calculateDiscount(code);
+    // Only locks payment. Order and fulfillment are not affected.
+  }
+}
+```
+
+Now updating the shipment address does not block applying a discount. Different aggregates, different locks, parallel operations.
+
+### Mistake 3: loading everything to enforce one rule
 
 The chat group example from CodeOpinion. A group chat has a rule: "cannot have more than 100,000 members." The naive implementation loads all members into memory to count them.
 
@@ -269,7 +338,7 @@ class GroupChat {
 
 The invariant is enforced. The aggregate is tiny. Members are a separate aggregate (or even just a database table) that does not need to be loaded into the domain model.
 
-### Mistake 3: the anemic domain model
+### Mistake 4: the anemic domain model
 
 The entity is a data holder. All logic lives in a service class. The service loads the entity, reads its fields, makes decisions, and writes them back. The entity does nothing.
 
@@ -330,7 +399,7 @@ class Order {
 
 The invariant is now enforced inside the entity. No external code can bypass it. The aggregate root is the gatekeeper.
 
-### Mistake 4: over-modeling (everything is an aggregate root)
+### Mistake 5: over-modeling (everything is an aggregate root)
 
 Every entity gets its own repository, its own lifecycle, its own transaction. LineItem, OrderNote, ShippingAddress are all separate aggregates. Now adding a line item to an order requires three repositories and three transactions.
 
