@@ -17,6 +17,7 @@ const articles: Article[] = [
   {title: 'Cross-Module Queries', path: '/docs/software-engineering/cross-module-queries', category: 'Architecture'},
   {title: 'Decoupling Moves Complexity', path: '/docs/software-engineering/decoupling-moves-complexity', category: 'Architecture'},
   {title: 'Decoupling Case Studies: When to Apply Each Level', path: '/docs/software-engineering/decoupling-case-studies', category: 'Architecture'},
+  {title: 'Refactoring', path: '/docs/software-engineering/refactoring', category: 'Architecture'},
   {title: 'Deployment is a Configuration Choice (If You Have Boundaries)', path: '/docs/software-engineering/deployment-configuration-choice', category: 'Architecture'},
   {title: 'From Event Storming to Bounded Contexts', path: '/docs/software-engineering/event-storming-read-models-boundaries', category: 'Architecture'},
 
@@ -29,6 +30,7 @@ const articles: Article[] = [
   {title: 'Aggregates and Bounded Contexts', path: '/docs/software-engineering/aggregates-and-boundaries', category: 'DDD'},
   {title: 'Bounded Contexts', path: '/docs/software-engineering/bounded-contexts', category: 'DDD'},
   {title: 'One Model Per Context', path: '/docs/software-engineering/one-model-per-context', category: 'DDD'},
+  {title: 'How Architecture Styles Changed and Event Storming Survived', path: '/docs/software-engineering/architecture-styles-and-event-storming', category: 'DDD'},
 
   {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
   {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},
