@@ -77,16 +77,7 @@ const articles: Article[] = [
 
   {title: 'The AI Application Stack', path: '/docs/software-engineering/ai-application-stack', category: 'AI'},
 
-  {title: 'Ideal Customer Profile', path: '/docs/software-engineering/ideal-customer-profile', category: 'Market'},
-  {title: 'Problem-Solution Fit', path: '/docs/software-engineering/problem-solution-fit', category: 'Market'},
-  {title: 'MVP Strategy', path: '/docs/software-engineering/mvp-strategy', category: 'Market'},
-  {title: 'Pricing & Monetization', path: '/docs/software-engineering/pricing-monetization', category: 'Market'},
-  {title: 'Go-to-Market', path: '/docs/software-engineering/go-to-market', category: 'Market'},
-  {title: 'Retention & Growth', path: '/docs/software-engineering/retention-growth', category: 'Market'},
-  {title: 'Product-Market Fit', path: '/docs/software-engineering/product-market-fit', category: 'Market'},
-  {title: 'Feedback Loops', path: '/docs/software-engineering/feedback-loops', category: 'Market'},
-  {title: 'Market Analysis', path: '/docs/software-engineering/market-analysis', category: 'Market'},
-  {title: 'Competitive Landscape', path: '/docs/software-engineering/competitive-landscape', category: 'Market'},
+  {title: 'Why Middle Roles Disappear in Recessions', path: '/docs/software-engineering/middle-role-elimination', category: 'Market'},
 ];
 
 const categoryOrder = ['Architecture', 'Testing', 'Engineering', 'Market', 'Books', 'AI', 'DDD'];
