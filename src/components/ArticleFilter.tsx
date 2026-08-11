@@ -42,6 +42,7 @@ const articles: Article[] = [
   {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},
   {title: 'Modular Monolith', path: '/docs/software-engineering/modular-monolith', category: 'Architecture'},
   {title: 'Shopify: From Monolith to Modular Monolith', path: '/docs/software-engineering/shopify-modular-monolith', category: 'Architecture'},
+  {title: 'Building Public APIs for Modules Using Interfaces', path: '/docs/software-engineering/module-public-api-interface', category: 'Architecture'},
   {title: 'Module Wiring: Ports and Adapters', path: '/docs/software-engineering/module-wiring-ports-adapters', category: 'Architecture'},
   {title: 'MVC: When the Request-Response Shape Fits', path: '/docs/software-engineering/mvc-when-to-use', category: 'Architecture'},
   {title: 'Monolith vs Microservices', path: '/docs/software-engineering/monolith-vs-microservices', category: 'Architecture'},
