@@ -34,12 +34,14 @@ const articles: Article[] = [
   {title: 'When Events Are Events and When They Are Not', path: '/docs/software-engineering/events-are-discovery-not-code', category: 'DDD'},
   {title: 'Parallel Actors and Concurrent Access', path: '/docs/software-engineering/parallel-actors-and-concurrency', category: 'DDD'},
   {title: 'Why DDD Starts from the Business, Not the Database', path: '/docs/software-engineering/ddd-starts-from-business-not-database', category: 'DDD'},
+  {title: 'Aggregates, Behavior, and Querying', path: '/docs/software-engineering/aggregates-behavior-and-querying', category: 'DDD'},
 
   {title: 'Data Ownership in Redis', path: '/docs/software-engineering/redis-data-ownership', category: 'Engineering'},
 
   {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
   {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},
   {title: 'Modular Monolith', path: '/docs/software-engineering/modular-monolith', category: 'Architecture'},
+  {title: 'Shopify: From Monolith to Modular Monolith', path: '/docs/software-engineering/shopify-modular-monolith', category: 'Architecture'},
   {title: 'Module Wiring: Ports and Adapters', path: '/docs/software-engineering/module-wiring-ports-adapters', category: 'Architecture'},
   {title: 'MVC: When the Request-Response Shape Fits', path: '/docs/software-engineering/mvc-when-to-use', category: 'Architecture'},
   {title: 'Monolith vs Microservices', path: '/docs/software-engineering/monolith-vs-microservices', category: 'Architecture'},
