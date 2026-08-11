@@ -75,6 +75,12 @@ const config: Config = {
         },
 
         {
+          to: '/tech-stack',
+          label: 'Tech Stack',
+          position: 'left',
+        },
+
+        {
           href: 'https://github.com/labeebahmad201/knowledge-base',
           label: 'GitHub',
           position: 'right',
