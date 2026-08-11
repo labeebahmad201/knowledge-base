@@ -3,77 +3,103 @@ import {useState} from 'react';
 import Head from '@docusaurus/Head';
 import Layout from '@theme/Layout';
 
-interface TechItem {
+interface RoadmapItem {
   name: string;
   problem: string;
 }
 
-const techStack: Record<string, TechItem[]> = {
-  Languages: [
+const roadmap: Record<string, RoadmapItem[]> = {
+  'Languages & Frameworks': [
     {name: 'TypeScript', problem: 'Primary language for web applications'},
     {name: 'Python', problem: 'Data engineering, scripting, AI/ML'},
     {name: 'Go', problem: 'High-performance services, CLI tools'},
-  ],
-  Frontend: [
     {name: 'React', problem: 'UI component library for web apps'},
     {name: 'Next.js', problem: 'Full-stack React framework with SSR'},
-    {name: 'Tailwind CSS', problem: 'Utility-first CSS framework'},
-  ],
-  Backend: [
     {name: 'NestJS', problem: 'TypeScript backend framework with DI, modular architecture'},
-    {name: 'Express', problem: 'Minimal Node.js web framework'},
     {name: 'FastAPI', problem: 'Python async web framework'},
   ],
   Databases: [
     {name: 'PostgreSQL', problem: 'Primary relational database'},
     {name: 'Redis', problem: 'Caching, session store, task queue'},
     {name: 'MongoDB', problem: 'Document store for flexible schemas'},
+    {name: 'Prisma / Drizzle', problem: 'Type-safe database access layer'},
   ],
   Infrastructure: [
     {name: 'Docker', problem: 'Containerization for consistent environments'},
     {name: 'Kubernetes', problem: 'Container orchestration at scale'},
     {name: 'GitHub Actions', problem: 'CI/CD pipelines'},
+    {name: 'Nginx', problem: 'Reverse proxy, load balancer'},
+    {name: 'Prometheus + Grafana', problem: 'Metrics collection and visualization'},
   ],
-  Architecture: [
-    {name: 'DDD', problem: 'Domain modeling, bounded contexts, aggregates'},
+  'Architecture Patterns': [
+    {name: 'Modular Monolith', problem: 'Single deployable with module boundaries'},
+    {name: 'Microservices', problem: 'Independent services with separate deployments'},
+    {name: 'Event-Driven Architecture', problem: 'Async communication via events'},
     {name: 'CQRS', problem: 'Separate read and write models'},
     {name: 'Event Sourcing', problem: 'Immutable event log as source of truth'},
-    {name: 'Modular Monolith', problem: 'Single deployable with module boundaries'},
+    {name: 'Hexagonal Architecture', problem: 'Ports and adapters, isolate core logic'},
+    {name: 'Layered Architecture', problem: 'Traditional controller → service → repository'},
+  ],
+  'Design Patterns': [
+    {name: 'SOLID Principles', problem: 'Five principles for maintainable OOP code'},
+    {name: 'Repository Pattern', problem: 'Abstract data access from business logic'},
+    {name: 'Factory Pattern', problem: 'Delegate object creation to subclasses or factories'},
+    {name: 'Strategy Pattern', problem: 'Swap algorithms at runtime without changing context'},
+    {name: 'Observer Pattern', problem: 'Publish-subscribe for loose coupling'},
+    {name: 'Decorator Pattern', problem: 'Add behavior dynamically without inheritance'},
+    {name: 'Dependency Injection', problem: 'Invert control, inject dependencies instead of creating'},
+  ],
+  'Domain Modeling': [
+    {name: 'DDD', problem: 'Domain modeling, bounded contexts, aggregates'},
+    {name: 'Event Storming', problem: 'Collaborative discovery of domain events and flows'},
+    {name: 'Aggregates', problem: 'Consistency boundaries within a bounded context'},
+    {name: 'Value Objects', problem: 'Immutable objects defined by attributes, not identity'},
+    {name: 'Domain Events', problem: 'Capture side effects of state changes'},
+    {name: 'Anti-Corruption Layer', problem: 'Translate between external and internal models'},
   ],
   Testing: [
-    {name: 'Jest', problem: 'JavaScript testing framework'},
-    {name: 'Playwright', problem: 'End-to-end browser testing'},
-    {name: 'k6', problem: 'Load testing and performance benchmarking'},
+    {name: 'Unit Testing', problem: 'Test individual functions or classes in isolation'},
+    {name: 'Integration Testing', problem: 'Test how modules work together'},
+    {name: 'End-to-End Testing', problem: 'Test full user flows through the browser'},
+    {name: 'Contract Testing', problem: 'Verify API contracts between services'},
+    {name: 'Load Testing', problem: 'Find performance bottlenecks under stress'},
   ],
-  DevOps: [
-    {name: 'Nginx', problem: 'Reverse proxy, load balancer'},
-    {name: 'Prometheus', problem: 'Metrics collection and alerting'},
-    {name: 'Grafana', problem: 'Metrics visualization dashboards'},
+  'Developer Workflow': [
+    {name: 'Git Branching Strategies', problem: 'Git flow, trunk-based, feature flags'},
+    {name: 'Code Reviews', problem: 'Effective review process, giving and receiving feedback'},
+    {name: 'Refactoring', problem: 'Improve code without changing behavior'},
+    {name: 'Technical Debt Management', problem: 'Track, prioritize, and pay down debt'},
+    {name: 'Static Analysis / Linting', problem: 'Enforce code quality automatically'},
+    {name: 'Observability', problem: 'Logs, metrics, traces - understand what is happening'},
   ],
-  Messaging: [
-    {name: 'Kafka', problem: 'Event streaming, async communication between modules'},
-    {name: 'RabbitMQ', problem: 'Message broker for task queues'},
-    {name: 'BullMQ', problem: 'Redis-based job queue for Node.js'},
+  'Product & Business': [
+    {name: 'Ideal Customer Profile', problem: 'Define who you are building for and why'},
+    {name: 'Problem-Solution Fit', problem: 'Validate the problem before building the solution'},
+    {name: 'MVP Strategy', problem: 'Smallest thing you can build to learn something'},
+    {name: 'Pricing & Monetization', problem: 'Free trial, freemium, usage-based, seat-based'},
+    {name: 'Go-to-Market', problem: 'How to reach and convert your first customers'},
+    {name: 'Retention & Growth', problem: 'Activation, engagement, reducing churn'},
+    {name: 'Product-Market Fit', problem: 'When the product sells itself without you pushing'},
+    {name: 'Feedback Loops', problem: 'Collect, prioritize, and act on user feedback'},
   ],
-  Auth: [
-    {name: 'OAuth 2.0', problem: 'Standard authorization protocol'},
-    {name: 'JWT', problem: 'Token-based authentication'},
-    {name: 'Passport.js', problem: 'Authentication middleware for Node.js'},
-  ],
-  Monitoring: [
-    {name: 'OpenTelemetry', problem: 'Distributed tracing and observability'},
-    {name: 'Sentry', problem: 'Error tracking and performance monitoring'},
+  'System Design': [
+    {name: 'API Design', problem: 'REST, GraphQL, gRPC - choosing and designing APIs'},
+    {name: 'Authentication & Authorization', problem: 'OAuth, JWT, RBAC, session management'},
+    {name: 'Caching Strategies', problem: 'When and where to cache for performance'},
+    {name: 'Message Queues', problem: 'Async processing with Kafka, RabbitMQ, BullMQ'},
+    {name: 'Rate Limiting & Throttling', problem: 'Protect services from overload'},
+    {name: 'Database Scaling', problem: 'Sharding, read replicas, connection pooling'},
   ],
 };
 
-const categories = Object.keys(techStack);
+const categories = Object.keys(roadmap);
 
 export default function TechStack(): ReactNode {
   const [filter, setFilter] = useState<string | null>(null);
-  const filtered = filter ? {[filter]: techStack[filter]} : techStack;
+  const filtered = filter ? {[filter]: roadmap[filter]} : roadmap;
 
   return (
-    <Layout title="Tech Stack" description="Tech stack roadmap and learning plan">
+    <Layout title="Roadmap" description="Developer roadmap - skills, patterns, and product knowledge">
       <Head>
         <meta name="robots" content="index, follow" />
       </Head>
@@ -84,9 +110,9 @@ export default function TechStack(): ReactNode {
           borderBottom: '1px solid var(--ifm-color-emphasis-200)',
         }}
       >
-        <h1 style={{fontSize: '2.25rem', margin: 0, fontWeight: 800, letterSpacing: '-0.03em'}}>Tech Stack Roadmap</h1>
+        <h1 style={{fontSize: '2.25rem', margin: 0, fontWeight: 800, letterSpacing: '-0.03em'}}>Roadmap</h1>
         <p style={{fontSize: '1.1rem', marginTop: '0.75rem', opacity: 0.85, fontWeight: 400, maxWidth: '640px', marginLeft: 'auto', marginRight: 'auto'}}>
-          Technologies to learn and problems to solve.
+          What to learn, what to know, and what problems each thing solves.
         </p>
       </header>
       <main>
@@ -165,7 +191,7 @@ export default function TechStack(): ReactNode {
                       borderBottom: '1px solid var(--ifm-color-emphasis-100)',
                     }}
                   >
-                    <span style={{fontWeight: 600, fontSize: '0.95rem', minWidth: '140px', flexShrink: 0}}>
+                    <span style={{fontWeight: 600, fontSize: '0.95rem', minWidth: '160px', flexShrink: 0}}>
                       {item.name}
                     </span>
                     <span style={{fontSize: '0.85rem', color: 'var(--ifm-color-emphasis-600)'}}>

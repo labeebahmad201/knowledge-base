@@ -76,7 +76,7 @@ const config: Config = {
 
         {
           to: '/tech-stack',
-          label: 'Tech Stack',
+          label: 'Roadmap',
           position: 'left',
         },
 
