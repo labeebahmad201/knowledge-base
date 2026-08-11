@@ -78,6 +78,7 @@ const articles: Article[] = [
   {title: 'The AI Application Stack', path: '/docs/software-engineering/ai-application-stack', category: 'AI'},
 
   {title: 'Why Middle Roles Disappear in Recessions', path: '/docs/software-engineering/middle-role-elimination', category: 'Market'},
+  {title: 'Market Research: TypeScript and Python in 2026', path: '/docs/software-engineering/market-research-typescript-python', category: 'Market'},
 ];
 
 const categoryOrder = ['Architecture', 'Testing', 'Engineering', 'Market', 'Books', 'AI', 'DDD'];
