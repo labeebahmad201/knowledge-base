@@ -103,9 +103,9 @@ Martin Fowler: "Almost all the cases where I've heard of a system that was built
 
 ## The design stamina hypothesis
 
-Shopify引用了Martin Fowler的设计耐力假说。在早期阶段，你可以快速移动而不需要太多设计。一旦设计开始阻碍功能开发，你就越过了设计回报线，是时候投资设计了。
+Shopify cited Martin Fowler's Design Stamina Hypothesis. In the early stages, you can move fast without much design. Once design starts slowing down feature development, you have crossed the design payoff line, and it is time to invest in design.
 
-Shopify没有在早期就做模块化。他们在需要的时候才做。这就是正确的时机。
+Shopify did not modularize early. They did it when they needed to. That was the right time.
 
 ```mermaid
 graph TD
