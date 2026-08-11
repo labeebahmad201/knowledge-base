@@ -155,25 +155,12 @@ pre {
 
 .docusaurus-mermaid-container {
   width: 100%;
-  overflow-x: auto;
-  display: flex;
-  justify-content: center;
+  text-align: center;
 }
 
 .docusaurus-mermaid-container svg {
-  max-width: 100%;
-  height: auto;
-}
-
-.docusaurus-mermaid-container .nodeLabel,
-.docusaurus-mermaid-container .edgeLabel,
-.docusaurus-mermaid-container .cluster-label text {
-  font-size: 14px !important;
-  line-height: 1.3 !important;
-}
-
-.docusaurus-mermaid-container .edgeLabel {
-  font-size: 12px !important;
+  max-width: 100% !important;
+  height: auto !important;
 }
 
 markdown h2,
