@@ -153,6 +153,39 @@ pre {
   border-radius: 10px;
 }
 
+.docusaurus-mermaid-container {
+  width: 100%;
+}
+
+.docusaurus-mermaid-container svg {
+  width: 100% !important;
+  height: auto !important;
+  max-width: none !important;
+}
+
+.docusaurus-mermaid-container .nodeLabel,
+.docusaurus-mermaid-container .edgeLabel,
+.docusaurus-mermaid-container .cluster-label text {
+  font-size: 16px !important;
+  line-height: 1.4 !important;
+}
+
+.docusaurus-mermaid-container .edgeLabel {
+  font-size: 14px !important;
+}
+
+markdown h2,
+.markdown h2 {
+  font-size: 1.9rem !important;
+}
+
+.markdown p,
+.markdown li {
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+
 table {
   border: 1px solid var(--ifm-table-border-color);
   border-radius: 10px;
