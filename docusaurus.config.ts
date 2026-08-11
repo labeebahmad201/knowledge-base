@@ -74,11 +74,7 @@ const config: Config = {
           position: 'left',
         },
 
-        {
-          to: '/tech-stack',
-          label: 'Roadmap',
-          position: 'left',
-        },
+
 
         {
           href: 'https://github.com/labeebahmad201/knowledge-base',
