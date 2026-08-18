@@ -208,6 +208,42 @@ run    skip    run   skip   run   ← drains events at a fixed rate, not at the 
 | Best for | "run when done typing" | "run at most every 100ms" |
 | Worst case | fires very late if user never stops | fires mid-noise even if not needed |
 
+### When to use which — the decision rule
+
+Ask one question: **do you want the *last* event, or a *steady sample* of events?**
+
+- **Debounce — use it when only the final state matters** and intermediate events are meaningless:
+  - **Search / autocomplete** — fire the API call after the user stops typing, not per keystroke (the intermediate results are thrown away anyway).
+  - **Form validation** — validate once the user pauses; running on each keystroke flashes errors mid-typing.
+  - **Window resize → recalc layout** — you only care about the size when the user lets go.
+  - **Save drafts** — write to localStorage/backend after the user stops editing.
+  - **"Save" buttons** — collapse a flurry of rapid clicks into one action.
+
+- **Throttle — use it when you need *regular progress updates* and the events themselves matter**:
+  - **Scroll → progress bar / lazy-load** — must fire *during* the scroll, at a capped rate.
+  - **Mouse-move → tooltip/coordinate tracking** — sample at 10Hz, don't run per pixel.
+  - **Click guard / rate limiting** — a submit button that can fire at most once per second (anti double-submit).
+  - **Game loop / analytics ping** — a steady heartbeat of events, never more than N per second.
+  - **Continuous animation frames** — run at a fixed interval regardless of how often the user moves.
+
+**Walk-through of the two classic wrong answers:**
+
+```js
+// ❌ debounce on scroll — never fires while the user keeps scrolling
+window.addEventListener("scroll", debounce(updateProgressBar, 100));
+
+// ✅ throttle on scroll — fires steadily mid-scroll
+window.addEventListener("scroll", throttle(updateProgressBar, 100));
+
+// ❌ throttle on search — fires mid-keystroke, sends half-typed queries
+input.addEventListener("input", throttle(searchApi, 300));
+
+// ✅ debounce on search — one query after the user pauses
+input.addEventListener("input", debounce(searchApi, 300));
+```
+
+Rule of thumb to say out loud: **"Debounce for 'when they're done', throttle for 'while they're doing it'."** Debounce is about *saving the final work*; throttle is about *not flooding the pipe*.
+
 ### What the interviewer probes next
 
 **1. "Debounce" vs "throttle" in your own words?**
