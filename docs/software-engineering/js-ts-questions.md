@@ -597,6 +597,28 @@ with open("data.csv") as f:
 
 `with` is critical — it auto-closes the file. In JS you'd use `fs.readFileSync` or promises. Python's `with` is better than both.
 
+### Enumerate — iterate with an index
+
+You need both the value and its position. JS uses `arr.forEach((v, i) => ...)` or `arr[idx]`. Python's `enumerate` gives you both in one loop:
+
+```python
+names = ["Alice", "Bob", "Sai"]
+
+# JS: names.forEach((name, i) => ...)
+for i, name in enumerate(names):
+    print(i, name)   # 0 Alice / 1 Bob / 2 Sai
+
+# Unpacking without the index variable you don't need
+for i, _ in enumerate(names):   # just the indices
+    ...
+
+# Start at a different offset
+for i, name in enumerate(names, start=1):
+    print(i, name)   # 1 Alice / 2 Bob / 3 Sai
+```
+
+The `start=` argument is the gotcha to know — it changes where counting begins, not where iteration starts.
+
 ### Common gotchas for JS devs
 
 **1. `None` vs falsy:**
@@ -687,6 +709,7 @@ No setup, no config, no boilerplate. Just `assert` statements. pytest is the rea
 | `const x = []` | `x = []` | No `const`/`let` — just assign |
 | `x.forEach(fn)` | `for item in x:` | Python uses `for...in`, not `for...of` |
 | `x.map(fn)` | `[fn(x) for x in xs]` | List comprehension, not method chain |
+| `arr.forEach((v, i) => ...)` | `for i, v in enumerate(arr):` | Built-in index + value |
 | `x === null` | `x is None` | Identity check, not equality |
 | `try {} catch {}` | `try: except:` | Colon + indent, not braces |
 
