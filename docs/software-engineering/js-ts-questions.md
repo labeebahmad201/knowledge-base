@@ -619,6 +619,133 @@ for i, name in enumerate(names, start=1):
 
 The `start=` argument is the gotcha to know — it changes where counting begins, not where iteration starts.
 
+### Iterating a dict — keys, values, or both
+
+Python dicts offer three ways to loop, and the one you pick changes what you unpack. This is the `freq_map` / frequency-counting pattern you'll see in LeetCode and hash-map questions:
+
+```python
+freq_map = {"a": 3, "b": 5, "c": 2}
+
+# 1. Keys only — the default
+for key in freq_map:              # "a" "b" "c"
+    ...
+
+for key in freq_map.keys():       # explicit — same result
+    ...
+
+# 2. Values only
+for freq in freq_map.values():    # 3 5 2
+    ...
+
+# 3. Both key and value (the common one)
+for key, freq in freq_map.items():  # unpack each (key, value) tuple
+    print(key, freq)              # a 3 / b 5 / c 2
+```
+
+`freq_map` iterates keys by default. `.keys()` is the explicit version. `.values()` gives just the values. `.items()` yields `(key, value)` **tuples** that you unpack inline as `for key, freq in ...`.
+
+**The practical pattern** — counting character frequency, the basis of anagram and "top K frequent" problems:
+
+```python
+freq = {}
+for ch in "banana":
+    freq[ch] = freq.get(ch, 0) + 1   # count occurrences
+
+# "a" appears 3 times → key a, value 3
+for ch, count in freq.items():
+    if count == 3:
+        print(ch)   # → "a" (and "n")
+
+# find the most frequent
+most = max(freq.items(), key=lambda kv: kv[1])   # ('a', 3)
+```
+
+### `defaultdict` — dicts that don't throw on missing keys
+
+The counting pattern above uses `freq.get(ch, 0) + 1` because a plain dict throws `KeyError` if you access an absent key. `collections.defaultdict` removes that boilerplate — a missing key is auto-created with a default value.
+
+```python
+from collections import defaultdict
+
+# Missing keys default to 0 — perfect for counting
+freq = defaultdict(int)
+for ch in "banana":
+    freq[ch] += 1        # no .get(ch, 0) needed
+freq["a"]                # 3 — auto-created keys work
+
+# Missing keys default to an empty list — perfect for grouping
+from collections import defaultdict
+groups = defaultdict(list)
+for word in words:
+    first = word[0]
+    groups[first].append(word)   # no "if key not in groups" check
+
+# Missing keys default to an empty set — perfect for dedup collection
+seen = defaultdict(set)
+seen["a"].add(1)         # auto-creates a set first
+```
+
+**The JS equivalent:** JS objects and Maps return `undefined` for missing keys, so `obj[key] || []` or `map.get(key) ?? []` is the manual version. Python throws instead, so `defaultdict` is the idiomatic fix.
+
+**Which default to pass:**
+
+| Default | Use for | Why |
+|---|---|---|
+| `defaultdict(int)` | counting frequencies | starts at 0 |
+| `defaultdict(list)` | grouping values by a key | start an empty list to append |
+| `defaultdict(set)` | collecting unique values | start an empty set |
+| `defaultdict(dict)` | nested dict structures | start an empty dict |
+
+**Gotcha to know:** `defaultdict(int)` does *not* create the key when you read with `d[key]` only to set later — actually, `d[key]` on a missing key **does create it** (reading also inserts). Use `d.get(key)` if you want to check presence without mutating.
+
+```python
+freq = defaultdict(int)
+freq["x"]            # 0 — but now "x" exists in the dict!
+"x" in freq          # True — reading inserted it
+freq.get("y")        # None — .get() does NOT insert
+```
+
+### Tuples — immutable, ordered sequences
+
+Python tuples are like lists but **immutable** — you cannot add, remove, or reassign elements after creation. They're the closest thing Python has to a frozen array.
+
+```python
+point = (10, 20)          # create with parens (optional for single)
+point = 10, 20            # tuple packing — parens optional
+point[0]                  # 10
+point[0] = 30             # ❌ TypeError — immutable
+len(point)                # 2
+```
+
+**Why tuples exist — what they're for:**
+
+| Use case | Why tuples |
+|---|---|
+| Function returns multiple values | `return x, y` — the caller unpacks `a, b = func()` |
+| Dict keys | Tuples are hashable — a list is not, so `{(1, 2): "x"}` works, `{[1, 2]: "x"}` ❌ |
+| Unpacking / destructuring | `x, y = point` — like JS array destructuring |
+| Records that shouldn't change | Coordinates, RGB values, config pairs |
+
+**Unpacking — the key skill:**
+
+```python
+# Multiple return values
+def min_max(nums):
+    return min(nums), max(nums)
+
+lo, hi = min_max([3, 1, 2])   # lo=1, hi=3 — destructuring
+
+# Iterating a list of tuples
+pairs = [(1, "a"), (2, "b")]
+for num, letter in pairs:     # unpack each tuple
+    print(num, letter)
+
+# Swap without a temp variable
+a, b = b, a                   # a and b swap values
+```
+
+**Tuple vs list — the 30-second distinction:** A tuple is a *fixed* sequence (coordinates, return values, hashable keys). A list is a *variable* sequence (scores you append to, items you filter). Rule of thumb: if the size never changes, use a tuple. Writing code that treats tuples as mutable is a TypeError waiting to happen.
+
 ### Common gotchas for JS devs
 
 **1. `None` vs falsy:**
@@ -710,6 +837,10 @@ No setup, no config, no boilerplate. Just `assert` statements. pytest is the rea
 | `x.forEach(fn)` | `for item in x:` | Python uses `for...in`, not `for...of` |
 | `x.map(fn)` | `[fn(x) for x in xs]` | List comprehension, not method chain |
 | `arr.forEach((v, i) => ...)` | `for i, v in enumerate(arr):` | Built-in index + value |
+| `Object.keys(obj)` | `for k in d:` / `for k in d.keys():` | Dict keys |
+| `Object.values(obj)` | `for v in d.values():` | Dict values |
+| `Object.entries(obj)` | `for k, v in d.items():` | Dict key-value pairs |
+| `const [a, b] = pair` | `a, b = pair` | Tuple unpacking |
 | `x === null` | `x is None` | Identity check, not equality |
 | `try {} catch {}` | `try: except:` | Colon + indent, not braces |
 
@@ -736,6 +867,12 @@ Source code → Bytecode (.pyc) → Interpreter → Machine code → CPU
 ```
 
 When you change your `.py` file, Python recompiles the bytecode. If you don't change it, Python uses the cached `.pyc` — that's why the second run is faster.
+
+**What is CPython?** Python is a *language* (a spec), and CPython is the **reference implementation** — the standard interpreter, written in C, that you get when you run `python3`. It's the thing that compiles `.py` → bytecode → executes it. "CPython" = "C" + "Python".
+
+- When you install Python from python.org or Homebrew, you're getting CPython. "Python" in practice *is* CPython.
+- Other implementations exist — PyPy (JIT, much faster), Jython (on the JVM), IronPython (.NET) — but the ecosystem (numpy, pandas, everything in pip) targets CPython.
+- So when docs say "Python has a GIL," they mean "**CPython** has a GIL" — it's a property of this specific interpreter, not of the language.
 
 **How other languages compare:**
 
@@ -868,6 +1005,40 @@ t1.join(); t2.join()
 # Slower than running sequentially — GIL contention + overhead
 ```
 
+### What is serialization / deserialization?
+
+**Serialization** is turning an in-memory object (*dicts, lists, classes, bytes*) into a **stream of bytes or text** that can be stored or sent. **Deserialization** is the reverse — turning that stream back into a live object on the other side.
+
+```
+serialize                       deserialize
+┌─────────┐   ────────▶   ┌──────────┐   ────────▶   ┌─────────┐
+│  dict   │               │ JSON text │               │  dict   │
+│ {"a":1} │               │ '{"a":1}' │               │ {"a":1} │
+└─────────┘  in memory     └──────────┘  bytes/text   └─────────┘  in memory
+```
+
+Why it exists: **memory addresses are meaningless outside your process.** A Python `dict` is a bunch of pointers to memory locations only *that* process understands. Hand it to another process (or another computer) and it's gibberish. Serialization converts the *shape* and *values* into a portable form, so the receiver rebuilds an equivalent object.
+
+**Formats — the same idea, different portability:**
+
+| Format | Language data → | Sees | Use case |
+|---|---|---|---|
+| JSON | `{"a": 1}` → text | any language | APIs, servers, browsers — human-readable |
+| Python `pickle` | any Python object | Python only | multiprocessing — fast but Python-only |
+| `structured clone` | any JS object | JS only | Node `worker_threads.postMessage` |
+| Protobuf / MessagePack | binary | any language | fast, compact — internal services |
+| CSV / plain text | tabular data | any language | data exchange, spreadsheets |
+
+**What it can't do:** a serialized format can only represent *data*, not *behavior*. Functions, class methods, live file handles, and open sockets have no portable representation — you serialize the *state*, and the receiving side must know how to rebuild the object. That's the same tension as the `JSON.stringify` deep-clone section above: functions get dropped, `Date` → string, etc.
+
+**Where the cost shows up:** serialization is pure overhead — you destroy an object, write bytes, read bytes, rebuild the object. That's why it matters for performance decisions:
+
+- **Between servers:** 100MB of JSON sent over HTTP costs CPU (serialize/deserialize) *and* bandwidth (text is bigger than binary).
+- **Between processes:** 4GB of pickled data moved to 4 workers costs 4 copies — often the reason multiprocessing is *slower* than single-threaded for big datasets.
+- **Between threads:** threads *already share memory*, so if they can touch the same object directly (free-threaded Python, `SharedArrayBuffer` in Node), serialization is *zero* — that's the win the free-threaded build is chasing.
+
+**On servers, serialization is the hidden weight.** Every API call is: client serializes request → network → server deserializes → rebuilds object → processes → serializes response → network → client deserializes. For JSON-heavy services this is routinely 5–10% of CPU. When engineers talk about "every request has a cost," the serialize/deserialize round-trip is a big, silent chunk of it.
+
 ### Multiprocessing — true parallelism
 
 Multiprocessing spawns separate processes, each with its own Python interpreter and its own GIL. This bypasses the GIL entirely — true parallelism on multiple cores.
@@ -900,6 +1071,32 @@ with Pool(4) as p:
     results = p.map(compute, [10_000_000] * 4)
 # ~4x faster on 4 cores
 ```
+
+**Why we're removing the GIL — the free-threaded build:**
+
+The GIL existed because it was a cheap *safety* guarantee (only one thread mutating objects at a time) — fine when "fast" meant one core. But modern machines ship 8/16/32 cores, and the GIL **caps CPU-bound threads at ~1 core's worth of work**. The workaround was multiprocessing, but it has a real cost: separate processes, separate memory, and every piece of data must be *serialized* (pickled) to move between them.
+
+**PEP 703 (Python 3.13+, experimental): a "free-threaded" build with the GIL removed.** Same `threading` API, but threads can now run Python bytecode *in parallel* on different cores. 3.13 ships it behind a flag; 3.14 matures it.
+
+**Why shared memory beats processes for data-heavy work:** when your workload is "one big shared dataset split across cores," multiprocessing forces you to copy/serialize that dataset into every worker — often *slower* than just running single-threaded. Free-threaded threads all sit on the *same* memory and coordinate who touches which slice:
+
+| | Multiprocessing | Free-threaded (no GIL) |
+|---|---|---|
+| Parallel CPU work | ✓ (own GIL each) | ✓ (no lock to fight) |
+| Sharing data | pickle every time | mutate shared memory in place |
+| Cost of sharing | copy overhead | near zero |
+| Risk | safe isolation | races are possible — you must use locks |
+
+**The trade-offs (why it's not the default):**
+
+| | GIL build | Free-threaded build |
+|---|---|---|
+| Single-threaded speed | fast | slower (~30%) — per-object locking overhead |
+| Parallel CPU threads | capped at 1 core | all cores |
+| Data races | near impossible by accident | possible — you must coordinate |
+| C extensions | everything works | need auditing/rebuilding for free-threading |
+
+So the trade is: **GIL = one core, but safe and fast single-threaded. No GIL = all cores, but you pay on single-threaded speed and must think about locking.** Both escape routes exist for the same underlying reason — CPU-bound work wants multiple cores — and which one you pick depends on whether your shared data is too big to copy.
 
 ### asyncio — one thread, many tasks
 
@@ -1016,6 +1213,76 @@ def bad():
 
 The analogy: threading is like having multiple cooks who each work independently (but take turns at the stove). asyncio is like one cook who starts a pot boiling, moves to chopping while it boils, then comes back when the pot is ready — but if the cook gets stuck (blocking call), everything stops.
 
+### JavaScript vs Python concurrency — the same shape, different engines
+
+Both languages answer the same question — **"how do I keep thinking while someone else does I/O?"** — but with opposite designs.
+
+**The two kinds of I/O:**
+
+- **Blocking I/O:** the thread issues a syscall (read file, DNS, network) and **waits** until it returns. While waiting, that thread does nothing.
+- **Non-blocking I/O:** the syscall returns immediately — either with data or "not ready yet." The code keeps running, and the OS notifies later via `epoll`/`kqueue` when the data arrives.
+
+DNS resolution, for example, is just I/O — the algorithm waits for a DNS server to reply. It never "needed" another core. It needed the *waiting* to not block the *thinking*.
+
+**How Node.js handles it — libuv thread pool:**
+
+Node's event loop runs on **one thread** that executes all JavaScript. If that main thread ever enters a blocking syscall, it's parked until the syscall returns — and while parked, it can't run callbacks or events. Time-sharing doesn't help: a blocked thread isn't competing for CPU, it's waiting on I/O.
+
+So Node's rule is: **never let the main thread touch a blocking syscall.** Some operations only exist as blocking syscalls (DNS via `getaddrinfo`, file system on most platforms, crypto, zlib). libuv hands those to a **thread pool (default 4 threads)**. The worker blocks; the main thread never does.
+
+```
+User code ======> main thread (runs JS, never blocks)
+                     |
+                     | "readFile, please"  ┌──> libuv worker 1 (blocks on fs)
+                     |                     ├──> libuv worker 2 (blocks on DNS)
+                     |                     └──> ...default 4 total
+                     |  result returns to a pending callback
+```
+
+So Node isn't "single-threaded" — it's **1 main JS thread + libuv thread pool (4 threads) + the kernel doing async I/O.** Only *running JavaScript* is single-threaded.
+
+**What "the kernel doing async I/O" actually means:**
+
+The kernel is the OS core — it doesn't run your code, it manages hardware and tells your app when I/O is ready. For operations that have an async kernel API (sockets, network), Node doesn't wait and doesn't use a thread at all — the kernel does the waiting:
+
+```
+1. Node asks the kernel:   "tell me when this socket is readable"
+2. Node keeps running JS   (doesn't wait, doesn't poll)
+3. Kernel watches the fd   (this is the OS's job — epoll/kqueue)
+4. Data arrives → kernel wakes the event loop: "socket is ready"
+5. Event loop runs the callback with the data
+```
+
+So the app never sits and waits for I/O — **the kernel sits and waits**, on the app's behalf. The CPU keeps working while the kernel monitors file descriptors and pings the event loop when data lands.
+
+This splits Node's I/O into two camps:
+
+| Operation | Who does the waiting |
+|---|---|
+| Network sockets (async kernel API exists) | Kernel monitors fd → event loop callback. No thread at all. |
+| File system, DNS, crypto, zlib (no async syscall) | libuv offloads to a worker thread, which blocks |
+
+This is also why every concurrency story (Node, Go, Java, Python-asyncio) hooks into `epoll`/`kqueue` — **it's not a language feature, it's a kernel feature** every runtime plugs into. The kernel is the waiter; your code is the thinker.
+
+**How Python handles it — the GIL:**
+
+Python threads are scheduled by the OS (same time-sharing), but CPython adds the GIL on top:
+
+- **During I/O, the GIL is released.** A thread doing a network read drops the lock, so other threads get to run bytecode. This is why threading works for I/O-bound Python.
+- **During CPU work, the GIL is held.** Only one thread executes bytecode at a time. Every ~5ms the switch interval forces a handoff so threads don't starve.
+- **The OS still time-shares underneath.** Python's GIL switch is its *own* lock handoff on top of OS scheduling — a thread can get a CPU quantum but still not run bytecode without the lock.
+
+| | Node.js | CPython |
+|---|---|---|
+| Main execution | 1 thread runs JS | GIL allows 1 thread to run bytecode |
+| Blocking syscalls | libuv offloads to 4-thread pool | thread blocks → GIL released → others run |
+| True async I/O | event loop (epoll/kqueue) | `asyncio` event loop (selectors) |
+| CPU-bound concurrency | blocked by 1 JS thread | blocked by GIL (1 bytecode thread) |
+| CPU-bound escape | worker_threads (separate V8 isolates) | multiprocessing (separate interpreters) |
+| Blocking a thread | main thread stalls everything | only that thread stalls (others run) |
+
+**The unifying punchline:** I/O is slow — so never make the thing that thinks wait on it. Node moves blocking work to a thread pool and keeps the thinking thread free. Python releases the GIL during I/O so other threads can think while one waits. Both use the same kernel mechanism (epoll/kqueue) for true async I/O. Both get stuck the same way on CPU work, and both escape via multiple processes.
+
 ### The decision rule
 
 ```
@@ -1033,3 +1300,8 @@ Need speed + no constraints?    → Go/Rust (compiled, no GIL)
 - PEP 8: [Style Guide](https://peps.python.org/pep-0008/)
 - pytest: [Documentation](https://docs.pytest.org/)
 - uv: [Astral](https://docs.astral.sh/uv/)
+- Node.js: [The Node.js Event Loop, Timers, and process.nextTick](https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick)
+- libuv: [Design overview](https://docs.libuv.org/en/v1.x/design.html)
+- Python: [Global Interpreter Lock (sys.setswitchinterval)](https://docs.python.org/3/library/sys.html#sys.setswitchinterval)
+- PEP 703: [Making the Global Interpreter Lock Optional](https://peps.python.org/pep-0703/)
+- Python: [Free-threaded build overview](https://www.python.org/doc/2024/10/17/free-threaded-build/)
