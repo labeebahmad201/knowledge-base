@@ -432,6 +432,135 @@ The one caveat interviewers reward: understand *why* before reaching for the lib
 
 ---
 
+## What is `this` in JavaScript?
+
+### Problem
+
+`this` looks like it behaves differently almost every time you use it. The same function prints one value in one call and a different one in the next. Interviewers probe it because it separates "memorized the rules" from "actually understands call sites."
+
+### Solution — think of it as: "who is calling me?"
+
+`this` is not the function's own scope. It's decided by **how and where the function is called**, not where it's written. There are only 5 cases, and you can decide which one you're in by answering one question: **how was this function invoked?**
+
+**1. Called as a method on an object → `this` is the object before the dot:**
+```js
+const user = { name: "Alice", greet() { console.log(this.name); } };
+user.greet(); // "Alice" — this = user, because user is the one calling it
+```
+
+**2. Called bare (no dot) → `this` is the global object (or `undefined` in strict mode):**
+```js
+function greet() { console.log(this); }
+greet(); // window (lax) / undefined (strict)
+```
+This is the #1 source of bugs: take a method, pull it off the object, and it no longer knows its owner:
+```js
+const f = user.greet; // grabbing the function, dropping the "user."
+f();                  // ❌ this is undefined/global now, not user
+```
+
+**3. Called with `.call` / `.apply` / `.bind` → `this` is whatever you force:**
+```js
+function greet() { console.log(this.name); }
+greet.call({ name: "Bob" });   // "Bob"
+const bound = greet.bind({ name: "Zoe" });
+bound();                        // "Zoe" — bind permanently locks it
+```
+
+**4. Called with `new` → `this` is the brand-new object:**
+```js
+function Person(name) { this.name = name; } // this = the new object
+const p = new Person("Amy"); // p.name === "Amy"
+```
+
+**5. The exceptions that never have their own `this`:**
+Arrow functions have **no `this` of their own**. They inherit it from the surrounding scope, and you cannot change it — call, bind, and dot all ignore them:
+```js
+const user = {
+  name: "Alice",
+  greet: () => console.log(this.name), // ❌ this = where the arrow was written (global/module)
+};
+
+const user2 = {
+  name: "Alice",
+  greet() {
+    setTimeout(() => console.log(this.name), 100); // ✅ arrow picks up greet()'s this
+  },
+};
+user2.greet(); // "Alice" — the arrow borrows this from its enclosing function
+```
+
+**Which rule wins when several apply?**
+
+```
+new  >  .call/.apply/.bind  >  the dot (object method)  >  bare call (global/undefined)
+```
+
+### Pitfalls
+
+- **Losing `this` when passing a method around.** `button.addEventListener("click", handler)` runs `handler` bare, so its `this` is lost. Fix: `.bind(handler, thisObject)` on the handler, or wrap in an arrow.
+- **Arrow functions solve "losing `this`" in callbacks** — in a class or object method, `setTimeout`/event handlers lose `this`; an arrow inside the method captures it lexically.
+- **`this` in a plain object literal is not the object** unless a method on it is invoked with the dot — the literal itself doesn't bind anything.
+- **Strict mode matters.** ES modules and `"use strict"` turn bare-call `this` into `undefined` instead of the global object. That's why "it says `this` is undefined" is almost always a bare-call strict-mode bug.
+- **`"use strict"` is a directive — it only works as the first statement.** Dropping it mid-file does nothing; it's a dead string expression. Put it on the first line of a script, or as the first statement inside a single function to scope strictness to that function only. ES modules and class bodies are always strict — no directive needed, and you can't opt out.
+
+```js
+function strictFn() {
+  "use strict";            // first statement inside the function → works
+  console.log(this);       // undefined
+}
+
+"use strict";              // ❌ ignored — code already ran above it
+show();                    // still the global object
+```
+
+### What is `"use strict"`?
+
+`"use strict"` is a mode that makes JavaScript behave closer to what you'd hope it would — **it turns silent mistakes into loud errors.** JavaScript was designed in 1995 to "just work" for beginners, so outside strict mode (*sloppy mode*) it silently ignores mistakes. Strict mode (added in ES5, 2009) flips those into exceptions.
+
+**What it actually changes:**
+
+| Sloppy mode (default) | Strict mode |
+|---|---|
+| `x = 5` auto-creates a global variable | ❌ `ReferenceError: x is not defined` |
+| Bare-call `this` = `window`/global | Bare-call `this` = `undefined` |
+| Duplicate parameter names allowed | ❌ `SyntaxError` |
+| Assigning to a read-only property silently fails | ❌ `TypeError` |
+| `delete` on a regular variable silently fails | ❌ `SyntaxError` |
+| `with` statement allowed | ❌ `SyntaxError` |
+
+**The three that matter most in practice:**
+
+1. **Bare-call `this` is `undefined`** (not global) — the bug source in the section above.
+2. **Accidental globals throw** — `x = 5` instead of `let x = 5` is a caught error, not a silent global leak. Catches typos constantly.
+3. **Assigning to frozen/read-only objects throws** — `NaN = 5` or mutating a frozen object fails loudly instead of no-oping.
+
+**When strict mode is automatic (no directive needed):**
+
+- **ES modules** (`import`/`export`) — always strict.
+- **Class bodies** — always strict.
+- **TypeScript compiled output** — `"use strict"` is emitted by default.
+
+So in modern JS you rarely type the directive yourself, but it governs how everything you write behaves. Interview answer: two ways in (directive as first statement, or module/class body), and the big fixes are `this` being `undefined` and accidental globals throwing.
+
+### TypeScript notes
+
+- `this` in TypeScript object methods is typed from the object; passing methods around can produce an "implicit any" `this` error — annotate `this` as a parameter: `function greet(this: { name: string }) { ... }`.
+- Arrow properties in classes are a real pattern: `handleClick = () => {...}` binds the instance so you can pass the handler around without `.bind()`. Trade-off: each instance gets its own copy.
+
+### The one-liner
+
+`this` is never about the function — **it's about who called it** (and arrows are the exception that just borrow the surrounding `this`).
+
+### Sources
+
+- MDN: [The `this` keyword](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this)
+- MDN: [Strict mode](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode)
+- JavaScript.info: [Object methods, "this"](https://javascript.info/object-methods)
+- You Don't Know JS: [this & Object Prototypes](https://github.com/getify/You-Dont-Know-JS/tree/2nd-ed/this-object-prototypes)
+
+---
+
 ## Python for JS/TS Developers
 
 What you already know maps directly. The differences are where the bugs hide.
