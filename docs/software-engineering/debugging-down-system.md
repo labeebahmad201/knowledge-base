@@ -280,6 +280,244 @@ graph TD
     style D fill:#6f6,stroke:#333
 ```
 
+## The hands-on checklist: commands per layer
+
+The framework above is the *method*; this is the *muscle*. A down system is a search problem, and each layer has a small set of concrete checks that split the search space in half. Work them in this order. Start at the layer closest to the user and move inward, exactly as the serve-site tells you when the problem reproduces.
+
+```mermaid
+graph TD
+    A["User sees an error"] --> B["1. Browser / frontend (reproducible?)"]
+    B --> C["2. Observability: service errors in Datadog"]
+    C --> D["3. Deployments: anything rolled out recently?"]
+    D --> E["4. Service up? port listening? health check"]
+    E --> F["5. Load balancer: receiving and routing traffic?"]
+    F --> G["6. Follow one requestId end to end"]
+    G --> H["7. Downstream: DB, queues, third-party APis"]
+    H --> I["8. Host resources: RAM, disk, network, pools"]
+```
+
+### Layer 1: the browser, when the bug is reproducible
+
+If you can open the site and see the failure, the browser is the fastest diagnostic you have. The DevTools Network tab answers the frontend-versus-backend question in one glance: if the static assets (HTML, JS, CSS) load but the API call returns 500, the frontend is fine and the backend is failing. If the page itself will not load, the problem is more likely in the edge (DNS, CDN, load balancer) than in your code.
+
+```bash
+# From the browser DevTools Network tab, look at the failing request:
+#   - 500/502/503 -> backend service error
+#   - 504/timeout -> server alive but upstream slow (LB -> app -> DB)
+#   - 401/403    -> authz, not an outage (still affects users loudly)
+#   - net::ERR_CONNECTION_* -> nothing listening at that address
+
+# Mirror the same request from your machine to separate browser quirks
+# from server behavior:
+curl -i https://api.example.com/v1/orders          # headers + status
+curl -s -o /dev/null -w "%{http_code} %{time_total}s\n" https://api.example.com/health
+curl -sS --max-time 5 https://api.example.com/health
+```
+
+Mark the request's status code and response time down in the timeline. That single request is the same one you will trace through every layer below.
+
+### Layer 2: observability first, before SSH
+
+If the problem is not reproducible or is affecting production traffic, go to Datadog (or your APM) before touching any server. Service-level dashboards answer the RED questions immediately.
+
+```text
+# Datadog-style checks, in this order:
+Service list   -> which service is red? error rate up, latency up
+Service map    -> which upstream/downstream is the red service calling?
+APM trace list -> grab the latest failing trace, note its requestId/spanId
+Logs search    -> filter logs by service + status:error and a 5-min window
+```
+
+The service map is the highest-value view: it shows whether a service is *causing* errors or *suffering* from them, by exposing what it calls. An API service can look broken while the real failure is the database it depends on, three layers down. Two minutes on the service map beats twenty minutes reading logs in isolation.
+
+### Layer 3: was there a recent deployment?
+
+Most incidents follow a change, and the change is usually a deploy. Check the deploy history before deep diagnosis, and keep the deploy timeline next to your metrics timeline so you can overlay them.
+
+```bash
+# Kubernetes
+kubectl get deployments --all-namespaces                 # current state
+kubectl rollout status deployment/api-server             # rollout state
+kubectl get events --sort-by=.metadata.creationTimestamp | tail -20
+
+# Application
+git log --oneline --since="2 hours ago" --all            # recent commits
+# CI/CD pipeline page (GitHub Actions / GitLab / Jenkins):
+# which environments got what build, and when
+
+# If a correlated deploy is the prime suspect, roll back:
+kubectl rollout undo deployment/api-server               # last revision
+kubectl rollout undo deployment/api-server --to-revision=42
+```
+
+Do not roll back before checking the timestamp correlation the change-first heuristic asks for. Rolling back the deploy that the timeline already exonerated is rollback theater, and it burns time.
+
+### Layer 4: is the service actually up?
+
+Before blaming code, confirm the process is listening and answering at all. This is where the port checks live. A "service down" often means "the port is not accepting connections," which has different causes than "the process is crashing after accepting."
+
+```bash
+# Is anything listening on the port?
+ss -tlnp | grep 8080              # modern: sockets + owning process
+netstat -tlnp | grep 8080         # older alternative
+lsof -i :8080                     # mac/linux: who owns the port
+
+# Is the process alive?
+ps aux | grep api-server
+
+# Does it answer a request locally? (bypass LB, DNS, everything)
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/health
+curl -i http://localhost:8080/health
+pgrep -af api-server
+
+# Containerized
+docker ps                         # is it running or restarting?
+docker logs api-server --tail 200 # crash-looping containers log a stack
+```
+
+In Kubernetes, check pod and node state first, because pods restart and nodes drain independently of your binary:
+
+```bash
+kubectl get pods -o wide                  # CrashLoopBackOff / Running?
+kubectl get pods -n prod-apis             # which replicas are up
+kubectl describe pod api-server-abc123    # last termination reason
+kubectl logs api-server-abc123 --tail 200
+kubectl top nodes                        # node-level pressure first
+kubectl top pods                         # then pod-level usage
+```
+
+This layer tells you whether the problem is "nothing is listening" (port/process/deploy) versus "something is listening but returning errors" (code, dependency, or data).
+
+### Layer 5: the load balancer
+
+If the service listens but client requests fail, the fault may be above the service: the load balancer not receiving traffic, or receiving it but routing to unhealthy backends. Load balancer logs are the authoritative record of whether a request even reached your app.
+
+```bash
+# Is DNS resolving to the right LB?
+dig +short api.example.com
+nslookup api.example.com
+getent hosts api.example.com
+
+# Can you reach the LB, and what does it say?
+curl -s -o /dev/null -w "%{http_code}\n" https://api.example.com/health
+curl -v https://api.example.com/health     # watch the connect/handshake
+
+# Is a healthy backend registered and receiving? (check via LB UI/API):
+#   - backend pool: are all targets HEALTHY/UNHEALTHY?
+#   - health-check probes from LB -> app: green?
+#   - listeners/rules: does the path map to the right target group?
+```
+
+The key question for the load balancer is routing integrity, not liveness: is traffic *reaching* the right backend pool, and are the backends it routes to *healthy* per the LB's own probes? An LB that thinks all backends are unhealthy will return 502 even though your app is perfectly fine on localhost.
+
+### Layer 6: follow one requestId end to end
+
+This is the single most powerful trick in distributed debugging. Take the failing request's ID from the browser (Layer 1) or the latest failing trace (Layer 2), and search for that exact ID in every layer's logs. The same requestId appears in the load balancer, the app, and the downstream calls it made. If the ID is visible at the app but never appears downstream, the failure is the outgoing call. If it never appears at the app, the failure is before the app.
+
+```text
+# From the failing response headers or APM trace, grab:
+#   request-id: 1a2b3c4d...
+
+# Datadog logs search:
+#   @request_id:1a2b3c4d...
+#   service:api-server AND @request_id:1a2b3c4d... (status:error OR status:warn)
+
+# Load balancer logs: filter by the same ID. Did it reach the LB?
+# App logs: filter by the same ID. Did the app receive it? Where did it stop?
+# Downstream: filter the DB/queue traces by the same ID. Did the call reach it?
+```
+
+The requestId is the through-line that turns "several services, several logs, several places" into "one request, one path, one answer." Tracing systems (Datadog APM, Jaeger, OpenTelemetry) do this look-up for you, but you can reproduce the trick with plain `grep` across correlated log streams if the tooling is missing. This is why structured logging with request correlation is a non-negotiable baseline.
+
+### Layer 7: are downstream services (and the database) alive?
+
+When the app is healthy but still failing, the fault is usually downstream. Test each hard dependency from inside the caller's network context, not from your laptop. Your laptop can reach the database when the pod cannot, and vice versa, because firewall rules differ per network.
+
+```bash
+# Reachability and health from a pod that can actually test it:
+kubectl exec -it api-server-abc123 -- \
+  curl -i http://auth-service:8080/health
+kubectl exec -it api-server-abc123 -- \
+  nc -vz payments-service 8080   # TCP reachability
+
+# DNS inside the cluster matches expectations:
+kubectl exec -it api-server-abc123 -- nslookup auth-service.default.svc.cluster.local
+```
+
+For the database specifically, "is it down" is usually answered by connection state, not CPU. Connection pools, thread pools, and connection slots saturate long before the machine runs out of memory:
+
+```bash
+# PostgreSQL: are we at the connection limit? What are the slow queries?
+SELECT count(*) FROM pg_stat_activity;                       # active connections
+SHOW max_connections;                                        # the ceiling
+SELECT count(*) FROM pg_stat_activity WHERE state = 'idle in transaction';
+SELECT query, count(*) AS running FROM pg_stat_activity
+  WHERE state = 'active' GROUP BY query ORDER BY running DESC;
+SELECT pid, now() - query_start AS running_for, query
+  FROM pg_stat_activity WHERE state = 'active' ORDER BY running_for DESC;
+
+# MySQL: same idea, different dialect
+SHOW STATUS LIKE 'Threads_connected';
+SHOW PROCESSLIST;
+SELECT * FROM information_schema.innodb_trx ORDER BY trx_started;  # locks
+
+# Redis: reachable? memory near max? who is connected?
+redis-cli -h redis.internal ping        # PONG?
+redis-cli -h redis.internal INFO memory # used_memory vs maxmemory
+redis-cli -h redis.internal CLIENT LIST
+
+# Message brokers: are queues backing up?
+#   rabbitmqctl list_queues name messages     (or `rabbitmqctl status`)
+#   kafka-consumer-groups --bootstrap-server ... --describe --group accounting
+```
+
+A saturated connection pool is the classic invisible killer: the database CPU looks fine, the RAM looks fine, but every request blocks waiting for a connection the pool never released. Layer 7's job is to catch that class.
+
+### Layer 8: host resources (RAM, disk, network, pools)
+
+If nothing above explains it, the machine itself may be the problem. The USE method (from the earlier section) is exactly this run of checks: utilization, saturation, errors.
+
+```bash
+# CPU and load
+uptime                    # 1/5/15-min load averages in one line
+top -b -n1 | head -20     # snapshot, sort by CPU
+vmstat 1 5                # run queue, swapping, context switches
+
+# Memory
+free -h                   # total/used/free + swap
+# Check swap: heavy swapping means memory pressure, slow but alive
+
+# Disk
+df -h                     # free space per mount (a full /var disk KILLS a box)
+iostat -dx 1 5            # utilization and wait per disk (Util ~= saturating?)
+# A 100% utilized disk with a growing await queue is the same as a hang
+
+# Network
+ss -s                     # socket summary: TIME_WAIT storms, orphaned sockets
+netstat -i                # interface errors / drops at the NIC level
+ping -c 5 <db-host>       # basic reachability (not proof of health)
+
+# The connection/thread pool view (most common saturation bottleneck):
+ss -tn state established | wc -l      # count open connections
+# App-level: connection pool metrics in Datadog (pool size, pending, acquired)
+```
+
+This is the layer where port checks and interface-level checks separate "the app is unhappy" from "the box is unhappy." If the box is starving on memory, disk, or network, everything above it degrades at once, which produces the classic symptom of "everything is failing and nothing is the cause."
+
+```mermaid
+graph TD
+    A["Start at browser"] --> B["Observability dashboards"]
+    B --> C["Deploy history"]
+    C --> D{"Port listening and answering?"}
+    D -->|"No"| E["Process / pod / LB problem"]
+    D -->|"Yes but errors"| F["Follow requestId through layers"]
+    F --> G{"Downstream healthy?"}
+    G -->|"DB saturated"| H["Check connections, locks, slow queries"]
+    G -->|"Queue backed up"| I["Consumers dead or slow"]
+    G -->|"Host starving"| J["Check RAM, disk, network, pools"]
+    G -->|"All healthy"| K["Code path: trace + recent change"]
+```
+
 ## Sources
 
 - Google SRE Book: [Effective Troubleshooting](https://sre.google/sre-book/effective-troubleshooting/)
