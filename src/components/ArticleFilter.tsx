@@ -71,6 +71,7 @@ const articles: Article[] = [
   {title: 'Leadership', path: '/docs/software-engineering/leadership', category: 'Engineering'},
   {title: 'Observability', path: '/docs/software-engineering/observability', category: 'Engineering'},
   {title: 'Debugging a Down System: Where to Start', path: '/docs/software-engineering/debugging-down-system', category: 'Engineering'},
+  {title: 'Software Development Stories', path: '/docs/software-engineering/development-stories', category: 'Engineering'},
   {title: 'Python Cheat Sheet', path: '/docs/software-engineering/python-cheat-sheet', category: 'Engineering'},
   {title: 'Reliability & Performance', path: '/docs/software-engineering/reliability-performance', category: 'Engineering'},
   {title: 'Security', path: '/docs/software-engineering/security', category: 'Engineering'},
