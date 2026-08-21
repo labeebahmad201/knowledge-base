@@ -1582,6 +1582,56 @@ sorted(users, key=itemgetter(1))           # sort by age
 sorted(users, key=itemgetter(1, 0))        # by age, then name
 ```
 
+### Group Anagrams — the hashable key gotcha
+
+**Problem:** Given a list of strings, group anagrams together.
+
+**Time complexity:** O(n * k log k) where n = number of strings, k = max string length.
+
+**The bug — `sorted()` returns a list, lists aren't hashable:**
+
+```python
+# WRONG — TypeError: unhashable type: 'list'
+canonical_to_group = {}
+for s in strs:
+    key = sorted(s)                    # returns ['a', 'n', 'a', 'g', 'r', 'a', 'm']
+    canonical_to_group[key].append(s)  # ❌ can't use list as dict key
+```
+
+**The fix — convert to tuple or string (both hashable):**
+
+```python
+from typing import List
+from collections import defaultdict
+
+class Solution:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        canonical_to_group = defaultdict(list)
+        
+        for s in strs:
+            key = "".join(sorted(s))          # "aegmor" — string is hashable
+            canonical_to_group[key].append(s)
+        
+        return list(canonical_to_group.values())
+```
+
+**Why this works:**
+
+```
+Input:  ["eat", "tea", "tan", "ate", "nat", "bat"]
+
+sorted("eat") = ['a', 'e', 't'] → "".join() = "aet"
+sorted("tea") = ['a', 'e', 't'] → "".join() = "aet"  ← same key!
+sorted("tan") = ['a', 'n', 't'] → "".join() = "ant"
+sorted("ate") = ['a', 'e', 't'] → "".join() = "aet"  ← same key!
+sorted("nat") = ['a', 'n', 't'] → "".join() = "ant"  ← same key!
+sorted("bat") = ['a', 'b', 't'] → "".join() = "abt"
+
+Output: [["eat", "tea", "ate"], ["tan", "nat"], ["bat"]]
+```
+
+**The rule:** Dict keys must be hashable (immutable). `list` → not hashable. `tuple` → hashable. `str` → hashable. Use `tuple(sorted(x))` or `"".join(sorted(x))`.
+
 ### Common data structures in Python
 
 **Stack (LIFO) — use a list:**
