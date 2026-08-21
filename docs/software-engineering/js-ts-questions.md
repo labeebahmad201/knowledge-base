@@ -1034,6 +1034,27 @@ def countdown(n):
 # Generator expression — like list comprehension but with ()
 nums = (x * 2 for x in range(1000000))  # not a list, a generator
 
+# Check it — it's a generator, not a list
+print(type(nums))  # <class 'generator'>
+
+# Manually step through with next()
+gen = (x * 2 for x in range(5))
+next(gen)  # 0
+next(gen)  # 2
+next(gen)  # 4
+next(gen)  # 6
+next(gen)  # 8
+next(gen)  # StopIteration — exhausted
+
+# Parentheses () vs brackets [] — one character difference
+squares_list = [x**2 for x in range(1000000)]  # list — 8MB RAM
+squares_gen  = (x**2 for x in range(1000000))  # generator — ~0 bytes
+
+# Parentheses are optional inside function calls
+sum(x**2 for x in range(10))       # generator passed directly to sum
+max(x**2 for x in range(10))       # same
+list(x**2 for x in range(10))      # same
+
 # Iterating a generator
 for n in countdown(5):
     print(n)   # 5 4 3 2 1
