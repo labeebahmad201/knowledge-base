@@ -1125,6 +1125,66 @@ words = parse_words(filter_comments(read_large_file("data.txt")))
 unique = set(words)  # only now does it read the file
 ```
 
+**How it works — each function is a generator that passes data to the next:**
+
+```
+read_large_file(path)
+  → opens file, reads ONE line at a time
+  → yields stripped line, pauses
+
+filter_comments(lines)
+  → pulls one line from read_large_file
+  → if not a comment, yields it
+  → if comment, skips and asks for another
+
+parse_words(lines)
+  → pulls one line from filter_comments
+  → yield from splits into words
+  → yields each word one at a time
+```
+
+**Execution flow — what happens when you iterate:**
+
+```
+You call next(words)
+  → parse_words asks filter_comments for next line
+    → filter_comments asks read_large_file for next line
+      → read_large_file reads ONE line: "# this is a comment"
+      → yields "# this is a comment"
+    → filter_comments sees "#"
+    → skips, asks read_large_file for ANOTHER line
+  → read_large_file reads ONE line: "hello world"
+  → yields "hello world"
+  → filter_comments sees no "#"
+  → yields "hello world"
+  → parse_words gets "hello world"
+  → yield from "hello world".split()
+  → yields "hello"
+You get "hello"
+
+You call next(words) again
+  → parse_words still has "world" from the split
+  → yields "world"
+You get "world"
+```
+
+**Memory picture:**
+
+```
+At any given moment, only ONE line is in memory:
+
+File on disk:     Line 1: "# comment"  ← never loaded
+                  Line 2: "hello world" ← THIS LINE is in memory right now
+                  Line 3: "foo bar"     ← not loaded yet
+                  Line 4: "baz"         ← not loaded yet
+
+Variables in memory:
+  line = "hello world"    (one string)
+  words = ["hello", "world"]  (two strings, if split hasn't finished)
+```
+
+Not the whole file. Not all lines. Just the current one. That's why you can process a 10GB file with 1MB of RAM.
+
 ### Decorators — wrapping functions
 
 Decorators modify or extend function behavior without changing the function itself. The `@` syntax is syntactic sugar for `func = decorator(func)`.
