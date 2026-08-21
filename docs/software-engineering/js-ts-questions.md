@@ -1107,46 +1107,39 @@ One frame, one object in memory. That's it. The frame holds `n`, the instruction
 
 ```python
 def read_large_file(path):
+    # Opens file, reads ONE line at a time (lazy)
+    # File object is itself an iterator — no readlines(), no memory bloat
     with open(path) as f:
         for line in f:
-            yield line.strip()
+            yield line.strip()  # yield strips \n, pauses, waits for next() call
 
 def filter_comments(lines):
+    # Pulls one line from read_large_file when asked
+    # Skips lines starting with "#" (comments)
     for line in lines:
         if not line.startswith("#"):
-            yield line
+            yield line  # pass non-comment lines through
 
 def parse_words(lines):
+    # Pulls one line from filter_comments when asked
+    # yield from unpacks the list — yields each word individually
     for line in lines:
-        yield from line.split()
+        yield from line.split()  # "hello world" → yield "hello", then "world"
 
-# Pipeline — each step is lazy, nothing runs until you iterate
+# Pipeline — nothing runs until you iterate
+# Each generator passes data to the next, one piece at a time
 words = parse_words(filter_comments(read_large_file("data.txt")))
-unique = set(words)  # only now does it read the file
+#     ↑ parse_words    ↑ filter_comments    ↑ read_large_file
+#     asks this        asks this            reads ONE line from disk
+
+# Only NOW does it start reading the file
+unique = set(words)  # iterates the pipeline, one word at a time
 ```
 
-**How it works — each function is a generator that passes data to the next:**
+**Execution flow — what happens on each `next()` call:**
 
 ```
-read_large_file(path)
-  → opens file, reads ONE line at a time
-  → yields stripped line, pauses
-
-filter_comments(lines)
-  → pulls one line from read_large_file
-  → if not a comment, yields it
-  → if comment, skips and asks for another
-
-parse_words(lines)
-  → pulls one line from filter_comments
-  → yield from splits into words
-  → yields each word one at a time
-```
-
-**Execution flow — what happens when you iterate:**
-
-```
-You call next(words)
+next(words) called:
   → parse_words asks filter_comments for next line
     → filter_comments asks read_large_file for next line
       → read_large_file reads ONE line: "# this is a comment"
@@ -1162,17 +1155,15 @@ You call next(words)
   → yields "hello"
 You get "hello"
 
-You call next(words) again
+next(words) called again:
   → parse_words still has "world" from the split
   → yields "world"
 You get "world"
 ```
 
-**Memory picture:**
+**Memory — only ONE line in memory at any time:**
 
 ```
-At any given moment, only ONE line is in memory:
-
 File on disk:     Line 1: "# comment"  ← never loaded
                   Line 2: "hello world" ← THIS LINE is in memory right now
                   Line 3: "foo bar"     ← not loaded yet
