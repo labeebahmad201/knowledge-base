@@ -1632,6 +1632,70 @@ Output: [["eat", "tea", "ate"], ["tan", "nat"], ["bat"]]
 
 **The rule:** Dict keys must be hashable (immutable). `list` → not hashable. `tuple` → hashable. `str` → hashable. Use `tuple(sorted(x))` or `"".join(sorted(x))`.
 
+**Solution 1 — sorting (O(n * k log k)):**
+
+```python
+from typing import List
+from collections import defaultdict
+
+class Solution:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        canonical_to_group = defaultdict(list)
+        
+        for s in strs:
+            key = "".join(sorted(s))          # "aegmor" — string is hashable
+            canonical_to_group[key].append(s)
+        
+        return list(canonical_to_group.values())
+```
+
+**Solution 2 — character count (O(n * k)):**
+
+```python
+from typing import List
+from collections import defaultdict
+
+class Solution:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]:
+        groups = defaultdict(list)
+        
+        for string in strs:
+            # Count frequency of each character (a-z only)
+            count = [0] * 26
+            for char in string:
+                count[ord(char) - ord('a')] += 1  # 'a'=0, 'b'=1, ..., 'z'=25
+            
+            # Convert to tuple so it's hashable (can't use list as dict key)
+            groups[tuple(count)].append(string)
+        
+        return [group for group in groups.values()]
+```
+
+**How solution 2 works:**
+
+```
+"eat" → count = [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+         indices:  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
+         count:    1  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0
+         tuple: (1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0)
+
+"tea" → same count → same tuple → same group!
+
+"tan" → count = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+         tuple: (1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0)
+```
+
+**Solution 1 vs Solution 2:**
+
+| | Solution 1 (sort) | Solution 2 (count) |
+|---|---|---|
+| Time | O(n * k log k) | O(n * k) |
+| Space | O(n * k) for sorted strings | O(n * 26) = O(n) for count arrays |
+| Readability | Simple, obvious | More code, faster |
+| Interview | Good enough for most | Better if they ask for optimization |
+
+`ord(char) - ord('a')` maps 'a'→0, 'b'→1, ..., 'z'→25. The count array has 26 slots (one per letter). Anagrams produce the same count array, so they map to the same group.
+
 ### Common data structures in Python
 
 **Stack (LIFO) — use a list:**
