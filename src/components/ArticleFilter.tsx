@@ -79,6 +79,7 @@ const articles: Article[] = [
   {title: 'DDIA: Designing Data-Intensive Applications', path: '/docs/software-engineering/books/ddia', category: 'Books'},
 
   {title: 'The AI Application Stack', path: '/docs/software-engineering/ai-application-stack', category: 'AI'},
+  {title: 'AI in the Software Development Lifecycle', path: '/docs/software-engineering/ai-in-the-sdlc', category: 'AI'},
 ];
 
 const categoryOrder = ['Architecture', 'Testing', 'Engineering', 'Books', 'AI', 'DDD'];
