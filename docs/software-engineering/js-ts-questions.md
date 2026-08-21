@@ -923,6 +923,103 @@ a is a      # True — same object
 
 `==` compares values. `is` compares identity (memory address). Use `is` only for `None` checks: `if x is None`.
 
+### Typecasting — implicit and explicit
+
+Python is strongly typed: it will not silently convert types for you. But it does convert automatically in some contexts (implicit), and you can force it in others (explicit).
+
+**Implicit typecasting (coercion):**
+
+Python does this in limited, predictable places:
+
+```python
+# int → float in arithmetic
+x = 10 + 3.5      # x is 14.5 (float) — int promoted to float
+
+# bool → int in arithmetic
+True + True        # 2 — bool is a subclass of int
+1 + False          # 1
+3 * True           # 3
+
+# bool in conditionals (truthy/falsy — no coercion, just evaluation)
+if 0:      # False
+if "hi":   # True
+if []:     # False — empty list is falsy
+```
+
+The rule: Python promotes the "smaller" type to the "larger" type in numeric contexts. `int` promotes to `float`. `float` wins over `int`. `bool` is an `int` subclass (`True == 1`, `False == 0`).
+
+**What Python will NOT do implicitly:**
+
+```python
+"age: " + 25          # TypeError — str + int
+"score: " + str(25)   # OK — explicit conversion
+[1, 2] + [3]          # OK — list + list
+[1, 2] + "3"          # TypeError — list + str
+```
+
+No `str ↔ int`, no `list ↔ str`, no `dict ↔ list`. Python refuses to guess.
+
+**Explicit typecasting (casting):**
+
+```python
+int("42")          # 42 — string to int
+int(3.9)           # 3 — truncates, does NOT round (3.9 → 3, -3.9 → -3)
+float("3.14")      # 3.14 — string to float
+str(42)            # "42" — int to string
+str(3.14)          # "3.14"
+bool(0)            # False — 0 and 0.0 are falsy
+bool(1)            # True
+bool("")           # False — empty string is falsy
+bool("hello")      # True
+list("abc")        # ['a', 'b', 'c'] — iterable to list
+list((1, 2, 3))    # [1, 2, 3] — tuple to list
+tuple([1, 2, 3])   # (1, 2, 3) — list to tuple
+```
+
+**The gotcha — `int()` truncates, not rounds:**
+
+```python
+int(3.7)     # 3 — not 4
+int(3.2)     # 3
+int(-3.7)    # -3 — truncates toward zero
+round(3.7)   # 4 — if you want rounding, use round()
+```
+
+**The gotcha — `bool()` is strict about falsy values:**
+
+```python
+bool(0)       # False
+bool(0.0)     # False
+bool("")      # False
+bool([])      # False
+bool(None)    # False
+bool(False)   # False
+
+# Everything else is True:
+bool(1)       # True
+bool(-1)      # True
+bool("0")     # True — non-empty string!
+bool([0])     # True — non-empty list!
+```
+
+**The gotcha — `str()` does not parse:**
+
+```python
+str(42)       # "42" — not 42
+int("42")     # 42 — parses string to int
+int("42.5")   # ValueError — use float("42.5") instead
+```
+
+**JS comparison:**
+
+| JS | Python | Notes |
+|---|---|---|
+| `"42" - 0` → `42` | `int("42")` → `42` | JS coerces; Python requires explicit |
+| `"42" + 0` → `"420"` | `int("42") + 0` → `42` | JS string concatenation; Python errors |
+| `+true` → `1` | `True + 1` → `2` | Both treat bool as int, but Python is explicit |
+| `Number("3.14")` → `3.14` | `float("3.14")` → `3.14` | Same idea, different names |
+| `Boolean(0)` → `false` | `bool(0)` → `False` | Same semantics |
+
 ### Virtual environments — the npm equivalent
 
 ```bash
