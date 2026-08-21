@@ -1344,15 +1344,17 @@ print(original)  # [[99, 2], [3, 4]] — original unchanged
 
 ### f-strings — string formatting
 
+f-strings are Python's way of embedding expressions inside strings. The `f` before the quote means "format this string." Anything inside `{}` gets evaluated and inserted.
+
 ```python
 name = "Alice"
 age = 25
 
 # f-strings (Python 3.6+) — preferred
-f"{name} is {age}"              # "Alice is 25"
-f"{age + 5}"                    # "30"
-f"{name.upper()}"               # "ALICE"
-f"{name=}"                      # "name='Alice'" — debug format
+f"{name} is {age}"              # "Alice is 25" — variables inserted
+f"{age + 5}"                    # "30" — expressions work too
+f"{name.upper()}"               # "ALICE" — method calls work
+f"{name=}"                      # "name='Alice'" — debug format (shows variable name)
 f"{3.14159:.2f}"                # "3.14" — 2 decimal places
 f"{1000000:,}"                  # "1,000,000" — thousands separator
 f"{0.856:.1%}"                  # "85.6%" — percentage
@@ -1362,6 +1364,19 @@ f"{name:>10}"                   # "     Alice" — right-aligned, width 10
 f"{name:<10}"                   # "Alice     " — left-aligned
 f"{name:^10}"                   # "  Alice   " — centered
 f"{'='*20}"                    # "===================="
+```
+
+**Other ways to format strings (older, worse):**
+
+```python
+# % formatting (oldest)
+"Hello, %s. You are %d." % (name, age)
+
+# .format() method (Python 2+)
+"Hello, {}. You are {}.".format(name, age)
+
+# f-strings win: shorter, faster, readable
+f"Hello, {name}. You are {age}."
 ```
 
 ### Context managers — `with` statement
