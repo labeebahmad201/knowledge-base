@@ -1073,6 +1073,36 @@ all_nums = list(countdown(5))  # [5, 4, 3, 2, 1]
 | Indexing | `nums[0]` works | `next(gen)` only |
 | Use when | You need all values, random access | Streaming, large data, pipeline |
 
+**Where does a generator store its state?**
+
+It stores everything in a **frame object** on the heap. No separate storage, no magic:
+
+```
+When you call countdown(3):
+  → Python creates a frame on the HEAP (not the call stack)
+  → Frame holds: n=3, instruction pointer (where it paused)
+  → Frame stays alive as long as the generator exists
+
+When you call next(gen):
+  → Python RESUMES that frame
+  → Runs until yield
+  → Saves the frame again (with updated n)
+
+When the generator exhausts:
+  → Frame is garbage collected
+```
+
+```
+next(gen) called 3 times for countdown(3):
+
+Frame state:     n=3  →  n=2  →  n=1  →  n=0 (exhausted)
+                  │      │      │       │
+                  ▼      ▼      ▼       ▼
+Output:          yield 3  yield 2  yield 1  StopIteration
+```
+
+One frame, one object in memory. That's it. The frame holds `n`, the instruction pointer, and local variables. Python refuses to kill the frame until you're done with it.
+
 **The practical pattern — chaining generators:**
 
 ```python
@@ -1286,28 +1316,54 @@ f"{'='*20}"                    # "===================="
 ### Context managers — `with` statement
 
 ```python
-# File handling (the common one)
-with open("data.txt") as f:
-    content = f.read()
-# File is automatically closed, even if an exception occurs
+# What Python sees:
+with open(path) as f:
+    data = f.read()
 
+# Is roughly equivalent to:
+f = open(path)      # 1. open() returns a file object
+try:
+    f.read()        # 2. run the block
+finally:
+    f.close()       # 3. ALWAYS close, even if an exception occurs
+```
+
+**How it works:** The `with` statement calls two methods:
+- `__enter__` at the start (opens the file)
+- `__exit__` at the end (closes the file, even on error)
+
+```python
+# Without with — you must remember to close
+f = open(path)
+data = f.read()
+f.close()  # if you forget, file handle leaks
+
+# With — auto-closes
+with open(path) as f:
+    data = f.read()  # f is closed automatically, even if read() throws
+```
+
+```python
 # Multiple context managers
 with open("in.txt") as fin, open("out.txt", "w") as fout:
-    fout.write(fin.read())
+    fout.write(fin.read())  # both closed when block ends
+```
 
-# Custom context manager
+**Custom context manager (decorator style):**
+
+```python
 from contextlib import contextmanager
 
 @contextmanager
 def timer(label):
     import time
     start = time.time()
-    yield
+    yield          # code before yield runs on enter, after yield runs on exit
     print(f"{label}: {time.time() - start:.2f}s")
 
 with timer("DB query"):
     db.execute("SELECT * FROM users")
-# Prints "DB query: 0.03s"
+# Prints "DB query: 0.03s" — even if the query throws
 ```
 
 ### Collections module — specialized containers
