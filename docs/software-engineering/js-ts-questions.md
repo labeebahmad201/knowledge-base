@@ -1020,6 +1020,568 @@ int("42.5")   # ValueError — use float("42.5") instead
 | `Number("3.14")` → `3.14` | `float("3.14")` → `3.14` | Same idea, different names |
 | `Boolean(0)` → `false` | `bool(0)` → `False` | Same semantics |
 
+### Generators — lazy evaluation
+
+Generators yield items one at a time instead of building the entire list in memory. Use them when you don't need all values at once.
+
+```python
+# Generator function — uses yield instead of return
+def countdown(n):
+    while n > 0:
+        yield n
+        n -= 1
+
+# Generator expression — like list comprehension but with ()
+nums = (x * 2 for x in range(1000000))  # not a list, a generator
+
+# Iterating a generator
+for n in countdown(5):
+    print(n)   # 5 4 3 2 1
+
+# Convert to list if you need all values
+all_nums = list(countdown(5))  # [5, 4, 3, 2, 1]
+```
+
+**Generators vs lists:**
+
+| | List | Generator |
+|---|---|---|
+| Memory | Holds everything in memory | Yields one at a time |
+| Speed to create | Slower (builds full list) | Instant (returns iterator) |
+| Reusable | Yes | No (exhausted after one pass) |
+| Indexing | `nums[0]` works | `next(gen)` only |
+| Use when | You need all values, random access | Streaming, large data, pipeline |
+
+**The practical pattern — chaining generators:**
+
+```python
+def read_large_file(path):
+    with open(path) as f:
+        for line in f:
+            yield line.strip()
+
+def filter_comments(lines):
+    for line in lines:
+        if not line.startswith("#"):
+            yield line
+
+def parse_words(lines):
+    for line in lines:
+        yield from line.split()
+
+# Pipeline — each step is lazy, nothing runs until you iterate
+words = parse_words(filter_comments(read_large_file("data.txt")))
+unique = set(words)  # only now does it read the file
+```
+
+### Decorators — wrapping functions
+
+Decorators modify or extend function behavior without changing the function itself. The `@` syntax is syntactic sugar for `func = decorator(func)`.
+
+```python
+# Simple decorator
+def timer(func):
+    import time
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        print(f"{func.__name__} took {time.time() - start:.2f}s")
+        return result
+    return wrapper
+
+@timer
+def slow_function():
+    import time
+    time.sleep(1)
+
+slow_function()  # prints "slow_function took 1.00s"
+```
+
+**With arguments:**
+
+```python
+def retry(max_attempts=3):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_attempts:
+                        raise
+                    print(f"Attempt {attempt} failed: {e}")
+        return wrapper
+    return decorator
+
+@retry(max_attempts=5)
+def unreliable():
+    ...
+```
+
+**Built-in decorators you'll see:**
+
+```python
+class User:
+    @property
+    def name(self):           # getter — user.name, not user.name()
+        return self._name
+
+    @name.setter
+    def name(self, val):      # setter — user.name = "x"
+        self._name = val
+
+    @staticmethod
+    def create(name):         # no self — called on the class
+        return User(name)
+
+    @classmethod
+    def from_dict(cls, d):    # cls = the class itself
+        return cls(d["name"])
+```
+
+### `*args` and `**kwargs` — variable positional and keyword arguments
+
+```python
+def log(*args, **kwargs):
+    """
+    *args   — tuple of positional arguments
+    **kwargs — dict of keyword arguments
+    """
+    print(args)    # (1, 2, 3)
+    print(kwargs)  # {"level": "info", "msg": "done"}
+
+log(1, 2, 3, level="info", msg="done")
+```
+
+**Unpacking the other way:**
+
+```python
+def greet(name, age):
+    print(f"{name} is {age}")
+
+args = ("Alice", 25)
+kwargs = {"name": "Alice", "age": 25}
+
+greet(*args)      # same as greet("Alice", 25)
+greet(**kwargs)   # same as greet(name="Alice", age=25)
+```
+
+### Lambda — one-line anonymous functions
+
+```python
+# Lambda is just a shorthand for simple functions
+square = lambda x: x ** 2
+add = lambda a, b: a + b
+
+# Mostly used where a function is expected as an argument
+sorted(names, key=lambda name: len(name))          # sort by length
+sorted(users, key=lambda u: (u.last, u.first))     # sort by last, then first
+map(lambda x: x * 2, [1, 2, 3])                    # [2, 4, 6]
+filter(lambda x: x > 0, [-1, 2, -3, 4])            # [2, 4]
+```
+
+**When to use lambda vs def:**
+
+- Lambda: one-liner, used once, passed as argument (sort key, callback)
+- Def: named, reusable, docstring, multiple statements
+
+```python
+# Bad — lambda assigned to a variable
+double = lambda x: x * 2
+
+# Good — just use def
+def double(x):
+    return x * 2
+```
+
+### `map`, `filter`, `reduce`
+
+```python
+from functools import reduce
+
+# map — apply function to every element
+nums = [1, 2, 3, 4]
+squared = list(map(lambda x: x**2, nums))  # [1, 4, 9, 16]
+# List comprehension equivalent:
+squared = [x**2 for x in nums]             # preferred
+
+# filter — keep elements where function returns True
+evens = list(filter(lambda x: x % 2 == 0, nums))  # [2, 4]
+# List comprehension equivalent:
+evens = [x for x in nums if x % 2 == 0]           # preferred
+
+# reduce — accumulate into a single value
+total = reduce(lambda acc, x: acc + x, nums, 0)    # 10
+product = reduce(lambda acc, x: acc * x, nums, 1)  # 24
+```
+
+**Most Python devs prefer comprehensions over map/filter.** Reduce is the one that doesn't have a comprehension equivalent — but `sum()`, `min()`, `max()` usually replace it.
+
+### Deep vs shallow copy
+
+```python
+import copy
+
+original = [[1, 2], [3, 4]]
+
+# Shallow copy — nested objects are shared
+shallow = original.copy()           # or list(original) or original[:]
+shallow[0][0] = 99
+print(original)  # [[99, 2], [3, 4]] — original changed!
+
+# Deep copy — fully independent
+deep = copy.deepcopy(original)
+deep[0][0] = 0
+print(original)  # [[99, 2], [3, 4]] — original unchanged
+```
+
+**The rule:**
+- Shallow copy: copies the outer container, nested objects are shared references
+- Deep copy: copies everything recursively, fully independent
+- `=` is NOT a copy — it's a reference: `b = a` means both point to the same object
+
+### f-strings — string formatting
+
+```python
+name = "Alice"
+age = 25
+
+# f-strings (Python 3.6+) — preferred
+f"{name} is {age}"              # "Alice is 25"
+f"{age + 5}"                    # "30"
+f"{name.upper()}"               # "ALICE"
+f"{name=}"                      # "name='Alice'" — debug format
+f"{3.14159:.2f}"                # "3.14" — 2 decimal places
+f"{1000000:,}"                  # "1,000,000" — thousands separator
+f"{0.856:.1%}"                  # "85.6%" — percentage
+
+# Alignment and padding
+f"{name:>10}"                   # "     Alice" — right-aligned, width 10
+f"{name:<10}"                   # "Alice     " — left-aligned
+f"{name:^10}"                   # "  Alice   " — centered
+f"{'='*20}"                    # "===================="
+```
+
+### Context managers — `with` statement
+
+```python
+# File handling (the common one)
+with open("data.txt") as f:
+    content = f.read()
+# File is automatically closed, even if an exception occurs
+
+# Multiple context managers
+with open("in.txt") as fin, open("out.txt", "w") as fout:
+    fout.write(fin.read())
+
+# Custom context manager
+from contextlib import contextmanager
+
+@contextmanager
+def timer(label):
+    import time
+    start = time.time()
+    yield
+    print(f"{label}: {time.time() - start:.2f}s")
+
+with timer("DB query"):
+    db.execute("SELECT * FROM users")
+# Prints "DB query: 0.03s"
+```
+
+### Collections module — specialized containers
+
+```python
+from collections import Counter, deque, namedtuple
+
+# Counter — count occurrences
+word_count = Counter("hello world")
+word_count.most_common(2)      # [("l", 3), ("o", 2)]
+Counter([1, 1, 2, 3, 3, 3])   # Counter({3: 3, 1: 2, 2: 1})
+
+# deque — double-ended queue (fast appends on both ends)
+q = deque()
+q.append(1)          # add to right
+q.appendleft(0)      # add to left
+q.pop()              # remove from right
+q.popleft()          # remove from left
+# List.pop(0) is O(n) — deque.popleft() is O(1)
+
+# namedtuple — like a class with no methods
+Point = namedtuple("Point", ["x", "y"])
+p = Point(1, 2)
+p.x                  # 1
+p[0]                 # 1 — also indexable
+```
+
+### `functools.lru_cache` — memoization
+
+```python
+from functools import lru_cache
+
+@lru_cache(maxsize=128)
+def fibonacci(n):
+    if n < 2:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+fibonacci(100)  # instant — cached results, no recomputation
+```
+
+**When to use:**
+- Recursive functions (fibonacci, tree traversal)
+- Expensive pure functions (same inputs → same outputs)
+- API calls with same parameters (cache TTL exists)
+
+**When NOT to use:**
+- Function with side effects
+- Function with unhashable arguments (dicts, lists)
+- Memory-intensive results (cache grows until maxsize)
+
+### Type hints — optional but expected
+
+```python
+# Basic annotations
+def greet(name: str) -> str:
+    return f"Hello, {name}"
+
+# Collections
+def process(items: list[int]) -> dict[str, int]:
+    return {str(x): x for x in items}
+
+# Optional (can be None)
+from typing import Optional
+def find(name: str) -> Optional[User]:
+    ...
+
+# Union types (Python 3.10+)
+def parse(value: str | int) -> str:
+    return str(value)
+
+# Type aliases
+Vector = list[float]
+Matrix = list[Vector]
+
+def dot_product(a: Vector, b: Vector) -> float:
+    return sum(x * y for x, y in zip(a, b))
+```
+
+Type hints don't enforce at runtime — they're for IDEs, linters (mypy), and documentation.
+
+### Dataclasses — classes without boilerplate
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class User:
+    name: str
+    age: int
+    active: bool = True
+
+user = User("Alice", 25)       # no __init__ needed
+print(user)                    # User(name='Alice', age=25, active=True)
+user.name                      # attribute access
+
+@dataclass(frozen=True)        # immutable
+class Point:
+    x: float
+    y: float
+
+p = Point(1, 2)
+p.x = 3                        # FrozenInstanceError
+```
+
+**Dataclass vs regular class:**
+
+| | Dataclass | Regular class |
+|---|---|---|
+| `__init__` | Auto-generated | Write manually |
+| `__repr__` | Auto-generated | Write manually |
+| `__eq__` | Auto-generated (by value) | By identity (`is`) |
+| Mutable | Yes (default) | Yes |
+| Frozen | `frozen=True` | Not built-in |
+
+### Regular expressions
+
+```python
+import re
+
+# Basic matching
+re.search(r"\d+", "abc123def")      # <Match '123'>
+re.findall(r"\d+", "a1b2c3")       # ['1', '2', '3']
+re.sub(r"\d+", "X", "a1b2c3")      # "aXbXcX"
+
+# Groups
+match = re.search(r"(\d+)-(\d+)", "2025-08")
+match.group(1)    # "2025"
+match.group(2)    # "08"
+match.groups()    # ("2025", "08")
+
+# Common patterns
+r"\bword\b"       # word boundary
+r"^start"         # start of string
+r"end$"           # end of string
+r"[a-zA-Z]"       # any letter
+r"[^0-9]"         # anything that's not a digit
+r"\d{3}-\d{4}"    # 3 digits, dash, 4 digits
+r"(?:...)"        # non-capturing group
+```
+
+### Sorting — key functions
+
+```python
+# Basic sort
+nums = [3, 1, 4, 1, 5]
+sorted(nums)              # [1, 1, 3, 4, 5] — new list
+nums.sort()               # in-place, modifies original
+
+# Custom sort key
+names = ["Charlie", "Alice", "Bob"]
+sorted(names, key=len)                  # ['Bob', 'Alice', 'Charlie']
+sorted(names, key=str.lower)            # ['Alice', 'Bob', 'Charlie']
+
+# Sort by multiple criteria
+users = [("Alice", 25), ("Bob", 30), ("Charlie", 25)]
+sorted(users, key=lambda u: (u[1], u[0]))  # by age, then name
+
+# Reverse sort
+sorted(nums, reverse=True)   # [5, 4, 3, 1, 1]
+
+# Operator module (faster than lambda)
+from operator import itemgetter, attrgetter
+sorted(users, key=itemgetter(1))           # sort by age
+sorted(users, key=itemgetter(1, 0))        # by age, then name
+```
+
+### Common data structures in Python
+
+**Stack (LIFO) — use a list:**
+
+```python
+stack = []
+stack.append(1)      # push
+stack.append(2)
+stack.pop()          # 2 — last in, first out
+stack[-1]            # peek at top
+```
+
+**Queue (FIFO) — use deque:**
+
+```python
+from collections import deque
+q = deque()
+q.append(1)          # enqueue
+q.append(2)
+q.popleft()          # 1 — first in, first out (list.pop(0) is O(n))
+```
+
+**Set — membership testing and dedup:**
+
+```python
+seen = {1, 2, 3}
+4 in seen             # O(1) — much faster than list
+seen.add(4)
+seen.discard(1)      # remove if exists (no error)
+a = {1, 2, 3}
+b = {2, 3, 4}
+a | b                 # {1, 2, 3, 4} — union
+a & b                 # {2, 3} — intersection
+a - b                 # {1} — difference
+```
+
+### `datetime` — dates and times
+
+```python
+from datetime import datetime, timedelta
+
+now = datetime.now()
+today = datetime.today()
+dt = datetime(2025, 8, 21, 14, 30)  # specific date/time
+
+# Formatting
+now.strftime("%Y-%m-%d %H:%M")     # "2025-08-21 14:30"
+now.strftime("%B %d, %Y")           # "August 21, 2025"
+
+# Parsing
+datetime.strptime("2025-08-21", "%Y-%m-%d")
+
+# Arithmetic
+tomorrow = now + timedelta(days=1)
+diff = datetime(2025, 12, 31) - now
+diff.days                          # number of days between
+```
+
+### `pathlib` — file paths as objects
+
+```python
+from pathlib import Path
+
+p = Path("docs/README.md")
+p.exists()          # True/False
+p.is_file()         # True/False
+p.is_dir()          # True/False
+p.name              # "README.md"
+p.stem              # "README"
+p.suffix            # ".md"
+p.parent            # Path("docs")
+
+# Join paths
+new_path = p / "subdir" / "file.txt"   # docs/README.md/subdir/file.txt
+
+# Read/write
+p.read_text()       # read entire file
+p.write_text("hi")  # write to file
+
+# Glob
+list(Path(".").glob("**/*.py"))   # all .py files recursively
+```
+
+### `subprocess` — running shell commands
+
+```python
+import subprocess
+
+# Simple run
+result = subprocess.run(["ls", "-la"], capture_output=True, text=True)
+print(result.stdout)
+print(result.returncode)
+
+# Check for errors
+result = subprocess.run(["grep", "-r", "TODO", "."], capture_output=True, text=True)
+if result.returncode != 0:
+    print("No matches found")
+
+# Shell=True — use with caution (shell injection risk)
+subprocess.run("echo $USER", shell=True, capture_output=True, text=True)
+```
+
+### Python ecosystem — the 20% that covers 80%
+
+| Tool | What it does | When to use |
+|---|---|---|
+| **pip** | Package installer | `pip install requests` |
+| **venv** | Virtual environments | Isolate project dependencies |
+| **pytest** | Testing framework | `def test_add(): assert 1+1==2` |
+| **black** | Code formatter | Auto-format on save |
+| **ruff** | Linter (fast, replaces flake8) | Catch errors before they happen |
+| **mypy** | Static type checker | Verify type hints at dev time |
+| **pre-commit** | Git hooks | Run linters before commit |
+| **pydantic** | Data validation | Validate config, API inputs |
+| **fastapi** | Web framework | Build APIs with type hints |
+| **requests** | HTTP client | `requests.get(url)` |
+| **httpx** | Async HTTP client | `httpx.get(url)` with async |
+| **click** | CLI framework | `@click.command()` |
+| **typer** | CLI (built on click) | `typer.run(main)` |
+| **rich** | Terminal formatting | Pretty tables, colors, progress |
+| **SQLAlchemy** | ORM | Database queries as Python |
+| **Alembic** | Database migrations | Schema changes |
+| **Poetry** | Dependency management | `poetry add requests` |
+| **uv** | Fast pip/venv replacement | `uv add requests` |
+| **Pytest-cov** | Coverage reports | `--cov=src` |
+| **Pytest-xdist** | Parallel tests | `-n auto` |
+| **Hypothesis** | Property-based testing | `@given(st.integers())` |
+
 ### Virtual environments — the npm equivalent
 
 ```bash
