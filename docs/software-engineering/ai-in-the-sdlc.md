@@ -206,6 +206,6 @@ Delegating completely is how you build the wrong thing confidently. Delegating n
 - Alexander Hagemann. *[Applying the Theory of Constraints to Software Engineering](https://alex.rocks/post/theory-of-constraints-in-software-engineering/)*, 2025. ToC applied to software, lessons from *The Phoenix Project*, "improvement not at the constraint is an illusion."
 - DORA, *State of DevOps Report 2024*. AI tools amplifying existing constraints in constrained review/integration stages, increasing lead times.
 - Steve Blank. *[Customer Development is Not a Focus Group](https://steveblank.com/2009/11/30/customer-development-is-not-a-focus-group/)*, 2009. Feature lists from customers are not customer development; the "why" comes from outside the building.
-- Knowledge base. *[Software 3.0: Vibe Coding, Verification & Understanding](software-3-0.md)*. Karpathy's thinking vs understanding, "you can outsource your thinking, but not your understanding."
-- Knowledge base. *[Human Judgment & Verification](human-judgment-and-verification.md)*. Every task splits into thinking (human) and grunt work (AI); humans verify.
-- Knowledge base. *[Architecture by Neglect](../software-engineering/architecture-by-neglect.md)*. Locally-optimal decisions with no architectural thought produce a globally incoherent system; decisions must be made, not defaulted.
+- Knowledge base. *[Software 3.0: Vibe Coding, Verification & Understanding](../artificial-intelligence/software-3-0.md)*. Karpathy's thinking vs understanding, "you can outsource your thinking, but not your understanding."
+- Knowledge base. *[Human Judgment & Verification](../artificial-intelligence/human-judgment-and-verification.md)*. Every task splits into thinking (human) and grunt work (AI); humans verify.
+- Knowledge base. *[Architecture by Neglect](architecture-by-neglect.md)*. Locally-optimal decisions with no architectural thought produce a globally incoherent system; decisions must be made, not defaulted.
