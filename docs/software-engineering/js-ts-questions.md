@@ -1711,6 +1711,161 @@ class Solution:
 
 `ord(char) - ord('a')` maps 'a'→0, 'b'→1, ..., 'z'→25. The count array has 26 slots (one per letter). Anagrams produce the same count array, so they map to the same group.
 
+### Top K Frequent Elements — heap + tuple comparison
+
+**Problem:** Given an array of integers and an integer k, return the k most frequent elements.
+
+**Solution 1 — sorting (O(n log n)):**
+
+```python
+from collections import defaultdict
+
+class Solution:
+    def topKFrequent(self, nums: list[int], k: int) -> list[int]:
+        freq_map = defaultdict(int)
+        for num in nums:
+            freq_map[num] += 1
+        
+        sorted_by_freq = sorted(freq_map.items(), key=lambda x: x[1], reverse=True)
+        return [num for num, _ in sorted_by_freq[:k]]
+```
+
+**Solution 2 — heap (O(n log k)) with heapify:**
+
+```python
+from heapq import heappush, heappop, heapify
+from collections import defaultdict
+
+class Solution:
+    def topKFrequent(self, nums: list[int], k: int) -> list[int]:
+        freq_map = defaultdict(int)
+        for num in nums:                    # O(n)
+            freq_map[num] += 1
+        
+        heap = []                           # store (-freq, num) tuples
+        for num, freq in freq_map.items():  # O(n)
+            heappush(heap, (-freq, num))    # O(log n)
+        
+        ans = []
+        for _ in range(k):                  # O(k log n)
+            freq, num = heappop(heap)       # extract most frequent
+            ans.append(num)
+        
+        return ans
+```
+
+**Solution 3 — heapify (O(n + k log n)) — faster than heappush loop:**
+
+```python
+from heapq import heappop, heapify
+from collections import defaultdict
+
+class Solution:
+    def topKFrequent(self, nums: list[int], k: int) -> list[int]:
+        freq_map = defaultdict(int)
+        for num in nums:                    # O(n)
+            freq_map[num] += 1
+        
+        heap = [(-freq, num) for num, freq in freq_map.items()]  # O(n)
+        heapify(heap)                       # O(n) — faster than pushing one by one
+        
+        ans = []
+        for _ in range(k):                  # O(k log n)
+            freq, num = heappop(heap)
+            ans.append(num)
+        
+        return ans
+```
+
+**Why heapify is O(n) not O(n log n):**
+
+Most nodes are near the bottom of the heap. Bottom nodes have 0 or 1 children — no sifting needed. Only ~n/2 nodes need to sift, and they sift down at most log n levels. But the sum of all sifts converges to O(n).
+
+**Tuple comparison — how heapify knows which element to sort:**
+
+Python compares tuples element by element (lexicographic):
+
+```python
+(-3, 1) < (-2, 2)    # True — compares first: -3 < -2
+(-3, 1) < (-3, 2)    # True — first equal, compares second: 1 < 2
+(-3, 2) < (-3, 1)    # False — first equal, 2 > 1
+```
+
+So in the heap:
+
+```python
+heap = [(-3, 1), (-2, 2), (-1, 3)]
+#        ↑       ↑       ↑
+#     -3 < -2  -2 < -1  ← first elements decide
+#       1       2       3  ← tiebreakers
+```
+
+Min-heap sees `-3` as smallest → `(-3, 1)` goes to top. You never told it to sort by frequency — the negation trick makes frequency the first element, and tuple comparison does the rest.
+
+**Why negate the frequency?**
+
+Python has min-heap only. Min-heap puts smallest at top. Negating makes highest frequency become smallest:
+
+```python
+freq = 3  →  -freq = -3  (smallest in min-heap)
+freq = 2  →  -freq = -2
+freq = 1  →  -freq = -1  (largest in min-heap)
+```
+
+So `heappop` returns `(-3, num)` — the most frequent element first.
+
+**All three solutions compared:**
+
+| | Sort | heappush loop | heapify |
+|---|---|---|---|
+| Time | O(n log n) | O(n log k) | O(n + k log n) |
+| Space | O(n) | O(n) | O(n) |
+| Best when | k ≈ n | k is small | k is small, n is large |
+
+### Deprecation notes — what changed in Python 3.9+
+
+**Type hints — `typing` module is mostly deprecated:**
+
+```python
+# OLD (deprecated since Python 3.9)
+from typing import List, Dict, Tuple, Optional, Union
+def foo(x: List[int]) -> Dict[str, List[int]]: ...
+def bar(x: Optional[str]) -> Union[int, str]: ...
+
+# NEW (Python 3.9+)
+def foo(x: list[int]) -> dict[str, list[int]]: ...
+def bar(x: str | None) -> int | str: ...
+```
+
+| Old (deprecated) | New (3.9+) | Notes |
+|---|---|---|
+| `List[int]` | `list[int]` | Built-in `list` is now generic |
+| `Dict[str, int]` | `dict[str, int]` | Built-in `dict` is now generic |
+| `Tuple[int, str]` | `tuple[int, str]` | Built-in `tuple` is now generic |
+| `Set[int]` | `set[int]` | Built-in `set` is now generic |
+| `Optional[str]` | `str \| None` | Pipe syntax (3.10+) |
+| `Union[int, str]` | `int \| str` | Pipe syntax (3.10+) |
+| `Type[List]` | `type[list]` | Built-in `type` is now generic |
+
+**What's NOT deprecated:**
+
+```python
+# These are FUNCTIONS, not type aliases — always import them
+from collections import defaultdict, Counter, deque
+from functools import lru_cache, reduce
+from itertools import chain, groupby
+from datetime import datetime, timedelta
+from heapq import heappush, heappop, heapify
+
+# These are still needed for complex types
+from typing import Protocol, TypeVar, Generic, TypedDict, Literal
+```
+
+**Rule of thumb:**
+- `typing.List`, `typing.Dict`, etc. → use `list`, `dict` instead (deprecated)
+- `collections.defaultdict`, `heapq.heapify`, etc. → still import (functions, not types)
+- `typing.Optional`, `typing.Union` → use `X | None`, `X | Y` instead (3.10+)
+
 ### Common data structures in Python
 
 **Stack (LIFO) — use a list:**
