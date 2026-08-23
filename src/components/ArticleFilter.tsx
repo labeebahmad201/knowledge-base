@@ -78,6 +78,7 @@ const articles: Article[] = [
   {title: 'Security', path: '/docs/software-engineering/security', category: 'Engineering'},
   {title: 'System Design', path: '/docs/software-engineering/system-design', category: 'Engineering'},
   {title: 'Error Log: Hand-Coding Sessions', path: '/docs/software-engineering/error-log', category: 'Engineering'},
+  {title: 'Request Coalescing: Turning a Stampede into a Single Call', path: '/docs/software-engineering/request-coalescing', category: 'Engineering'},
   {title: 'DDIA: Designing Data-Intensive Applications', path: '/docs/software-engineering/books/ddia', category: 'Books'},
 
   {title: 'The AI Application Stack', path: '/docs/software-engineering/ai-application-stack', category: 'AI'},

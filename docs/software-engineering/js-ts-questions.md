@@ -857,6 +857,89 @@ A generator is a function you can **pause, resume, and feed data back into** —
 
 ---
 
+## `.js` vs `.mjs` vs `.cjs` - how Node.js picks a module system
+
+### Problem
+
+You write `import express from "express"` in a `.js` file and Node throws `SyntaxError: Cannot use import statement outside a module`. Your teammate's identical file works. The difference is not the code, it is the file extension and the nearest `package.json`. Node supports two module systems, and which one a file runs under is decided by rules most developers never read.
+
+### Solution - the extension decides
+
+Node uses the file extension plus the nearest `package.json` to decide the module system:
+
+| Extension | Module system | Why |
+|---|---|---|
+| `.js` | depends on nearest `package.json` | CommonJS by default; ES modules if `"type": "module"` |
+| `.mjs` | ES modules, always | explicit - module syntax guaranteed |
+| `.cjs` | CommonJS, always | explicit - `require` guaranteed |
+
+```json
+// package.json
+{
+  "type": "module"
+}
+```
+
+With `"type": "module"`, every `.js` file in the project is treated as an ES module. Without it, `.js` files are CommonJS. The `.mjs` and `.cjs` extensions exist so a single file can override the project default in either direction.
+
+```js
+// app.mjs - always ESM, even if package.json says nothing
+import express from "express";
+
+// legacy.cjs - always CommonJS, even if "type": "module"
+const express = require("express");
+```
+
+### The two module systems
+
+**CommonJS (CJS)** - the original Node system. Loads synchronously with `require()`, exports with `module.exports`. Synchronous loading is why CJS is simple: by the time the `require` returns, the module is fully loaded.
+
+**ES Modules (ESM)** - the standard JavaScript module system, same as browsers. Static `import`/`export`, analyzable at parse time (this enables tree-shaking and top-level `await`). Loading is asynchronous under the hood.
+
+```js
+// CommonJS - synchronous, available everywhere in Node
+const fs = require("fs");
+
+// ES modules - static, works in Node and browsers
+import fs from "node:fs";
+```
+
+### Pitfalls
+
+**1. `require` is not defined in ESM.** Running `require()` in a `.mjs` file throws `ReferenceError: require is not defined`. If you must use it, create one explicitly:
+
+```js
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const fs = require("node:fs");
+```
+
+**2. `__dirname` and `__filename` do not exist in ESM.** CommonJS injects them; ESM does not. Use `import.meta.url`:
+
+```js
+import { fileURLToPath } from "node:url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+```
+
+**3. Imports need explicit extensions in Node ESM.** Browser bundlers resolve extensionless imports for you; plain Node ESM does not. `import "./helper"` fails - you must write `import "./helper.js"`.
+
+**4. Top-level `await` works only in ESM.** It is a syntax error at the top of a CommonJS file.
+
+**5. Migrating a project:** flipping `"type": "module"` changes every `.js` file at once. To migrate incrementally, keep the default and rename files as you convert them - `.mjs` for the new ESM files, `.cjs` for legacy ones that must stay CommonJS.
+
+### The one-liner
+
+`.js` follows the nearest `package.json` (CommonJS by default, ESM if `"type": "module"`); `.mjs` forces ESM and `.cjs` forces CommonJS, so you can mix both systems in one project.
+
+### Sources
+
+- Node.js docs: [Determining module system](https://nodejs.org/api/packages.html#determining-module-system) - the exact resolution rules for `.js`, `.mjs`, `.cjs`, and `"type"`.
+- Node.js docs: [ECMAScript modules](https://nodejs.org/api/esm.html) - ESM semantics, `import.meta`, `createRequire`.
+- MDN: [JavaScript modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) - the standard module system in browsers and Node.
+
+---
+
 ## Python for JS/TS Developers
 
 What you already know maps directly. The differences are where the bugs hide.
