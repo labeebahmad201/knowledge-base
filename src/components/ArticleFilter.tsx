@@ -76,7 +76,6 @@ const articles: Article[] = [
   {title: 'Python Cheat Sheet', path: '/docs/software-engineering/python-cheat-sheet', category: 'Engineering'},
   {title: 'Reliability & Performance', path: '/docs/software-engineering/reliability-performance', category: 'Engineering'},
   {title: 'Security', path: '/docs/software-engineering/security', category: 'Engineering'},
-  {title: 'System Design', path: '/docs/software-engineering/system-design', category: 'Engineering'},
   {title: 'Error Log: Hand-Coding Sessions', path: '/docs/software-engineering/error-log', category: 'Engineering'},
   {title: 'Request Coalescing: Turning a Stampede into a Single Call', path: '/docs/software-engineering/request-coalescing', category: 'Engineering'},
   {title: 'DDIA: Designing Data-Intensive Applications', path: '/docs/software-engineering/books/ddia', category: 'Books'},
