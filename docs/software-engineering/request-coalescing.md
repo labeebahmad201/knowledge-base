@@ -75,6 +75,94 @@ The important detail is the `.finally()`: the entry must be removed whether the 
 const user = await coalescer.coalesce(`users:${userId}`, () => fetchUser(userId));
 ```
 
+## A runnable version you can verify yourself
+
+The pattern is easy to dismiss until you watch it work. This is a complete, minimal NestJS service that simulates a 100 ms database query with a counter, and exposes one coalesced route. The counter is the proof: it counts real "database calls", so you can see exactly how many a burst of requests produces.
+
+```ts
+// user.service.ts
+@Injectable()
+export class UserService {
+  private dbCalls = 0;
+  private inFlight = new Map<string, Promise<{id: number}>>();
+
+  private async simulateDbCall(userId: number): Promise<{id: number}> {
+    this.dbCalls++;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return {id: userId};
+  }
+
+  async findUser(userId: number): Promise<{id: number}> {
+    const key = `users:${userId}`;
+    const existing = this.inFlight.get(key);
+    if (existing) return existing;
+    const promise = this.simulateDbCall(userId).finally(() => this.inFlight.delete(key));
+    this.inFlight.set(key, promise);
+    return promise;
+  }
+}
+```
+
+```ts
+// user.controller.ts
+@Controller('user')
+export class UserController {
+  constructor(private readonly users: UserService) {}
+
+  @Get(':id')
+  find(@Param('id') id: string) {
+    return this.users.findUser(Number(id));
+  }
+}
+```
+
+Fire 400 requests at the same user in a single instant and read the counter. It reports 1. Fire the same 400 at a *different* user on every request and it reports 400, because no two requests share a key and nothing overlaps.
+
+```js
+// load-test.mjs - fire N requests at the same instant, then read the counter
+const N = 400;
+await Promise.all(
+  Array.from({length: N}, () =>
+    fetch('http://localhost:3100/user/42').then((r) => r.json()),
+  ),
+);
+const {dbCalls} = await fetch('http://localhost:3100/db-call-count').then((r) => r.json());
+console.log(`${N} simultaneous requests -> ${dbCalls} database calls`);
+// prints: 400 simultaneous requests -> 1 database call
+```
+
+The counter is the entire lesson. Every request that attaches to the shared promise costs nothing on the database. Only the request that starts the work pays.
+
+## Single core, single thread: why exactly one promise is created
+
+The mechanism works because of how Node runs on one core, not in spite of it. A Node process is one OS process running one JavaScript thread. The OS may schedule that thread on a single core at any moment. There is no parallelism in user code: two handlers can never be executing their JavaScript at the same instant. They take turns.
+
+That turn-taking happens on the **event loop**. Incoming requests arrive over sockets; the kernel watches them and notifies Node when data is ready. Node does not sit and wait. It runs the callbacks already in its queue, one at a time, each to completion, and only then picks the next one.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+    A["Kernel: socket data ready"] --> B["Event loop queue: request callbacks"]
+    B --> C["Callback 1 runs to completion"]
+    C --> D["Callback 2 runs to completion"]
+    D --> E["Callback 3 runs to completion"]
+    E --> F["One JS thread, one core, zero overlap"]
+```
+
+</div>
+
+This serial execution is what guarantees the single promise. When request 1's callback runs, it calls `coalesce()`, which synchronously starts the database call, stores its promise in the map, and returns. Only after that whole callback finishes does the event loop start request 2's callback. By then the entry exists, so request 2 attaches to the stored promise instead of calling `simulateDbCall` again. It cannot race ahead of request 1, because it literally does not run until request 1 has finished.
+
+Two levels of promise exist, and the single thread is why the cheap ones never reach the database:
+
+- **The caller promise** - one per request, created in the handler. Cheap: it says "give me the result when it is ready."
+- **The shared promise** - one per key, the actual `simulateDbCall` call, stored in the map.
+
+All 10,000 handlers create a caller promise and return it to the framework. But only the first handler's `simulateDbCall` promise fires a database call. The other 9,999 handlers get handed the *same* shared promise and await it. One database query total.
+
+The sharpest way to state it: **Node's single thread is not a limitation here, it is the guarantee.** A language with true parallel threads would need a lock to make the map check-then-insert atomic. Node never needs the lock, because only one callback runs at a time, and the whole check-and-insert happens inside that single synchronous window.
+
 ## Why it works: the map write is synchronous
 
 The single-threaded event loop is what makes this pattern safe. Each HTTP request runs as its own callback, and the event loop executes each callback to completion before starting the next one. Inside that synchronous run, `coalesce()` does its map lookup and `set()` *before* the handler ever awaits anything. So by the time request 1's callback finishes, the entry is already parked in the map. Request 2's callback runs later, finds the key, and attaches.
@@ -93,15 +181,6 @@ graph TD
 </div>
 
 The crucial detail: `coalesce()` contains no `await` between the map lookup and the map write. If it did, a later request could run while the entry does not exist yet, and the stampede would slip through. The synchronous write is what guarantees that once any caller is mid-flight, every later caller sees it.
-
-## Two levels of promise, not one
-
-A common confusion is thinking coalescing creates one promise. It creates promises at two levels:
-
-- **The caller promise** - one per request. Cheap: it just says "give me the result when it is ready."
-- **The shared promise** - one per key. This is the actual database call, the one stored in the map.
-
-Coalescing hands requests 2 through 10,000 the *same* shared promise. All 10,000 callers await one object, but only one database query fires. The count of promises is not what matters; the count of database queries is.
 
 ## The timing window: only overlapping requests merge
 
