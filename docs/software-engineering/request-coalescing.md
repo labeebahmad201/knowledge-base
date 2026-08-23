@@ -237,6 +237,43 @@ graph TD
 
 A layered read path checks the cache first, then coalesces the misses, so even under a stampede the database sees exactly one query per distinct key. The techniques reinforce each other: coalescing makes the cache's weakest moment safe, and the cache keeps coalescing from ever being needed on the happy path.
 
+## What about Redis? Same mechanism, smaller window
+
+A Redis call from Node is the same kind of I/O as a database call. It is async, the event loop sends the command and waits on the socket, and a callback fires when the response arrives. Coalescing works identically: one in-flight promise in the map, one `GET` command sent, every late caller attaching to the stored promise.
+
+Two things change the calculus, though.
+
+**Redis is itself single-threaded.** Redis executes commands serially on one main thread. Without coalescing, 10,000 identical `GET`s still arrive as 10,000 network round trips and are processed one at a time. Coalescing cuts that to a single round trip. The saving is real, but the server at the end was never the bottleneck.
+
+**The timing window is much smaller.** Coalescing merges requests that overlap while the promise is in flight. A database query takes ~100 ms, a big window for latecomers to attach. A Redis `GET` takes sub-millisecond to a few milliseconds, so the overlap window is tiny. Requests that arrive just after the promise settles start a new call. Under a true simultaneous stampede it still collapses to one call, but traffic spread over even a few milliseconds produces many more Redis calls than a slow query would. Coalescing wins, just with a smaller reduction ratio against fast backends.
+
+The decision rule:
+
+| Coalesce against | Worth it? | Why |
+|---|---|---|
+| Database, after a cache miss | Yes | the ~100 ms query is the stampede target |
+| Redis repopulation (compute + write) | Yes, if compute is expensive | prevents duplicate work on a cache miss |
+| Raw Redis `GET` | Usually not | already sub-ms; tiny window to overlap |
+
+The reason the first row matters most: Redis is usually the *cache*, not the source of truth. The expensive work in a stampede is the database fetch that follows a Redis miss. The canonical pattern keeps Redis on the fast path and coalesces what sits behind it.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+    A["Request arrives"] --> B{"Redis cache hit?"}
+    B -- "yes" --> C["Return cached value"]
+    B -- "no" --> D{"Another DB fetch in flight?"}
+    D -- "yes" --> E["Attach to in-flight DB promise"]
+    D -- "no" --> F["Query database once"]
+    F --> G["Repopulate Redis"]
+    G --> H["Share result with all waiters"]
+```
+
+</div>
+
+Coalescing against Redis itself matters mainly when a burst of misses would each recompute and rewrite the same value, so one request does the work and the rest wait for it. Coalesce the source of truth, and treat Redis as the fast cache in front of it.
+
 ## The mental model
 
 Request coalescing is not about making any single request faster. It is about making the worst case bounded: no matter how many requests collide, the work happens once and the result is broadcast. The three things to get right are sharing the promise, using keys that uniquely describe the operation, and cleaning up entries in both the success and failure paths.
