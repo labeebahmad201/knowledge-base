@@ -38,6 +38,7 @@ const articles: Article[] = [
 
   {title: 'Data Ownership in Redis', path: '/docs/software-engineering/redis-data-ownership', category: 'Engineering'},
 
+  {title: 'Sagas: Managing Transactions That Span Multiple Services', path: '/docs/software-engineering/sagas', category: 'Architecture'},
   {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
   {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},
   {title: 'Modular Monolith', path: '/docs/software-engineering/modular-monolith', category: 'Architecture'},
