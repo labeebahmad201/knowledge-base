@@ -561,6 +561,302 @@ So in modern JS you rarely type the directive yourself, but it governs how every
 
 ---
 
+## Generators — lazy sequences that can pause
+
+### Problem
+
+Sometimes you need a sequence that is too big (or infinite) to build up front. Reading a 10 GB file line by line, paginating through a database cursor, or generating an infinite Fibonacci stream: building the whole array first either exhausts memory or never terminates.
+
+```js
+// ❌ builds the entire array in memory — 10GB file = 10GB of strings
+const lines = readFileSync("huge.log").split("\n");
+lines.forEach(process);
+
+// ❌ infinite sequence — never returns
+function fibonacciArray(n) {
+  const out = [];
+  let a = 0, b = 1;
+  while (true) {          // runs forever
+    out.push(a);
+    [a, b] = [b, a + b];
+  }
+}
+```
+
+You don't want the sequence. You want to pull values from it **one at a time, on demand**. That is what generators do.
+
+### Solution — a function that pauses and resumes
+
+A generator function is declared with `function*` and uses `yield` instead of `return`. Calling it does **not** run the body. It returns a **generator object** (an iterator) that you pull values from with `.next()`.
+
+```js
+function* fibonacci() {
+  let a = 0, b = 1;
+  while (true) {
+    yield a;              // pause here, hand out `a`
+    [a, b] = [b, a + b];
+  }
+}
+
+const fib = fibonacci();  // nothing ran yet — just an iterator
+fib.next();               // {value: 0, done: false} — body runs up to first yield
+fib.next();               // {value: 1, done: false}
+fib.next();               // {value: 1, done: false}
+fib.next();               // {value: 2, done: false}
+```
+
+Every `.next()` resumes the body from the last `yield`, runs until the next `yield` (or `return`), and hands back a result object shaped `{value, done}`. The `while (true)` is fine because the body only runs **as much as you ask it to**. This is **lazy evaluation**: nothing is computed until you call `.next()`.
+
+The simplest way to see the shape: `infinite()` *looks* like a function call, but it does not run the loop or return a value. It returns a **generator object**, and that object is what you iterate with `.next()`:
+
+```js
+function* infinite() {
+  let i = 1;
+  while (true) {
+    yield i;
+    i += 1;
+  }
+}
+
+const generator = infinite();   // returns a generator object — nothing ran yet
+console.log(generator.next());  // {value: 1, done: false}
+console.log(generator.next());  // {value: 2, done: false}
+console.log(generator.next());  // {value: 3, done: false}
+console.log(generator.next());  // {value: 4, done: false}
+```
+
+### `yield` vs `return` — the mental model
+
+- `return` — ends the function, gives one final value, `done: true` after it.
+- `yield` — pauses the function, gives a value, and *remembers where it was* so it can resume later.
+- `yield*` — delegates to another generator (or any iterable) and yields its values in sequence. This is how you compose generators.
+
+```js
+function* range(start, end) {
+  for (let i = start; i <= end; i++) yield i;
+}
+
+function* evens(start, end) {
+  yield* range(start, end);        // delegate — yield every value from range
+  // then add more
+  yield "done";
+}
+```
+
+### Generators are iterables
+
+A generator object implements the iterable protocol: it has a `[Symbol.iterator]` method that returns itself. That means everything that consumes an iterable works on generators directly.
+
+```js
+function* nums() { yield 1; yield 2; yield 3; }
+
+// for...of — pulls until done, no manual .next()
+for (const n of nums()) console.log(n);   // 1, 2, 3
+
+// spread — collects all values (careful: forces full evaluation)
+[...nums()];                               // [1, 2, 3]
+
+// destructuring
+const [a, b] = nums();                     // a = 1, b = 2
+
+// Array.from
+Array.from(nums());                        // [1, 2, 3]
+```
+
+**The trap:** `[...gen]`, `Array.from(gen)`, and `for...of` force the generator to run to completion. If the generator is infinite, they hang forever. Generators shine when the consumer stops early — a `break`, a `.find()`, or a manual `.next()`.
+
+```js
+function* infinite() { let i = 0; while (true) yield i++; }
+
+for (const n of infinite()) {
+  if (n > 3) break;       // ✅ fine — we stop pulling, generator just pauses forever
+}
+infinite().find((n) => n > 10);   // ✅ 11 — find pulls only until the match
+```
+
+### `for...of` under the hood — what the loop actually does
+
+```js
+// for (const v of iterable) { ... }
+const iterator = iterable[Symbol.iterator]();
+let step = iterator.next();
+while (!step.done) {
+  const v = step.value;
+  // body
+  step = iterator.next();
+}
+```
+
+This is why lazy sequences work with `for...of`: the loop pulls one value, runs the body, then pulls the next. It never asks for more than it needs.
+
+### `.next(value)` — passing data back in
+
+`yield` is a two-way street. The value you pass to `.next(arg)` becomes the *result of the suspended `yield` expression* inside the generator. The first `.next()` can't take an argument (there's no `yield` suspended yet) — it just starts the generator.
+
+```js
+function* questioner() {
+  const name = yield "What's your name?";
+  const age = yield `Hello ${name}, how old are you?`;
+  return `You are ${age}.`;
+}
+
+const g = questioner();
+g.next();              // {value: "What's your name?", done: false}
+g.next("Alice");       // {value: "Hello Alice, how old are you?", done: false}
+g.next(30);            // {value: "You are 30.", done: true}
+```
+
+This bidirectional communication is what made generators the basis of **cooperative concurrency**. A generator yields control, the caller runs other work, then calls `.next()` to hand control (and data) back. This is the engine underneath early Redux Saga and why generators matter for async flows.
+
+### `.return()` and `.throw()` — interrupting a generator
+
+- `gen.return(x)` — forces the generator to stop early. The body's `finally` block (if any) runs, then `.next()` reports `{value: x, done: true}`.
+- `gen.throw(err)` — throws `err` *inside* the generator at the suspended `yield`, as if the code after it threw. A `try/catch` inside the generator can catch it.
+
+```js
+function* counter() {
+  let i = 0;
+  try {
+    while (true) { yield i++; }
+  } finally {
+    console.log("cleaned up");
+  }
+}
+const c = counter();
+c.next();            // {value: 0, done: false}
+c.return();          // logs "cleaned up", then {value: undefined, done: true}
+```
+
+This is how you clean up resources (close a file handle, cancel a subscription) when a consumer stops pulling early.
+
+### Real-world use cases
+
+**1. Reading files / streams line by line** — the classic. Pull one line, process it, never hold the whole file.
+
+```js
+async function* readLines(file) {
+  const reader = file.stream().getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) {
+      if (buffer) yield buffer;
+      return;
+    }
+    buffer += decoder.decode(value, {stream: true});
+    const parts = buffer.split("\n");
+    buffer = parts.pop() ?? "";
+    for (const part of parts) yield part;
+  }
+}
+
+for await (const line of readLines(file)) process(line);
+```
+
+**2. Infinite / on-demand sequences** — IDs, timestamps, pagination cursors, ranges.
+
+```js
+function* idGenerator() {
+  let id = 1;
+  while (true) yield `user_${id++}`;
+}
+const ids = idGenerator();
+ids.next().value;   // "user_1"
+ids.next().value;   // "user_2"
+```
+
+**3. Lazy pipelines** — chain transformations without building intermediate arrays. Unlike `map`/`filter` which eagerly build full arrays, a generator pipeline computes one value and pushes it through every stage before pulling the next.
+
+```js
+function* take(iterable, n) {
+  let count = 0;
+  for (const v of iterable) {
+    if (count++ >= n) return;
+    yield v;
+  }
+}
+function* squares(iterable) {
+  for (const v of iterable) yield v * v;
+}
+
+// lazily: first 5 even squares, without building any intermediate array
+[...take(squares(filter(evens, infiniteRange())), 5)];
+```
+
+**4. Flattening / tree traversal** — recursive generators make depth-first traversal one-liners.
+
+```js
+function* walkTree(node) {
+  yield node.value;
+  for (const child of node.children) {
+    yield* walkTree(child);     // delegation recurses cleanly
+  }
+}
+```
+
+**5. Redux Saga (the historical reason they matter)** — middleware that runs your side effects as generators, so complex async flows look linear: `yield` on an action waits for it, `yield` on an API call waits for the response, all while staying pauseable and testable. Understanding generators is what makes Redux Saga, and the newer `yield`-based async patterns, legible.
+
+### Generators vs regular iterables vs async iterators
+
+| | Regular array | Generator | `async` generator |
+|---|---|---|---|
+| Produces | all values eagerly | one value on demand | one value on demand |
+| `next()` returns | — | `{value, done}` sync | `Promise<{value, done}>` |
+| Consume with | any array method | `for...of`, spread, `.next()` | `for await...of`, `.next()` |
+| Infinite sequence? | no | yes | yes |
+| Backpressure / pause | no | yes | yes |
+
+An `async function*` works exactly like a generator but may `await` inside — the `.next()` returns a Promise. This is the modern way to consume streams (`for await...of`).
+
+### Pitfalls
+
+- **Calling `function*` does not run the body.** No code executes until the first `.next()`. Expecting side effects at call time is the #1 confusion.
+- **Generators are single-pass.** You can't rewind a generator. Once consumed, it's done. Call the function again to get a fresh one.
+- **`[...gen]` / `Array.from(gen)` force full evaluation.** On an infinite generator they hang forever. Only use them when you know the sequence is finite.
+- **`return` inside a generator ends it.** Values after `return` are ignored; the final `{value, done: true}` has `value` as the returned value (usually `undefined`).
+- **You can't yield across module boundaries without an async iterator.** For streaming between async boundaries use `for await...of` and async generators.
+
+### TypeScript notes
+
+TypeScript types generators precisely with the `Generator` interface: `Generator<T, TReturn, TNext>` where `T` is the yielded value type, `TReturn` the return type, and `TNext` the type passed to `.next()`.
+
+```ts
+function* range(start: number, end: number): Generator<number, void, unknown> {
+  for (let i = start; i <= end; i++) yield i;
+}
+
+// bidirectional generators — the TNext type is enforced
+function* accumulator(): Generator<number, void, number> {
+  let total = 0;
+  while (true) {
+    total += yield total;   // .next(n) must pass a number
+  }
+}
+
+function* infiniteEvens(): Generator<number, never, unknown> {
+  let i = 0;
+  while (true) yield i += 2;   // never completes → TReturn is `never`
+}
+```
+
+The `Generator` interface is keyed: `[Symbol.iterator](): Generator<T, TReturn, TNext>`. If you pass a value to `.next()` that doesn't match `TNext`, TypeScript errors at compile time.
+
+### The one-liner
+
+A generator is a function you can **pause, resume, and feed data back into** — it computes values lazily, one `.next()` at a time, instead of building the whole sequence up front.
+
+### Sources
+
+- MDN: [Generators](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*) — the reference for `function*`, `yield`, and generator object methods.
+- MDN: [Iteration protocols](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) — the iterable and iterator protocols generators implement.
+- JavaScript.info: [Generators](https://javascript.info/generators) — tutorial covering generators, delegation with `yield*`, and bidirectional `next(value)`.
+- MDN: [Async iteration](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for-await...of) — `for await...of` and async generators.
+- Redux Saga docs: [The saga concept](https://redux-saga.js.org/docs/introduction/) — how generators power side-effect middleware.
+- You Don't Know JS: [Async & Performance (generators chapter)](https://github.com/getify/You-Dont-Know-JS/tree/2nd-ed/async-performance) — generators as the foundation of async flow control.
+
+---
+
 ## Python for JS/TS Developers
 
 What you already know maps directly. The differences are where the bugs hide.
