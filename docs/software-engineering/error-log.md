@@ -101,3 +101,26 @@ git diff --cached # shows changes that ARE staged (ready to commit)
 Common mistake: `git diff --cache` (missing the `d`) — that's invalid. It must be `--cached` with a `d`.
 
 **Workflow:** modify file → `git diff` (see what changed) → `git add` → `git diff --cached` (verify staged changes) → `git commit`.
+
+---
+
+### Sync feature branch with main (after PR is merged)
+
+```bash
+# 1. Pull latest on main
+git checkout main
+git pull
+
+# 2. Switch to your feature branch
+git checkout <your-feature-branch>
+
+# 3. Merge main into it
+git merge main
+
+# 4. Push
+git push
+```
+
+**Why this happens:** Your PR is merged on GitHub, but your local feature branch still points to the old commit. Pulling main updates your local, then merging main into your feature branch brings it up to date.
+
+**Alternative (rebase):** `git rebase main` instead of `git merge main` — cleaner linear history but rewrites commits (don't use on shared branches).
