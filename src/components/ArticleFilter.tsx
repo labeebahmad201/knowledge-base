@@ -14,6 +14,7 @@ const articles: Article[] = [
   {title: 'Architecture Decision Records', path: '/docs/software-engineering/architecture-decision-records', category: 'Architecture'},
   {title: 'Abstractions Must Earn Their Place', path: '/docs/software-engineering/abstractions-are-contextual', category: 'Architecture'},
   {title: 'Cohesion: Capability vs Layer', path: '/docs/software-engineering/cohesion-capability-vs-layer', category: 'Architecture'},
+  {title: 'MVC by Layer: How the Default Structure Becomes a Big Ball of Mud', path: '/docs/software-engineering/mvc-big-ball-of-mud', category: 'Architecture'},
   {title: 'Cross-Module Queries', path: '/docs/software-engineering/cross-module-queries', category: 'Architecture'},
   {title: 'Decoupling Moves Complexity', path: '/docs/software-engineering/decoupling-moves-complexity', category: 'Architecture'},
   {title: 'Decoupling Case Studies: When to Apply Each Level', path: '/docs/software-engineering/decoupling-case-studies', category: 'Architecture'},
