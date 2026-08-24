@@ -56,6 +56,89 @@ flowchart TD
 
 </div>
 
+## The key fact: useCallback alone does not prevent re-renders
+
+`useCallback` stabilizes a function's identity, but it does not stop anything from rendering on its own. Re-renders happen by default: when a parent renders, every child renders too, with no comparison. `useCallback` does not introduce a comparison. It only makes sure that, when a receiver does compare, the reference looks unchanged.
+
+The skip only happens at a receiver that opts into comparison. For a child component that receiver is `React.memo`, which compares props against the previous render. Without `React.memo` on the child, passing a stable function changes nothing, the child still re-renders on every parent render. `useCallback` and `React.memo` are a pair: the memo does the comparison, and the callback keeps the prop stable so the comparison says "same".
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+    CB["useCallback: stable function reference"] --> ALONE{"Does anything compare<br/>the reference?"}
+    ALONE -->|"no receiver compares"| NOTHING["Re-renders still happen<br/>by default, no effect"]
+    ALONE -->|"React.memo child"| SKIP["memo compares props,<br/>sees same, skips render"]
+    style NOTHING fill:#f96,stroke:#333
+    style SKIP fill:#6f6,stroke:#333
+```
+
+</div>
+
+The chain matters: default re-render cascade is what you are fighting, `React.memo` is what introduces the comparison, and `useCallback` is what makes that comparison pass. Missing any piece defeats the optimization.
+
+## A worked example: build it up one step at a time
+
+The clearest way to see the chain is to add one piece at a time and watch the child's render log. This exact example runs in the browser:
+
+- **Step 1, plain child**: the child re-renders on every click. No comparison exists.
+- **Step 2, wrap in `React.memo`**: the child stops re-rendering, because it has no props to compare and they never change.
+- **Step 3, pass an inline `onSave`**: the child re-renders again. The inline function is a new reference on every render, so `memo` sees a changed prop.
+- **Step 4, wrap `onSave` in `useCallback`**: the child stops re-rendering, because the reference is now stable and `memo` sees no change.
+
+```jsx
+import React, {memo, useState, useCallback} from 'react';
+
+const ChildMemoized = memo(function Child({onSave}) {
+  console.log('rendered');
+  return (
+    <div>
+      <h1>Child</h1>
+    </div>
+  );
+});
+
+export default function App() {
+  const [counter, setCounter] = useState(0);
+
+  const increment = () => {
+    setCounter((prev) => prev + 1);
+  };
+
+  const onSave = useCallback(() => {}, []);
+
+  return (
+    <div>
+      <h1>Hello StackBlitz!</h1>
+      {counter}
+      <br />
+      <button onClick={increment}>incr</button>
+      <p>Start editing to see some magic happen :)</p>
+      <ChildMemoized onSave={onSave} />
+    </div>
+  );
+}
+```
+
+Step 3 is the one that surprises people. Adding a prop to a memoized child can make it *worse* than having no memo at all, because now the memo compares a prop that changes every render and always decides to render. The function is not expensive to create, but its changing reference defeats the skip. `useCallback` fixes exactly that: it stops the prop from changing, so the memo finally has something stable to compare.
+
+Try it live: https://stackblitz.com/edit/react-vmcfaybb
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+    S1["1: plain child, no memo"] --> R1["re-renders on every click"]
+    S2["2: wrap in React.memo"] --> R2["stops re-rendering"]
+    S3["3: pass inline onSave"] --> R3["re-renders again, new reference each time"]
+    S4["4: onSave in useCallback"] --> R4["stops re-rendering, reference stable"]
+    style R2 fill:#6f6,stroke:#333
+    style R3 fill:#f96,stroke:#333
+    style R4 fill:#6f6,stroke:#333
+```
+
+</div>
+
 ## useCallback and useMemo are the same idea
 
 `useCallback(fn, deps)` is equivalent to `useMemo(() => fn, deps)`. One caches a function value, the other caches a computed value. The rule for when it earns its place is the same: the reference has to actually be expensive to change.
