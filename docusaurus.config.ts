@@ -96,6 +96,10 @@ const config: Config = {
               to: '/docs/software-engineering/overview',
             },
             {
+              label: 'Frontend',
+              to: '/docs/frontend/overview',
+            },
+            {
               label: 'Artificial Intelligence',
               to: '/docs/artificial-intelligence/overview',
             },
