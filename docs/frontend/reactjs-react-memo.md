@@ -79,6 +79,28 @@ flowchart TD
 
 </div>
 
+## The key fact: without memo, re-renders happen by default
+
+The default React behavior is no comparison at all. When a parent re-renders, every child re-renders too, unconditionally. `React.memo` is what introduces the props comparison as an alternative to blind re-rendering, not `useCallback`.
+
+That means `useCallback` alone does not prevent a child from re-rendering. If a child is not wrapped in `React.memo`, passing it a stable function changes nothing, the child still re-renders on every parent render because no comparison runs. `useCallback` only pays off when a receiver compares the reference, and the component-level receiver is `React.memo`.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+    PARENT["Parent re-renders"] --> DEFAULT{"Is the child<br/>wrapped in React.memo?"}
+    DEFAULT -->|"no"| RENDER["Child re-renders,<br/>no comparison at all"]
+    DEFAULT -->|"yes"| COMPARE{"memo compares props.<br/>Are they the same reference?"}
+    COMPARE -->|"no"| RENDER2["Child re-renders"]
+    COMPARE -->|"yes"| SKIP["Child skips,<br/>useCallback kept props stable"]
+    style SKIP fill:#6f6,stroke:#333
+```
+
+</div>
+
+The chain: default re-render cascade is what you are fighting, `React.memo` is what introduces the comparison, and `useCallback` is what makes that comparison pass. Missing any piece defeats the optimization.
+
 ## What memo does not block
 
 `React.memo` only skips re-renders triggered by a parent. The component still re-renders when:
