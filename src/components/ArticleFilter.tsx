@@ -83,6 +83,7 @@ const articles: Article[] = [
 
   {title: 'The AI Application Stack', path: '/docs/software-engineering/ai-application-stack', category: 'AI'},
   {title: 'AI in the Software Development Lifecycle', path: '/docs/software-engineering/ai-in-the-sdlc', category: 'AI'},
+  {title: 'The Evolving Developer: How AI Reshapes Software Engineering', path: '/docs/artificial-intelligence/the-evolving-developer', category: 'AI'},
 ];
 
 const categoryOrder = ['Architecture', 'Testing', 'Engineering', 'Books', 'AI', 'DDD'];
