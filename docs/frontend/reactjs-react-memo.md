@@ -20,6 +20,8 @@ function Parent() {
 
 Every click on the button re-renders `Parent`, and `ExpensiveChart` re-renders along with it, even though nothing it needs changed.
 
+**Render ≠ DOM update. Child's function runs again, but React diffs the returned JSX. If output is same, no DOM mutation. Still costs CPU for the function + diff.**
+
 <div style={{display: 'flex', justifyContent: 'center'}}>
 
 ```mermaid
