@@ -1,0 +1,32 @@
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+.light {
+  background: #f6f8fa;
+  color: #24292e;
+  min-height: 100vh;
+  padding: 20px;
+  transition: all 0.3s;
+}
+.dark {
+  background: #24292e;
+  color: #f6f8fa;
+  min-height: 100vh;
+  padding: 20px;
+  transition: all 0.3s;
+}
+.card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+}
+button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  margin-right: 8px;
+}
