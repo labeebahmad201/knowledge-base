@@ -164,7 +164,23 @@ graph TD
 
 </div>
 
-### Try it live - what if React used `===` for NaN and -0
+### Try it live - interactive comparison and React bailout
+
+Compare all four checks and why `===` would break React's bailout. Edit the custom values, then try the NaN bailout.
+
+<div style={{display: 'flex', justifyContent: 'center', marginBottom: '12px'}}>
+  <a href="https://stackblitz.com/github/labeebahmad201/knowledge-base/tree/main/demos/stackblitz-object-is" target="_blank" style={{padding: '8px 16px', background: '#1269ff', color: 'white', borderRadius: '6px', textDecoration: 'none', fontWeight: 600}}>Open in StackBlitz →</a>
+</div>
+
+<iframe
+  src="https://stackblitz.com/github/labeebahmad201/knowledge-base/tree/main/demos/stackblitz-object-is?embed=1&file=src/App.tsx&view=preview&hideExplorer=1&ctl=1"
+  style={{width: '100%', height: '620px', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '8px'}}
+  title="Object.is - SameValue Demo"
+  loading="lazy"
+  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+></iframe>
+
+> Local: `cd demos/stackblitz-object-is && npm install && npm run dev`
 
 ```js
 // With ===, these would be bugs
