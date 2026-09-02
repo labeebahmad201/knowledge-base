@@ -45,7 +45,7 @@ const ExpensiveChart = memo(function ExpensiveChart() {
 
 Now `ExpensiveChart` re-renders only when its props actually change. Every parent re-render that leaves the props alone is skipped, and the expensive subtree stops paying for unrelated state updates.
 
-The comparison uses `Object.is`, the same reference check as a `useEffect` dependency. A prop that is a new array or a new inline function on every render counts as a change, and the memo is bypassed.
+The comparison is shallow `Object.is` per prop, as in `shallowEqual`. A prop that is a new array or a new inline function on every render counts as a change, and the memo is bypassed.
 
 <div style={{display: 'flex', justifyContent: 'center'}}>
 
@@ -57,6 +57,24 @@ flowchart TD
 ```
 
 </div>
+
+### Try it live - without vs with memo
+
+Parent holds `count`. Both charts receive no props. Click `+1` and watch renders.
+
+<div style={{display: 'flex', justifyContent: 'center', marginBottom: '12px'}}>
+  <a href="https://stackblitz.com/github/labeebahmad201/knowledge-base/tree/main/demos/stackblitz-react-memo-basic" target="_blank" style={{padding: '8px 16px', background: '#1269ff', color: 'white', borderRadius: '6px', textDecoration: 'none', fontWeight: 600}}>Open in StackBlitz →</a>
+</div>
+
+<iframe
+  src="https://stackblitz.com/github/labeebahmad201/knowledge-base/tree/main/demos/stackblitz-react-memo-basic?embed=1&file=src/App.tsx&view=preview&hideExplorer=1&ctl=1"
+  style={{width: '100%', height: '520px', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '8px'}}
+  title="React.memo Basic Demo"
+  loading="lazy"
+  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+></iframe>
+
+> Local: `cd demos/stackblitz-react-memo-basic && npm install && npm run dev`
 
 ## memo only helps when props are reference-stable
 
@@ -78,6 +96,24 @@ flowchart TD
 ```
 
 </div>
+
+### Try it live - stable vs inline props
+
+Both children are `memo`. Left gets `onClick={() => {}}` and `{id}` inline, right gets `useCallback`/`useMemo`. Click **Parent tick** (`count` only) - right skips, left re-renders. Change `id` - both re-render.
+
+<div style={{display: 'flex', justifyContent: 'center', marginBottom: '12px'}}>
+  <a href="https://stackblitz.com/github/labeebahmad201/knowledge-base/tree/main/demos/stackblitz-react-memo-stable" target="_blank" style={{padding: '8px 16px', background: '#1269ff', color: 'white', borderRadius: '6px', textDecoration: 'none', fontWeight: 600}}>Open in StackBlitz →</a>
+</div>
+
+<iframe
+  src="https://stackblitz.com/github/labeebahmad201/knowledge-base/tree/main/demos/stackblitz-react-memo-stable?embed=1&file=src/App.tsx&view=preview&hideExplorer=1&ctl=1"
+  style={{width: '100%', height: '580px', border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: '8px'}}
+  title="React.memo Stable Props Demo"
+  loading="lazy"
+  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+></iframe>
+
+> Local: `cd demos/stackblitz-react-memo-stable && npm install && npm run dev`
 
 ## The key fact: without memo, re-renders happen by default
 
