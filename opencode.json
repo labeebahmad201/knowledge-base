@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    ["/Users/labeeb/Documents/projects/opencode-voice-plugin", {
+      "duration": 30,
+      "screenshot": true,
+      "language": "en-US"
+    }]
+  ]
+}
