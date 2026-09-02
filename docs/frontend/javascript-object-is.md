@@ -138,8 +138,8 @@ setCount(NaN); setCount(NaN); // Object.is(NaN, NaN) -> true, second call bails 
 Where React relies on it:
 
 *   **`useState` bailout** - `Object.is(prevState, nextState)` decides whether to re-render. With `===`, setting `NaN` to `NaN` would re-render forever.
-*   **`React.memo` props check** - `memo` does a shallow `Object.is` on each prop.
-*   **`useMemo` / `useEffect` dependency check** - `Object.is(prevDep, nextDep)` decides whether to recompute or re-run.
+*   **`React.memo` props check** - `memo` does a **shallow** `Object.is` on each prop key. See the deep dive below.
+*   **`useMemo` / `useEffect` dependency check** - `Object.is(prevDep, nextDep)` per dependency decides whether to recompute or re-run.
 *   **`Context.Provider value` check** - `Object.is(prevValue, nextValue)` decides whether to notify `useContext` consumers. That is why `value={{ count }}` notifies on every render, `value={0}` does not, and `useMemo(() => ({count}), [count])` is the fix.
 
 ```jsx
@@ -240,6 +240,86 @@ flowchart TD
 
 </div>
 
+## Deep dive: how `React.memo` does shallow `Object.is` per key
+
+`memo` does not deep-compare objects. It is a shallow cache that loops over the prop keys of the previous and next props objects and runs `Object.is` on each value.
+
+```js
+function shallowEqual(prevProps, nextProps) {
+  for (let key in prevProps) {
+    if (!Object.is(prevProps[key], nextProps[key])) return false;
+  }
+  return true;
+}
+```
+
+Only the first level is checked, which is what *shallow* means.
+
+```js
+// 1. Primitive props - compares value
+prevProps = { count: 0 }
+nextProps = { count: 0 }
+Object.is(0, 0) // true -> shallowEqual true -> skip render
+
+prevProps = { count: 0 }
+nextProps = { count: 1 }
+Object.is(0, 1) // false -> re-render
+
+// 2. Object prop - compares reference only
+const obj1 = { id: 1 } // address 0xA
+const obj2 = { id: 1 } // address 0xB - different object, same content
+
+prevProps = { obj: obj1 } // 0xA
+nextProps = { obj: obj2 } // 0xB
+Object.is(obj1, obj2) // false -> re-render even though content looks equal
+// Shallow never checks obj.id inside
+
+// 3. Same reference - passes
+const obj = { id: 1 } // 0xA
+prevProps = { obj } // 0xA
+nextProps = { obj } // 0xA - same reference, stabilized with useMemo
+Object.is(obj, obj) // true -> skip
+
+// Why React chose this: deep would be O(size of tree) on every render
+// Shallow is O(number of props) - 2 to 3 Object.is checks, cheap and predictable
+```
+
+This is why your earlier question `Object.is({id:1}, {id:1}) // false` is the key to `memo`:
+
+```jsx
+// Bad - new object every App render, memo can never skip
+<Card obj={{ id: 1 }} />
+
+// Good - stable reference while id same, memo can skip
+const obj = useMemo(() => ({ id: 1 }), [id]);
+<Card obj={obj} />
+// or avoid the object entirely
+<Card id={1} />
+
+// If you must deep-compare, provide a custom comparator
+const Card = memo(function Card({ obj }) {}, (prev, next) => prev.obj.id === next.obj.id);
+```
+
+If the component also calls `useContext`, that subscription can still cause a re-render even when `memo` would have skipped, because `memo` only guards props, not context.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+  PREV["prevProps = {obj: 0xA, count: 0}"]
+  NEXT["nextProps = {obj: 0xB, count: 0}"]
+  C1{"Object.is(count 0,0)?"}
+  C1 -->|"true"| C2{"Object.is(obj 0xA, 0xB)?"}
+  C2 -->|"false"| RENDER["shallowEqual false<br/>must re-render"]
+  PREV2["prevProps = {obj: 0xA}"] --> NEXT2["nextProps = {obj: 0xA}"]
+  NEXT2 --> C3{"Object.is(0xA,0xA)?"}
+  C3 -->|"true"| SKIP["shallowEqual true<br/>skip render"]
+  style SKIP fill:#e8f5e9,stroke:#333
+  style RENDER fill:#ffcccc,stroke:#333
+```
+
+</div>
+
 ## Pitfalls
 
 `Object.is` is not deep equality. For objects it checks reference, not content, just like `===`.
@@ -252,7 +332,7 @@ const a = {x:1};
 Object.is(a, a) // true - same reference
 ```
 
-If you need deep equality, use a library or write a recursive check. `Object.is` is only the leaf comparator.
+If you need deep equality, use a library or write a recursive check. `Object.is` is only the leaf comparator that shallow equality builds on.
 
 ## The decision in one line
 
