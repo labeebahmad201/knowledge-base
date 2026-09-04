@@ -1529,7 +1529,7 @@ Most projects follow this path:
 <div style={{display: 'flex', justifyContent: 'center'}}>
 
 ```mermaid
-flowchart LR
+flowchart TD
   S1["Start:<br/>single Postgres"] --> S2["Scale reads:<br/>add replicas"]
   S2 --> S3["Scale writes:<br/>vertical sharding<br/>split tables by service"]
   S3 --> S4["Scale further:<br/>horizontal sharding<br/>Vitess/CockroachDB"]
@@ -1647,6 +1647,916 @@ flowchart TD
 ### Pitfall
 
 Adding an index on a low-selectivity column wastes space and slows every `INSERT` for no benefit. `CREATE INDEX ON orders(status)` on our 71% paid data is useless until the table grows to millions where `paid` becomes rare.
+
+---
+
+## 29. Practice problems - the interview classics
+
+These problems show up in almost every SQL interview round. Each one is runnable against the seed.
+
+### 29.1 Second highest value
+
+#### The problem
+
+Return the second largest order amount.
+
+#### The solution
+
+Take the max of everything below the max, or sort and skip one. In both, the `DISTINCT` matters - without it, ties break the offset trick.
+
+```sql
+SELECT MAX(amount) AS second_highest
+FROM orders
+WHERE amount < (SELECT MAX(amount) FROM orders);
+-- 200 (300 is #1, 200 is #2)
+
+SELECT DISTINCT amount FROM orders ORDER BY amount DESC LIMIT 1 OFFSET 1;
+-- 200 (DISTINCT protects against duplicate amounts)
+```
+
+<CopyToPlaygroundButton code={`SELECT MAX(amount) AS second_highest FROM orders WHERE amount < (SELECT MAX(amount) FROM orders)`} />
+
+**Follow-up the interviewers ask:** "third highest?" Keep the pattern - use `OFFSET` or a window rank and filter `rnk = 3`.
+
+### 29.2 Top-N per group
+
+#### The problem
+
+Top order per user (or top 2, top 3). `GROUP BY` would collapse the rows, so rank inside each group with a window and filter the rank.
+
+```sql
+-- Top order per user
+SELECT id, user_id, amount
+FROM (
+  SELECT id, user_id, amount,
+    ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY amount DESC) AS rnk
+  FROM orders
+) t
+WHERE rnk = 1;
+-- user 1 -> 100, user 2 -> 200, user 3 -> 300
+
+-- Top 2 per user
+SELECT id, user_id, amount
+FROM (
+  SELECT id, user_id, amount,
+    ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY amount DESC) AS rnk
+  FROM orders
+) t
+WHERE rnk <= 2;
+```
+
+<CopyToPlaygroundButton code={`SELECT id, user_id, amount FROM (SELECT id, user_id, amount, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY amount DESC) AS rnk FROM orders) t WHERE rnk <= 2`} />
+
+The subquery + filter is the "top-N per group" template. Change `rownum <= 2` to `= 2` for "second per group".
+
+### 29.3 Running total / cumulative sum
+
+#### The problem
+
+Show each order plus the running total. A window with `ORDER BY` makes the sum accumulate row by row instead of collapsing.
+
+```sql
+SELECT id, amount,
+  SUM(amount) OVER (ORDER BY id) AS running_total
+FROM orders
+ORDER BY id;
+-- 100, 150, 170, 370, 400, 700, 710
+```
+
+<CopyToPlaygroundButton code={`SELECT id, amount, SUM(amount) OVER (ORDER BY id) AS running_total FROM orders ORDER BY id`} />
+
+The `ORDER BY` inside the window is what makes it cumulative. Drop it and every row gets the same grand total.
+
+### 29.4 Who earns more than their manager
+
+#### The problem
+
+Self-join `employees` on `manager_id` and compare salaries. The seed has no salary column, so define one inline with `VALUES` (also works in the playground).
+
+```sql
+WITH emp AS (
+  SELECT * FROM (VALUES
+    (1,'Diana','CEO',NULL,200000),
+    (2,'Eve','VP Engineering',1,150000),
+    (3,'Frank','Eng Manager',2,120000),
+    (4,'Grace','Senior Dev',3,100000),
+    (5,'Heidi','Junior Dev',3,60000),
+    (6,'Ivan','DevOps',2,90000)
+  ) AS v(id, name, role, manager_id, salary)
+)
+SELECT a.name AS employee, a.salary AS emp_salary,
+       b.name AS manager, b.salary AS mgr_salary
+FROM emp a JOIN emp b ON a.manager_id = b.id
+WHERE a.salary > b.salary;
+```
+
+<CopyToPlaygroundButton code={`WITH emp AS (SELECT * FROM (VALUES (1,'Diana','CEO',NULL,200000),(2,'Eve','VP Engineering',1,150000),(3,'Frank','Eng Manager',2,120000),(4,'Grace','Senior Dev',3,100000),(5,'Heidi','Junior Dev',3,60000),(6,'Ivan','DevOps',2,90000)) AS v(id,name,role,manager_id,salary)) SELECT a.name AS employee, a.salary AS emp_salary, b.name AS manager, b.salary AS mgr_salary FROM emp a JOIN emp b ON a.manager_id = b.id WHERE a.salary > b.salary`} />
+
+A **self-join** is joining a table to itself with two different aliases. It's the tool for hierarchies, pairs, and comparing rows within one table.
+
+### 29.5 Gaps - find missing ids
+
+#### The problem
+
+Find which ids in a range are missing. Generate the full range with `generate_series`, then anti-join to find the holes.
+
+```sql
+WITH seq AS (SELECT generate_series(1, 10) AS id)
+SELECT seq.id AS missing
+FROM seq
+LEFT JOIN orders o ON o.id = seq.id
+WHERE o.id IS NULL;
+-- 8, 9, 10
+```
+
+<CopyToPlaygroundButton code={`WITH seq AS (SELECT generate_series(1, 10) AS id) SELECT seq.id AS missing FROM seq LEFT JOIN orders o ON o.id = seq.id WHERE o.id IS NULL`} />
+
+`LEFT JOIN ... WHERE right.id IS NULL` is the standard "rows in A not in B" idiom. The related **islands** problem (group contiguous runs) adds a bucket column of `id - ROW_NUMBER() OVER (ORDER BY id)` and groups on it.
+
+---
+
+## 30. Window function variants - RANK, DENSE_RANK, NTILE
+
+### The problem
+
+`ROW_NUMBER` always gives a unique number, even for ties. For top-N you usually want ties to share a rank, and `RANK` vs `DENSE_RANK` differ in whether they skip numbers.
+
+### The solution
+
+```sql
+SELECT id, status,
+  ROW_NUMBER() OVER (ORDER BY status) AS rownum,
+  RANK()        OVER (ORDER BY status) AS rnk,
+  DENSE_RANK()  OVER (ORDER BY status) AS dense
+FROM orders
+ORDER BY status;
+-- cancelled: rownum=1 rnk=1 dense=1
+-- paid (5 rows): rownum=2..6, ALL rnk=2, ALL dense=2
+-- pending: rownum=7 rnk=7 (JUMPS), dense=3
+```
+
+<CopyToPlaygroundButton code={`SELECT id, status, ROW_NUMBER() OVER (ORDER BY status) AS rownum, RANK() OVER (ORDER BY status) AS rnk, DENSE_RANK() OVER (ORDER BY status) AS dense FROM orders ORDER BY status`} />
+
+### The difference
+
+| Function | Same value as #1 | Next rank | Use for |
+|---|---|---|---|
+| `ROW_NUMBER` | unique, no ties | continues | exact total order |
+| `RANK` | shares rank | **skips** numbers | race rank with gaps |
+| `DENSE_RANK` | shares rank | no skip | "ties share, no gaps" |
+
+In the example, the 5 paid orders all get `rnk = 2`. `RANK` then jumps to `7` for the next distinct status; `DENSE_RANK` just goes to `3`.
+
+**Top-N per group almost always wants `DENSE_RANK` (no skip) or `ROW_NUMBER` (unique), never `RANK`** - `RANK` silently drops groups when ties exist.
+
+### NTILE - split into buckets
+
+```sql
+SELECT id, amount,
+  NTILE(2) OVER (ORDER BY amount DESC) AS bucket
+FROM orders;
+```
+
+<CopyToPlaygroundButton code={`SELECT id, amount, NTILE(2) OVER (ORDER BY amount DESC) AS bucket FROM orders`} />
+
+`NTILE(n)` divides the rows into `n` equal buckets. Use it for percentiles, quartiles, or splitting work evenly.
+
+### LAG / LEAD - peek at neighbors
+
+```sql
+SELECT id, user_id, amount,
+  LAG(amount)  OVER (PARTITION BY user_id ORDER BY id) AS prev_amount,
+  LEAD(amount) OVER (PARTITION BY user_id ORDER BY id) AS next_amount
+FROM orders;
+```
+
+<CopyToPlaygroundButton code={`SELECT id, user_id, amount, LAG(amount) OVER (PARTITION BY user_id ORDER BY id) AS prev_amount, LEAD(amount) OVER (PARTITION BY user_id ORDER BY id) AS next_amount FROM orders`} />
+
+`LAG`/`LEAD` compare a row to the previous/next one - the backbone of "how much did it change" queries.
+
+### Moving average
+
+```sql
+SELECT id, amount,
+  AVG(amount) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS moving_avg
+FROM orders;
+```
+
+<CopyToPlaygroundButton code={`SELECT id, amount, AVG(amount) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS moving_avg FROM orders`} />
+
+The `ROWS BETWEEN ... AND ...` defines the window frame. `RANGE BETWEEN` (the default) includes ties; `ROWS` uses physical rows.
+
+---
+
+## 31. String functions and data types - the practical toolkit
+
+### The problem
+
+Real data is messy: names have spaces, emails have case, text needs cleaning before a report or a `WHERE`. These functions are in every real query.
+
+### The solution
+
+```sql
+SELECT
+  name,
+  UPPER(name)                      AS upper_name,
+  TRIM('  Hello  ')                AS trimmed,
+  SUBSTRING(name FROM 1 FOR 3)     AS first3,
+  LENGTH(name)                     AS len,
+  REPLACE(name, 'Alice', 'Alicia') AS alias,
+  COALESCE(bio, 'no bio')          AS safe_bio
+FROM users;
+```
+
+<CopyToPlaygroundButton code={`SELECT name, UPPER(name) AS upper_name, TRIM('  Hello  ') AS trimmed, SUBSTRING(name FROM 1 FOR 3) AS first3, LENGTH(name) AS len, REPLACE(name, 'Alice', 'Alicia') AS alias, COALESCE(bio, 'no bio') AS safe_bio FROM users`} />
+
+```sql
+-- Concatenate and split
+SELECT name || ' from ' || country AS descr FROM users;
+SELECT SPLIT_PART('engineer;fullstack', ';', 2) AS part; -- 'fullstack'
+```
+
+<CopyToPlaygroundButton code={`SELECT name || ' from ' || country AS descr FROM users`} />
+
+### Type conversions (casts)
+
+`::` casts a value. The DB decides the target type; text and numbers convert explicitly.
+
+```sql
+SELECT amount,
+  amount::text   AS text_version,
+  amount::int    AS int_version,
+  '123'::numeric + 1 AS math_from_text
+FROM orders;
+```
+
+<CopyToPlaygroundButton code={`SELECT amount, amount::text AS text_version, amount::int AS int_version, '123'::numeric + 1 AS math_from_text FROM orders`} />
+
+### When to clean in SQL vs the app
+
+*   **SQL** - simple shape changes, normalizing data, `COALESCE` for defaults, filtering.
+*   **App** - regex/unicode edge cases, or logic you'll change often without a redeploy.
+
+### Pitfall
+
+`LENGTH` counts characters, not bytes (use `octet_length` for bytes). `TRIM` only strips spaces by default; strip other chars with `TRIM('x' FROM str)`. And `NULL || 'x'` is `NULL` - concat doesn't ignore `NULL`, only `COALESCE` does.
+
+---
+
+## 32. ACID and isolation levels - deeper
+
+### The problem
+
+Section 10 introduced transactions. This adds the four anomalies isolation solves and the levels that fix them.
+
+### The four read anomalies
+
+| Anomaly | What happens | Fixed by |
+|---|---|---|
+| Dirty read | Reads a value another txn wrote but hasn't committed | Read Committed |
+| Non-repeatable read | Same row read twice gives different values | Repeatable Read |
+| Phantom read | Same query returns newly inserted rows | Repeatable Read / Serializable |
+| Lost update | Two txns read, both write, second wins | `FOR UPDATE` or Serializable |
+
+### The four isolation levels
+
+| Level | Dirty read | Non-repeatable | Phantom | Behavior |
+|---|---|---|---|---|
+| Read Uncommitted | yes | yes | yes | Postgres cannot actually do this |
+| Read Committed (default) | no | yes | yes | sees only committed data |
+| Repeatable Read | no | no | no | snapshot at first read |
+| Serializable | no | no | no | serializes conflicting txns |
+
+Postgres is *stricter* than the standard: it can't do dirty reads, and its Repeatable Read (snapshot-based) also prevents phantoms.
+
+```sql
+BEGIN ISOLATION LEVEL REPEATABLE READ;
+SELECT * FROM orders WHERE user_id = 1; -- same snapshot even if others commit
+COMMIT;
+```
+
+### Lost update fix
+
+Read-then-write is a race. Either do the update atomically, or lock the row first:
+
+```sql
+BEGIN;
+SELECT amount FROM orders WHERE id = 1 FOR UPDATE; -- lock this row
+UPDATE orders SET amount = amount + 50 WHERE id = 1;
+COMMIT;
+```
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+  RC["Read Committed<br/>no dirty reads"] --> RR["Repeatable Read<br/>no non-repeatable / phantom"]
+  RR --> SER["Serializable<br/>no conflicts, may abort"]
+```
+
+</div>
+
+### Pitfall
+
+The default (Read Committed) is usually right. Reach for Serializable only when you must, because it can abort txns on conflict - retry in the app.
+
+---
+
+## 33. ORM reality - the N+1 problem and SQL injection
+
+### The problem
+
+You use an ORM (Prisma, TypeORM, Sequelize, Hibernate). The `users` query is fine, then you touch `user.orders` in a loop - and the ORM fires one query per user. That is the **N+1 problem**.
+
+### What N+1 looks like
+
+```js
+// N+1: 1 query for users, then 1 query per user for their orders
+const users = await prisma.user.findMany();
+for (const u of users) {
+  const orders = await prisma.order.findMany({ where: { userId: u.id } }); // runs once per user
+}
+// N users -> 1 + N queries. With 1,000 users that is 1,001 round-trips.
+```
+
+```js
+// Fixed: eager-load in one query
+const users = await prisma.user.findMany({ include: { orders: true } });
+// 1 query (a JOIN). Same data, ~1000x fewer round-trips.
+```
+
+The loop runs this, repeated per user:
+
+```sql
+SELECT * FROM orders WHERE user_id = 1;
+SELECT * FROM orders WHERE user_id = 2;  -- repeated N times
+```
+
+vs the fix, one query:
+
+```sql
+SELECT u.*, o.id AS order_id, o.amount
+FROM users u LEFT JOIN orders o ON o.user_id = u.id;
+```
+
+### The rule
+
+*   **Never** read a relation inside a loop - that's the N+1 trap.
+*   **Batch or eager-load** (`include` / `relations` / `with`) when you read a list.
+*   Check the query log - the same `SELECT * FROM orders WHERE user_id = ?` repeated is the tell.
+
+### SQL injection
+
+Never build SQL by string concatenation with user input. Always parameterize.
+
+```sql
+-- ❌ DANGER: user input pasted into the SQL string
+-- SELECT * FROM users WHERE name = 'Bob' OR '1'='1'   (crafted name -> table dump)
+
+-- ✅ SAFE: the DB treats the parameter as data, not code
+-- prisma.$queryRaw`SELECT * FROM users WHERE name = ${input}`
+```
+
+ORMs parameterize by default - the injection bug only comes back if you write `WHERE name = '${input}'`.
+
+---
+
+## 34. Schema design interviews - relationships and normalization
+
+### The problem
+
+"Design a schema for X" is a standard interview. Lay out the tables, nail the relationship cardinalities, then justify normalization or denormalization.
+
+### The three relationship types
+
+| Relationship | Example | Where the key lives |
+|---|---|---|
+| 1:1 | `user <-> profile` | FK on either side, unique |
+| 1:N | `user -> orders` | FK on the many side (`order.user_id`) |
+| M:N | `users <-> posts` (likes) | a junction table (2 FKs) |
+
+### The M:N junction table
+
+Never store a list of ids in one column. Create a join table with one row per pair:
+
+```sql
+-- M:N: a user likes many posts, a post has many likes
+create table posts (id int primary key, user_id int, title text);
+create table likes (
+  user_id int references users(id),
+  post_id int references posts(id),
+  primary key (user_id, post_id)
+);
+```
+
+### The worked example: users, posts, likes
+
+```mermaid
+erDiagram
+  USERS ||--o{ ORDERS : "places"
+  USERS ||--o{ POSTS : "writes"
+  USERS ||--o{ LIKES : "gives"
+  POSTS ||--o{ LIKES : "receives"
+```
+
+### How to approach a schema question
+
+1. **List the nouns.** users, orders, posts, likes - each becomes a table.
+2. **Define the relationships.** 1:N or M:N; put the FK on the many side, use a junction for M:N.
+3. **Add constraints.** primary keys, unique email, `NOT NULL`, `CHECK`, FK.
+4. **Describe the one hot path.** The most common query is where you'd denormalize or add an index.
+
+### Pitfall
+
+A "wide table" - one table with many nullable columns that are empty for most rows - is a smell. Split it. That is what normalization exists to prevent.
+
+---
+
+## 35. Cross-database portability - MySQL and SQL Server
+
+### The problem
+
+US/CA/EU interviews and jobs also run MySQL, SQL Server, or SQLite. Several Postgres idioms in this doc do not port.
+
+### The differences that matter
+
+| Task | Postgres | MySQL | SQL Server |
+|---|---|---|---|
+| Limit rows | `LIMIT n` | `LIMIT n` | `SELECT TOP n` |
+| Paginate | `OFFSET n` | `LIMIT n OFFSET n` | `OFFSET n ROWS FETCH` |
+| One row per group | `DISTINCT ON (col)` | window / `GROUP BY` | window / `ROW_NUMBER` |
+| Text concat | `a \|\| b` | `CONCAT(a, b)` | `a + b` |
+| Auto increment | identity | `AUTO_INCREMENT` | `IDENTITY` |
+| Group BY strictness | requires all cols | `ONLY_FULL_GROUP_BY` | loose, wrong results |
+
+### The portability rules
+
+*   Avoid `DISTINCT ON` and inline `VALUES` CTE tricks if you may switch engines.
+*   Standard `OVER (PARTITION BY ...)` window functions work on all three - use them.
+*   For top-N, keep `ORDER BY` + `LIMIT` (Postgres/MySQL), switch to `TOP` for SQL Server.
+*   Don't rely on `true`/`false` vs `1`/`0` or boolean semantics crossing engines.
+
+### The one pattern that always works
+
+```sql
+-- Top-N per group - portable across Postgres, MySQL, and SQL Server
+SELECT * FROM (
+  SELECT id, user_id, amount,
+    ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY amount DESC) AS rnk
+  FROM orders
+) t
+WHERE rnk <= 2;
+```
+
+<CopyToPlaygroundButton code={`SELECT * FROM (SELECT id, user_id, amount, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY amount DESC) AS rnk FROM orders) t WHERE rnk <= 2`} />
+
+Window functions with `OVER (PARTITION BY ... ORDER BY ...)` are standard SQL, so they are the safest answers when the interviewer's stack is unknown.
+
+---
+
+## 36. INSERT, UPDATE, DELETE, RETURNING - writing data
+
+### The problem
+
+Every query so far reads data. On the job you write every day, and the mistakes are the classics: an `UPDATE` or `DELETE` with a missing `WHERE` rewrites the whole table.
+
+### The solution
+
+```sql
+-- INSERT one row
+INSERT INTO orders (id, user_id, amount, status) VALUES (100, 1, 250, 'pending');
+
+-- INSERT many rows
+INSERT INTO orders (id, user_id, amount, status) VALUES
+  (101, 1, 60, 'paid'),
+  (102, 2, 45, 'paid');
+
+-- INSERT from a query (copy cancelled orders as new pending ones)
+INSERT INTO orders (id, user_id, amount, status)
+SELECT id + 200, user_id, amount, 'pending' FROM orders WHERE status = 'cancelled';
+
+-- UPDATE with a filter. Always WHERE.
+UPDATE orders SET status = 'cancelled' WHERE id = 3;
+
+-- DELETE with a filter. Always WHERE.
+DELETE FROM orders WHERE status = 'cancelled';
+
+-- RETURNING: get the changed rows back in the same round-trip
+INSERT INTO orders (id, user_id, amount, status) VALUES (103, 3, 99, 'paid')
+RETURNING id, status;
+
+UPDATE orders SET amount = amount + 10 WHERE user_id = 1
+RETURNING id, amount;
+```
+
+`RETURNING` saves a second `SELECT` after the write. ORMs and PostgREST/Supabase APIs use it internally to send the inserted row back to the client.
+
+### Pitfall
+
+`UPDATE orders SET status = 'x'` with no `WHERE` updates every row. In production, wrap writes in a transaction, `SELECT` the affected row count first, then `COMMIT`. Never run a destructive write against production without testing the `WHERE` with a `SELECT` first.
+
+---
+
+## 37. The classic transaction - transferring money
+
+### The problem
+
+Move $50 from Alice to Bob. That is two `UPDATE`s: debit one balance, credit the other. If the process dies after the debit commits but before the credit, the money vanishes. This is the canonical transaction interview question.
+
+### The solution
+
+Wrap both writes in one transaction. Lock the rows in a consistent order to avoid deadlocks (see section 39).
+
+```sql
+BEGIN;
+-- Lock both rows up front, in a consistent order (by id)
+SELECT id FROM accounts WHERE id IN (1, 2) ORDER BY id FOR UPDATE;
+
+UPDATE accounts SET balance = balance - 50 WHERE id = 1;
+UPDATE accounts SET balance = balance + 50 WHERE id = 2;
+COMMIT; -- both applied, or neither
+```
+
+This is ACID in action: **Atomicity** (both updates or none), **Consistency** (total money unchanged), **Isolation** (others see old or new, never half), **Durability** (survives a crash after `COMMIT`).
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+  B["BEGIN"] --> L["FOR UPDATE<br/>lock both rows"]
+  L --> D["Debit Alice -50"]
+  D --> C["Credit Bob +50"]
+  C --> OK{"Any step failed?"}
+  OK -->|"no"| COM["COMMIT<br/>both visible"]
+  OK -->|"yes"| RB["ROLLBACK<br/>nothing applied"]
+```
+
+</div>
+
+### Pitfall
+
+Do not read the balance in the app, check it, then update. Two concurrent requests both pass the check and both debit. Do it atomically in one statement:
+
+```sql
+-- Atomic: only debits if the funds exist. No row returned = insufficient funds.
+UPDATE accounts SET balance = balance - 50
+WHERE id = 1 AND balance >= 50
+RETURNING balance;
+```
+
+If zero rows come back, the balance was too low and nothing was written.
+
+---
+
+## 38. UPDATE and DELETE based on another table
+
+### The problem
+
+"Cancel all orders from users in India" or "flag orders above the user's average". The filter needs data from another table, but `UPDATE` and `DELETE` have no `JOIN` clause.
+
+### The solution
+
+Postgres uses `FROM` for `UPDATE` and `USING` for `DELETE`:
+
+```sql
+-- UPDATE with a join
+UPDATE orders o
+SET status = 'flagged'
+FROM users u
+WHERE o.user_id = u.id
+  AND u.country = 'India';
+
+-- DELETE with a join
+DELETE FROM orders o
+USING users u
+WHERE o.user_id = u.id
+  AND u.country = 'India';
+
+-- Portable alternative: a subquery (works in MySQL too)
+UPDATE orders SET status = 'flagged'
+WHERE user_id IN (SELECT id FROM users WHERE country = 'India');
+
+DELETE FROM orders
+WHERE user_id IN (SELECT id FROM users WHERE country = 'India');
+```
+
+### Pitfall
+
+Do not list the target table again in `FROM` (`UPDATE orders o ... FROM orders`), that creates a cross join against itself. The target is named once, the other tables go in `FROM`/`USING`.
+
+---
+
+## 39. Deadlocks - two transactions waiting on each other
+
+### The problem
+
+T1 locks order 1 then wants order 2. T2 locks order 2 then wants order 1. Each waits for the other forever. Postgres detects the cycle, kills one transaction with `deadlock detected`, and the app must retry.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+  T1["T1: lock order 1"] --> W1["T1 wants order 2<br/>blocked, held by T2"]
+  T2["T2: lock order 2"] --> W2["T2 wants order 1<br/>blocked, held by T1"]
+  W1 --> DEAD["Deadlock detected<br/>Postgres kills one txn"]
+  W2 --> DEAD
+```
+
+</div>
+
+### The solution
+
+Three rules that prevent almost all deadlocks:
+
+1. **Lock in a consistent order.** Every transaction touches rows in the same order, for example by ascending id.
+2. **Keep transactions short.** Less time holding locks, fewer overlaps.
+3. **Take one lock instead of many.** A single `IN` clause locks all rows atomically.
+
+```sql
+-- Deadlock-prone (different order in different code paths):
+-- T1: UPDATE orders SET ... WHERE id = 1; UPDATE orders SET ... WHERE id = 2;
+-- T2: UPDATE orders SET ... WHERE id = 2; UPDATE orders SET ... WHERE id = 1;
+
+-- Fixed: both paths lock in id order, atomically
+SELECT * FROM orders WHERE id IN (1, 2) ORDER BY id FOR UPDATE;
+UPDATE orders SET amount = 0 WHERE id IN (1, 2);
+```
+
+Deadlocks show up in the Postgres log. To see who is blocking whom right now, join `pg_locks` against `pg_stat_activity`.
+
+---
+
+## 40. Keyset pagination - the right way to page
+
+### The problem
+
+`OFFSET 100000` scans and discards 100000 rows to return 20. Every deeper page costs more. Users scrolling an infinite feed hit this hard.
+
+### The solution
+
+Remember the last value you returned and filter past it. The database seeks directly instead of counting and skipping.
+
+```sql
+-- Page 1
+SELECT id, amount FROM orders ORDER BY id LIMIT 3;
+-- returns ids 1, 2, 3
+
+-- Page 2: no OFFSET, just WHERE past the last id you saw
+SELECT id, amount FROM orders WHERE id > 3 ORDER BY id LIMIT 3;
+-- returns ids 4, 5, 6
+```
+
+<CopyToPlaygroundButton code={`SELECT id, amount FROM orders WHERE id > 3 ORDER BY id LIMIT 3`} />
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+  P["Page request"] --> Q{"Which pagination?"}
+  Q -->|"OFFSET 100000"| OFF["Scan + discard<br/>100000 rows<br/>slow, O(offset)"]
+  Q -->|"WHERE id > last"| KEY["Index seek<br/>straight to row<br/>fast, O(1)"]
+```
+
+</div>
+
+### Pitfall
+
+Keyset needs a stable, unique sort column. If you sort by `amount` (which has ties), add the id as a tiebreaker and use tuple comparison:
+
+```sql
+SELECT id, amount FROM orders
+WHERE (amount, id) > (100, 1)
+ORDER BY amount, id
+LIMIT 3;
+```
+
+---
+
+## 41. Islands - grouping consecutive runs
+
+### The problem
+
+Find streaks: consecutive login days, runs of sequential ids. A plain `GROUP BY` can not do it because the groups depend on adjacency, not on a shared value.
+
+### The solution
+
+The classic trick: for consecutive values, `value - ROW_NUMBER()` is constant within a run and changes when the run breaks.
+
+```sql
+WITH logins AS (
+  SELECT * FROM (VALUES (1),(2),(3),(5),(6),(9)) AS v(day)
+),
+marked AS (
+  SELECT day, day - ROW_NUMBER() OVER (ORDER BY day) AS grp
+  FROM logins
+)
+SELECT MIN(day) AS streak_start, MAX(day) AS streak_end, COUNT(*) AS length
+FROM marked
+GROUP BY grp
+ORDER BY streak_start;
+-- 1-3 (3 days), 5-6 (2 days), 9-9 (1 day)
+```
+
+<CopyToPlaygroundButton code={`WITH logins AS (SELECT * FROM (VALUES (1),(2),(3),(5),(6),(9)) AS v(day)), marked AS (SELECT day, day - ROW_NUMBER() OVER (ORDER BY day) AS grp FROM logins) SELECT MIN(day) AS streak_start, MAX(day) AS streak_end, COUNT(*) AS length FROM marked GROUP BY grp ORDER BY streak_start`} />
+
+Days 1,2,3 have row numbers 1,2,3, so `day - rn` is 0 for all three. Day 5 has row number 4, so `5 - 4 = 1`. The constant changes exactly where the streak breaks, which gives you the group key. This "gaps and islands" pattern is a senior-level interview favorite.
+
+---
+
+## 42. Connection pooling - why Postgres needs it
+
+### The problem
+
+Every Postgres connection is a full OS process costing 5-10MB of RAM and real setup time. A serverless app or a traffic burst opening hundreds of connections exhausts the database: `FATAL: sorry, too many clients`. On the job this is one of the most common production outages.
+
+### The solution
+
+A pooler keeps a small set of real connections and multiplexes many client connections onto them.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+  APP1["App instance 1<br/>50 clients"] --> POOL["Pooler (PgBouncer)<br/>transaction mode"]
+  APP2["App instance 2<br/>50 clients"] --> POOL
+  POOL --> C1["real connection 1"]
+  POOL --> C2["real connection 2"]
+  POOL --> C3["... ~10-20 total"]
+  C1 --> PG["Postgres<br/>default max 100"]
+  C2 --> PG
+  C3 --> PG
+```
+
+</div>
+
+*   **PgBouncer** in transaction mode is the standard pooler. A client holds a real connection only for the duration of one transaction.
+*   **Supabase** runs one for you: port `6543` is the pooler, port `5432` is a direct connection. Serverless functions must use the pooler.
+*   **App-level pools** also exist: Prisma `connection_limit`, TypeORM `poolSize`, JDBC pool. Keep the total across all app instances under the database limit.
+
+Pool size is not 100. A common starting point is `(CPU cores * 2) + disks`. Bigger pools often make things slower, not faster.
+
+```sql
+-- See the problem: how many connections exist right now
+SELECT state, COUNT(*) AS connections
+FROM pg_stat_activity
+GROUP BY state;
+```
+
+<CopyToPlaygroundButton code={`SELECT state, COUNT(*) AS connections FROM pg_stat_activity GROUP BY state`} />
+
+### Pitfall
+
+In transaction mode, session-level features do not survive between statements: `SET`, session prepared statements, and advisory locks can silently not work. Use the direct port for migrations.
+
+---
+
+## 43. Permissions - GRANT and Row Level Security
+
+### The problem
+
+Your API connects to Postgres as one role. If user A must never see user B's orders, enforcing that only in application code means one missed `WHERE` leaks data. Defense in depth means the database itself refuses.
+
+### The solution
+
+Roles and privileges control what a connection can do. Row Level Security (RLS) controls which rows a query can see. Supabase is built on RLS.
+
+```sql
+-- Roles and table privileges
+CREATE ROLE reporting;
+GRANT SELECT ON orders TO reporting;
+REVOKE DELETE ON orders FROM reporting;
+
+-- Enable RLS: after this, NO rows are visible unless a policy allows them
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+
+-- Policy: a connection only sees its own orders
+CREATE POLICY own_orders ON orders
+  FOR SELECT
+  USING (user_id = current_setting('app.user_id')::int);
+
+-- Supabase version: match against the JWT user id
+CREATE POLICY own_orders ON orders
+  FOR SELECT
+  USING (user_id = auth.uid());
+```
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+  REQ["Request as user A"] --> Q["SELECT * FROM orders"]
+  Q --> RLS{"RLS policy<br/>user_id = auth.uid()"}
+  RLS -->|"row matches"| SHOW["Row returned"]
+  RLS -->|"row is user B's"| HIDE["Row invisible<br/>not an error, just absent"]
+```
+
+</div>
+
+### Pitfall
+
+RLS is off by default, so enabling it is step one. And the Supabase `service_role` key **bypasses** RLS entirely. Keep the service key on the server only; if it ships to the browser, every policy is meaningless.
+
+---
+
+## 44. Index-killing query patterns - why your index is ignored
+
+### The problem
+
+The index exists. `EXPLAIN ANALYZE` shows a Seq Scan anyway. The query shape makes the index useless, and this comes up both in interviews ("why is this slow?") and on the job.
+
+### Pattern 1: function on the column
+
+A B-tree index stores the raw column values, sorted. Wrapping the column in a function means Postgres must compute the function for every row, so it cannot walk the tree.
+
+```sql
+-- Bad: index on name is useless
+SELECT * FROM users WHERE LOWER(name) = 'alice';
+
+-- Good: raw column comparison uses the index
+SELECT * FROM users WHERE name = 'Alice';
+
+-- Fix if you must: index the expression itself
+CREATE INDEX ON users (LOWER(name));
+```
+
+Other common culprits:
+
+```sql
+-- Bad: index on created_at not usable
+SELECT * FROM orders WHERE DATE(created_at) = '2024-01-15';
+SELECT * FROM orders WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW());
+
+-- Good: range on the raw column
+SELECT * FROM orders
+WHERE created_at >= '2024-01-15' AND created_at < '2024-01-16';
+```
+
+The range rewrite is the standard fix: push the math onto the constant side, keep the column bare.
+
+### Pattern 2: leading wildcard LIKE
+
+An index can seek `name LIKE 'A%'` (find where 'A' starts in the tree). It cannot seek `name LIKE '%ice'` - there is no way to know where the string ends up, so every row must be checked.
+
+```sql
+-- Indexable: prefix match
+SELECT * FROM users WHERE name LIKE 'A%';
+
+-- Not indexable: leading wildcard, always a scan
+SELECT * FROM users WHERE name LIKE '%ice';
+
+-- Fix if you need substring search: trigram index
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX ON users USING gin (name gin_trgm_ops);
+-- Now '%ice%' can use the trigram index
+```
+
+<CopyToPlaygroundButton code={`SELECT * FROM users WHERE name LIKE 'A%'`} />
+
+### Pattern 3: implicit type casts
+
+Comparing values of different types forces a cast on the column side, which defeats the index exactly like pattern 1.
+
+```sql
+-- If email were varchar and you pass a different type, or join
+-- text against uuid without casting, Postgres may cast the column
+-- and skip the index.
+
+-- Bad habit: numbers compared as strings (or vice versa in the schema)
+SELECT * FROM orders WHERE user_id = '1';  -- usually OK: the constant is cast
+
+-- Dangerous direction: column cast to match the constant
+SELECT * FROM orders WHERE amount::text LIKE '1%'; -- amount index dead
+```
+
+Rule: the column should stay bare. Cast the constant, never the column.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+  Q["WHERE with index"] --> C{"Is the column<br/>bare?"}
+  C -->|"yes: col = value"| IDX["Index Scan<br/>walk the B-tree"]
+  C -->|"LOWER(col) = value"| FIX1["Seq Scan<br/>fix: index LOWER(col)<br/>or compare raw"]
+  C -->|"col LIKE '%x'"| FIX2["Seq Scan<br/>fix: prefix match<br/>or trigram index"]
+  C -->|"col::text = value"| FIX3["Seq Scan<br/>fix: cast the constant,<br/>not the column"]
+  style IDX fill:#e8f5e9,stroke:#333
+```
+
+</div>
+
+### The checklist
+
+When an index is ignored, ask in order:
+
+1. **Is the column wrapped in a function?** Rewrite so the column is bare, or add an expression index.
+2. **Is there a leading wildcard?** Use prefix matching, or `pg_trgm` for real substring search.
+3. **Is the column being cast?** Cast the constant, or fix the schema types to match.
+
+Then confirm with `EXPLAIN ANALYZE` (section 16) - if you still see Seq Scan, the index genuinely is not being used.
+
+### Pitfall
+
+The expression index must match the query exactly. `CREATE INDEX ON users (LOWER(name))` only helps `WHERE LOWER(name) = ...`. A query with plain `WHERE name = ...` still uses the regular index, and `WHERE UPPER(name) = ...` uses nothing at all.
 
 </div>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import SqlResultTable from './SqlResultTable';
 
 type Props = {
   defaultQuery: string;
@@ -94,8 +95,6 @@ export default function SupabaseSQLPlayground({ defaultQuery, title }: Props) {
     }
   };
 
-  const columns = rows && rows.length > 0 ? Object.keys(rows[0]) : [];
-
   return (
     <div style={{ border: '1px solid var(--ifm-color-emphasis-300)', borderRadius: 8, overflow: 'hidden', margin: '16px 0' }}>
       {title && <div style={{ padding: '8px 12px', background: 'var(--ifm-color-emphasis-100)', fontWeight: 600, fontSize: 13 }}>{title}</div>}
@@ -132,28 +131,7 @@ export default function SupabaseSQLPlayground({ defaultQuery, title }: Props) {
         {rows && (
           <div style={{ marginTop: 12, overflowX: 'auto' }}>
             <div style={{ fontSize: 12, color: 'var(--ifm-color-emphasis-600)', marginBottom: 4 }}>{rows.length} rows {rows.length === 1000 ? '(capped at 1000)' : ''}</div>
-            {rows.length === 0 ? (
-              <div style={{ fontSize: 12, color: '#666' }}>No rows.</div>
-            ) : (
-              <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: 'var(--ifm-color-emphasis-100)' }}>
-                    {columns.map((c) => (
-                      <th key={c} style={{ textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid var(--ifm-color-emphasis-300)' }}>{c}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((r, i) => (
-                    <tr key={i}>
-                      {columns.map((c) => (
-                        <td key={c} style={{ padding: '6px 8px', borderBottom: '1px solid var(--ifm-color-emphasis-100)', fontFamily: 'monospace' }}>{String(r[c] ?? '')}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <SqlResultTable rows={rows} fontSize={13} />
           </div>
         )}
       </div>
