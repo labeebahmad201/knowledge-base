@@ -1956,9 +1956,68 @@ graph TD
 
 </div>
 
+### When to use which
+
+For a full-stack app, start with the default and only move up when you can name the anomaly that hurts.
+
+| Situation | Level | Why |
+|---|---|---|
+| Normal web request, CRUD, single `SELECT`/`INSERT`/`UPDATE` | **Read Committed** (default) | cheapest, no retries, anomalies do not matter for one statement |
+| Report or export that reads many tables and must be consistent | **Repeatable Read** | one snapshot for the whole transaction, no phantom rows appearing mid-report |
+| Transfer, booking, inventory decrement, "check then insert" | **Serializable** | correctness over speed, DB aborts conflicting txns |
+
+In Postgres, `Read Uncommitted` is the same as `Read Committed` - dirty reads cannot happen. And Postgres `Repeatable Read` also prevents phantoms (snapshot-based), which is stricter than the SQL standard.
+
+`Serializable` is not free. Postgres uses SSI and may abort a transaction with `SQLSTATE 40001 serialization_failure`. You must retry the whole transaction in application code. Without retry logic, serializable is worse than read committed.
+
+```ts
+// Prisma - default is Read Committed
+await prisma.$transaction(async (tx) => {
+  await tx.order.create({ data: { user_id: 1, amount: 100 } });
+});
+
+// Need a stronger level - set it inside the transaction
+await prisma.$transaction(async (tx) => {
+  await tx.$executeRaw`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ`;
+  const orders = await tx.$queryRaw`SELECT * FROM orders WHERE user_id = 1`;
+  // all reads in this txn see the same snapshot
+});
+
+// Serializable with retry
+let retries = 3;
+while (retries--) {
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SET TRANSACTION ISOLATION LEVEL SERIALIZABLE`;
+      // check then write - safe under serializable
+      await tx.$executeRaw`UPDATE accounts SET balance = balance - 50 WHERE id = 1`;
+    });
+    break;
+  } catch (e: any) {
+    if (e.code !== '40001' || retries === 0) throw e;
+  }
+}
+```
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+  START["Need a txn?"] --> ONE{"One statement?"}
+  ONE -->|"yes"| RC["Read Committed<br/>default, no extra work"]
+  ONE -->|"no, many reads"| CONSIST{"Must be<br/>consistent?"}
+  CONSIST -->|"no"| RC
+  CONSIST -->|"yes"| RR["Repeatable Read<br/>single snapshot"]
+  RR --> WRITE{"Check-then-write?"}
+  WRITE -->|"no"| RR
+  WRITE -->|"yes"| SER["Serializable<br/>+ retry on 40001"]
+```
+
+</div>
+
 ### Pitfall
 
-The default (Read Committed) is usually right. Reach for Serializable only when you must, because it can abort txns on conflict - retry in the app.
+The default (Read Committed) is usually right. Reach for Serializable only when you must, because it can abort txns on conflict - retry in the app. And never set the isolation level globally in `postgresql.conf` for a web app - set it per transaction.
 
 ---
 
