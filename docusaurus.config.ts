@@ -2,6 +2,9 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
+// Load .env if dotenv is available (optional, for local Supabase playground)
+try { require('dotenv').config(); } catch {}
+
 const config: Config = {
   title: 'Knowledge Base',
   tagline: 'Computer Science, Engineering, AI & Product',
@@ -16,6 +19,12 @@ const config: Config = {
 
   organizationName: 'labeebahmad201',
   projectName: 'knowledge-base',
+
+  customFields: {
+    supabaseUrl: process.env.SUPABASE_URL ?? '',
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY ?? '',
+    supabaseResetSecret: process.env.RESET_SECRET ?? '',
+  },
 
   onBrokenLinks: 'throw',
   markdown: {
