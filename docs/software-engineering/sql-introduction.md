@@ -1,3 +1,8 @@
+---
+sidebar_label: "SQL - Important Questions"
+sidebar_position: 1
+---
+
 # SQL - Important Questions
 
 The SQL questions that come up in interviews and on the job, in problem -> solution form. One shared dataset powers every example.
