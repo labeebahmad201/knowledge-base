@@ -93,6 +93,9 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 ## 13. Fundamentals (HTTP etc. - ~40 from your last list)
 *   HTTP methods, Status codes, Request/Response headers, Authentication/Authorization, JWT/Session/Cookies/OAuth 2.0, REST/GraphQL/WebSockets/Server-side rendering, Database design/SQL/NoSQL, ORM, Connection pooling, Transactions, Migrations/Seeding, Caching/Redis/Memcached/CDN, Rate limiting, API Gateway/Service mesh, Docker/K8s, etc. (full list in your message - all added)
 
+## 13b. Language Choice
+*   When to use Node (I/O-heavy, JS everywhere) vs Python (data/ML, Django/FastAPI) vs Java (enterprise, Spring) vs Go (concurrency, low latency) vs Rust (systems, safety) - pick by team, hiring, and workload, not hype
+
 ## 14. Senior Java 40 - not big individually, big career boost
 *   CAP Theorem, Consistency Models, Distributed System Architectures
 *   Socket Programming (TCP/IP, UDP), HTTP and RESTful APIs, RPC (gRPC, Thrift, RMI)
