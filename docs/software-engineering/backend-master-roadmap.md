@@ -96,6 +96,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 ## 14. Senior Java 40 - not big individually, big career boost
 *   CAP Theorem, Consistency Models, Distributed System Architectures
 *   Socket Programming (TCP/IP, UDP), HTTP and RESTful APIs, RPC (gRPC, Thrift, RMI)
+*   Dependency Injection Container (Spring, Guice, Inversify) - lifecycle, scopes, auto-wiring
 *   Message Queues (Kafka, RabbitMQ, JMS), Apache Kafka for Streaming, Zookeeper for Coordination (x2)
 *   Java Concurrency (ExecutorService, Future, ForkJoinPool), Thread Safety and Synchronization, Java Memory Model, Akka for Actor-based Concurrency
 *   Distributed Databases (Cassandra, MongoDB, HBase), Data Sharding and Partitioning

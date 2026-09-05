@@ -8,6 +8,18 @@ APIs are mechanisms that enable two software components to communicate with each
 
 REST (Representational State Transfer) is an architectural style for APIs that uses HTTP as the application protocol. Each URL is a resource, HTTP methods are the verbs, and the server and client are stateless. Fielding defined it in 2000: a uniform interface, stateless communication, and cacheable responses.
 
+## Why REST was invented - motivation
+
+Before REST, every team invented its own verbs in the URL (`POST /createUser`, `POST /getUserOrders`). Clients had to read custom docs for every endpoint, couldn't cache, and the server and client were tightly coupled - change the URL and every client breaks.
+
+Fielding's idea was to use **HTTP itself** as the contract:
+
+*   **Resources are nouns** (`/users/1`), **methods are verbs** (`GET`, `POST`, `PUT`, `DELETE`) - uniform interface, clients can guess.
+*   **Stateless** - each request has all it needs, no server session - so you can add more servers behind a load balancer and scale horizontally.
+*   **Cacheable** - `GET /users/1` with `Cache-Control` can be served by CDN without hitting your DB - the web already knows how to cache HTTP.
+
+Result: client and server evolve independently. Server can change how it stores users, client still does `GET /users/1` and gets JSON. The web scales because HTTP is the contract, not your custom `getUsers` docs.
+
 ## The problem: ad-hoc endpoints become unmaintainable
 
 Without a style, every endpoint is invented differently:
