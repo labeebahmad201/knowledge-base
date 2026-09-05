@@ -91,27 +91,42 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 ## 13. Fundamentals (HTTP etc. - ~40 from your last list)
 *   HTTP methods, Status codes, Request/Response headers, Authentication/Authorization, JWT/Session/Cookies/OAuth 2.0, REST/GraphQL/WebSockets/Server-side rendering, Database design/SQL/NoSQL, ORM, Connection pooling, Transactions, Migrations/Seeding, Caching/Redis/Memcached/CDN, Rate limiting, API Gateway/Service mesh, Docker/K8s, etc. (full list in your message - all added)
 
-## 14. Meta Patterns (3)
+## 14. Senior Java 40 - not big individually, big career boost
+*   CAP Theorem, Consistency Models, Distributed System Architectures
+*   Socket Programming (TCP/IP, UDP), HTTP and RESTful APIs, RPC (gRPC, Thrift, RMI)
+*   Message Queues (Kafka, RabbitMQ, JMS), Apache Kafka for Streaming, Zookeeper for Coordination (x2)
+*   Java Concurrency (ExecutorService, Future, ForkJoinPool), Thread Safety and Synchronization, Java Memory Model, Akka for Actor-based Concurrency
+*   Distributed Databases (Cassandra, MongoDB, HBase), Data Sharding and Partitioning
+*   Caching Mechanisms (Redis, Memcached, Ehcache), In-memory Data Grids (Hazelcast, Infinispan)
+*   Consensus Algorithms (Paxos, Raft), Distributed Locks (Zookeeper, Redis)
+*   Spring Boot and Spring Cloud for Microservices, Service Discovery (Consul, Eureka, Kubernetes), API Gateways (Zuul, NGINX, Spring Cloud Gateway), Inter-service Communication (REST, gRPC, Kafka)
+*   Circuit Breakers and Retry Patterns (Hystrix, Resilience4j), Load Balancing (NGINX, Kubernetes, Ribbon), Failover Mechanisms
+*   Distributed Transactions (2PC, Saga), Event-Driven Architecture: Event Sourcing and CQRS
+*   Logging and Distributed Tracing (ELK, Jaeger, Zipkin), Monitoring and Metrics (Prometheus, Grafana, Micrometer), Alerting Systems
+*   Authentication and Authorization (OAuth, JWT), Encryption (SSL/TLS), Rate Limiting and Throttling
+*   Cluster Management: Kubernetes, Cloud-Native (AWS/GCP/Azure, AWS Lambda), Distributed Data Processing (Spark/Flink), GraphQL, JVM Tuning
+
+## 15. Meta Patterns (3)
 *   Modeling system before coding (Event Storming, DDD, C4)
 *   Pattern: Generate runnable examples to learn, then orchestrate AI (human verifies) - the gym loop
 *   RAG (Retrieval-Augmented Generation) - chunk, embed, retrieve your docs to ground LLM answers
 
-## 15. Concurrency - 20 must-know (from system_monarch thread)
+## 16. Concurrency - 20 must-know (from system_monarch thread)
 *   Concurrency vs Parallelism, Processes vs Threads, Thread Lifecycle (NEW→RUNNABLE→RUNNING→BLOCKED→TERMINATED)
 *   Race Condition, Mutex, Semaphore (counting), Condition Variables, Coarse vs Fine-grained Locking
 *   Reentrant Lock, Try-Lock, CAS (Compare-And-Swap) - lock-free foundation
 *   Deadlock (4 Coffman conditions) vs Livelock, Signaling Pattern, Thread Pool, Producer-Consumer, Reader-Writer Lock, Thread-Safe Cache (LRU), Blocking Queue
 
-## 16. Low Level Design (LLD)
+## 17. Low Level Design (LLD)
 *   OOD, SOLID, Design patterns (Singleton, Factory, Observer), Class diagrams, API design at code level
 
-## 17. OOP & Design Patterns
+## 18. OOP & Design Patterns
 *   OOP: Encapsulation, Inheritance, Polymorphism, Abstraction, SOLID
 *   Creational: Singleton, Factory, Builder, Prototype
 *   Structural: Adapter, Decorator, Proxy, Facade
 *   Behavioral: Observer, Strategy, Command, State
 
-## 18. Hands-on Mono-repo - learn by building small projects
+## 19. Hands-on Mono-repo - learn by building small projects
 
 A mono-repo with multiple **simply scoped** projects, each covering 1-2 topics from above. Problems are limited so you can finish one in a day and verify with runnable tests.
 
