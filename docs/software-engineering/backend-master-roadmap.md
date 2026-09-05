@@ -2,6 +2,9 @@
 
 This is the consolidated list from all sessions, grouped for Why-First learning (problem it solves, when to use, runnable example). Each will become a `problem -> solution` article with a live playground.
 
+## 0. Core 10 - start here (from your latest list)
+*   API Design (REST/GraphQL), SQL & Database Design, Indexing & Query Optimization, Caching (Redis), Authentication & Authorization, Message Queues (Kafka/RabbitMQ), System Design Fundamentals, Concurrency & Transactions, Docker & Deployment, Monitoring & Observability
+
 ## 1. Database & SQL (28 topics - done in sql-introduction.md)
 *   SELECT/WHERE, JOIN (inner/left/self/cross), GROUP BY/HAVING, DISTINCT/ORDER BY/LIMIT
 *   Subquery/IN/EXISTS/CTE, UNION vs UNION ALL, Window functions, NULL/COALESCE
