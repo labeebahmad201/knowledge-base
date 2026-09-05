@@ -92,16 +92,22 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Pattern: Generate runnable examples to learn, then orchestrate AI (human verifies) - the gym loop
 *   RAG (Retrieval-Augmented Generation) - chunk, embed, retrieve your docs to ground LLM answers
 
-## 15. Low Level Design (LLD)
+## 15. Concurrency - 20 must-know (from system_monarch thread)
+*   Concurrency vs Parallelism, Processes vs Threads, Thread Lifecycle (NEW→RUNNABLE→RUNNING→BLOCKED→TERMINATED)
+*   Race Condition, Mutex, Semaphore (counting), Condition Variables, Coarse vs Fine-grained Locking
+*   Reentrant Lock, Try-Lock, CAS (Compare-And-Swap) - lock-free foundation
+*   Deadlock (4 Coffman conditions) vs Livelock, Signaling Pattern, Thread Pool, Producer-Consumer, Reader-Writer Lock, Thread-Safe Cache (LRU), Blocking Queue
+
+## 16. Low Level Design (LLD)
 *   OOD, SOLID, Design patterns (Singleton, Factory, Observer), Class diagrams, API design at code level
 
-## 16. OOP & Design Patterns
+## 17. OOP & Design Patterns
 *   OOP: Encapsulation, Inheritance, Polymorphism, Abstraction, SOLID
 *   Creational: Singleton, Factory, Builder, Prototype
 *   Structural: Adapter, Decorator, Proxy, Facade
 *   Behavioral: Observer, Strategy, Command, State
 
-## 17. Hands-on Mono-repo - learn by building small projects
+## 18. Hands-on Mono-repo - learn by building small projects
 
 A mono-repo with multiple **simply scoped** projects, each covering 1-2 topics from above. Problems are limited so you can finish one in a day and verify with runnable tests.
 
