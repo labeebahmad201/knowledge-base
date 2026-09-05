@@ -75,8 +75,9 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Concurrency control, Indexes and query plans (deep), Async workflows, Idempotent consumers, Failure handling, Observability basics
 *   How to debug memory leak, Logging and Monitoring, APM, Handling failed transactions in distributed env
 
-## 10. Async Primitives (4)
+## 10. Async Primitives (5)
 *   Queue vs Stream vs Webhook vs Cron job
+*   Kafka vs RabbitMQ - how to choose (log vs queue, replay, ordering, throughput)
 
 ## 11. Cloud & Deployment (4)
 *   Cloud deployment, Cloud services, Redundancy, Backups (PITR), Secrets management, Environment variables, Configuration management, Docker/Kubernetes, CI/CD, Production deployment strategies
