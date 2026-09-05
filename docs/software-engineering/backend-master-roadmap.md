@@ -92,7 +92,13 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 ## 15. Low Level Design (LLD)
 *   OOD, SOLID, Design patterns (Singleton, Factory, Observer), Class diagrams, API design at code level
 
-## 16. Hands-on Mono-repo - learn by building small projects
+## 16. OOP & Design Patterns
+*   OOP: Encapsulation, Inheritance, Polymorphism, Abstraction, SOLID
+*   Creational: Singleton, Factory, Builder, Prototype
+*   Structural: Adapter, Decorator, Proxy, Facade
+*   Behavioral: Observer, Strategy, Command, State
+
+## 17. Hands-on Mono-repo - learn by building small projects
 
 A mono-repo with multiple **simply scoped** projects, each covering 1-2 topics from above. Problems are limited so you can finish one in a day and verify with runnable tests.
 
