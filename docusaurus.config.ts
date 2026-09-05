@@ -78,6 +78,12 @@ const config: Config = {
         },
 
         {
+          to: '/docs/api/rest',
+          label: 'API',
+          position: 'left',
+        },
+
+        {
           to: '/insights',
           label: 'Insights',
           position: 'left',
@@ -107,6 +113,10 @@ const config: Config = {
             {
               label: 'Frontend',
               to: '/docs/frontend/overview',
+            },
+            {
+              label: 'API',
+              to: '/docs/api/rest',
             },
             {
               label: 'Artificial Intelligence',
