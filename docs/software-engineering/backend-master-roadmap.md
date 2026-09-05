@@ -56,6 +56,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 
 ## 7. Security (15+ - OWASP Top 10)
 *   OAuth 2.0 vs JWT vs Session-based auth, SSO, 2FA, RBAC/ABAC
+*   **OAuth 2.0 is delegation, not authentication - using it for authn without OIDC on top leads to confused deputy and identity substitution bugs**
 *   SQL injection prevention (prepared statements, ORM)
 *   CORS, CSRF, XSS prevention, CSP (Content Security Policy), HSTS
 *   OWASP Top 10 (Injection, Broken Auth, Sensitive Data Exposure, XXE, Broken Access Control, Security Misconfig, XSS, Insecure Deserialization, Using Components with Known Vulnerabilities, Insufficient Logging)
