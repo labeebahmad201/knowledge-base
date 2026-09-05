@@ -20,12 +20,13 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Synchronous vs Asynchronous processing
 *   Background jobs
 
-## 3. API Design (8)
+## 3. API Design (9)
 *   RESTful APIs vs GraphQL vs gRPC
 *   Idempotency in APIs / Idempotency keys
 *   Rate limiting (Token bucket vs Leaky bucket) + Throttling
 *   API versioning, Middleware, Error handling
 *   Pagination, Filtering and sorting, Full-text search / Elasticsearch
+*   BFF (Backend for Frontend) - one backend per frontend (web/mobile)
 
 ## 4. Database Deep Dives (11)
 *   SQL vs NoSQL is outdated framing - pick the database that meets the requirement and say which qualities you rely on (consistency, indexing, query pattern, scale) - via Hello Interview
