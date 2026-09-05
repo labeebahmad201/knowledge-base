@@ -17,8 +17,8 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Synchronous vs Asynchronous processing
 *   Background jobs
 
-## 3. API Design (7)
-*   RESTful APIs vs GraphQL
+## 3. API Design (8)
+*   RESTful APIs vs GraphQL vs gRPC
 *   Idempotency in APIs / Idempotency keys
 *   Rate limiting (Token bucket vs Leaky bucket) + Throttling
 *   API versioning, Middleware, Error handling
