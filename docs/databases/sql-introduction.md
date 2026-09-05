@@ -197,13 +197,108 @@ SELECT * FROM orders ORDER BY amount DESC LIMIT 2 OFFSET 2; -- next 2 (paginatio
 
 `DISTINCT ON` keeps one row per key. `LIMIT` with `ORDER BY` lets Postgres use a top-N sort.
 
-### Pitfall
+### Why `ORDER BY country, id` has two columns
 
-`OFFSET` on big data scans and discards `OFFSET` rows. For deep pagination use keyset: `WHERE id > last_id ORDER BY id LIMIT 20`.
+`SELECT DISTINCT ON (country)` keeps the first row Postgres sees for each new `country`. That first row is decided by `ORDER BY`:
+
+1. `country` is required and must be first. Postgres sorts by `country` A to Z so rows for the same country become neighbors. Without it you get `SELECT DISTINCT ON expressions must match initial ORDER BY expressions`.
+2. `id` is the tie breaker inside each `country` group. It only matters when two rows have the same `country` and are next to each other after the first sort.
+
+So `ORDER BY country, id` means: sort globally by `country`, then within each `country` block sort by `id`. `DISTINCT ON` then scans top to bottom and keeps the first row per block. With `ORDER BY country, id` that is the smallest `id` per country. Swap to `ORDER BY country, id DESC` to keep the largest `id` per country.
+
+Runnable demo with `VALUES` as ad hoc data so you can see the sort without needing a table:
+
+```sql
+-- Ad hoc table with VALUES: two rows share USA, one has India
+-- Note the input order is shuffled: Bob (2) before Alice (1) for USA
+WITH t(id, name, country) AS (
+  VALUES (2, 'Bob', 'USA'), (1, 'Alice', 'USA'), (3, 'Sai', 'India')
+)
+SELECT DISTINCT ON (country) *
+FROM t
+ORDER BY country, id;
+-- Step 1 ORDER BY country, id sorts to:
+-- (3, 'Sai', 'India')  <- India group, id irrelevant here
+-- (1, 'Alice', 'USA')  <- USA group, id 1 before 2
+-- (2, 'Bob', 'USA')
+-- Step 2 DISTINCT ON scans and keeps first per country:
+-- India -> Sai, USA -> Alice. Bob is dropped because USA was already kept.
+```
+
+<CopyToPlaygroundButton code={`WITH t(id, name, country) AS (VALUES (2, 'Bob', 'USA'), (1, 'Alice', 'USA'), (3, 'Sai', 'India')) SELECT DISTINCT ON (country) * FROM t ORDER BY country, id`} />
 
 ---
 
-## 5. Subquery, IN, EXISTS, CTE
+## 5. Pagination - OFFSET, keyset, and cursor - when to use which
+
+### Problem
+
+You have 1 million orders. You show 20 per page. `LIMIT 20` is easy, but page 50000 is slow, rows shift when new data is inserted, and jumping to a page number vs infinite scroll need different solutions.
+
+### The three methods
+
+```sql
+-- 1. OFFSET pagination - simple, page numbers
+SELECT * FROM orders ORDER BY id LIMIT 20 OFFSET 40; -- page 3 (skip 40, take 20)
+
+-- 2. Keyset pagination - fast, stable, needs a sort key
+SELECT * FROM orders WHERE id > 40 ORDER BY id LIMIT 20; -- after id 40, next 20
+
+-- 3. Cursor pagination - keyset with an opaque cursor (for APIs)
+SELECT * FROM orders WHERE (created_at, id) > ('2024-01-10', 42) ORDER BY created_at, id LIMIT 20;
+```
+
+<CopyToPlaygroundButton code={`SELECT * FROM orders ORDER BY id LIMIT 20 OFFSET 40`} />
+
+### How they work
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+flowchart TD
+  ALL["1M rows"] --> M{"Which method?"}
+  M -->|"OFFSET"| O["ORDER BY id<br/>scan 40 rows, discard,<br/>return 20"]
+  M -->|"keyset"| K["WHERE id > 40<br/>index seeks to 40,<br/>return next 20"]
+  M -->|"cursor"| C["WHERE (created_at,id) > cursor<br/>same as keyset,<br/>cursor hides the key"]
+```
+
+</div>
+
+### Trade offs
+
+| Method | How it pages | Speed on deep pages | Stable when rows inserted | Jump to page 50 | Needs | When to use |
+|---|---|---|---|---|---|---|
+| `OFFSET` | `OFFSET 40` skips rows | Slow - scans and discards `OFFSET` rows. Page 50000 reads 1M rows | No - row 41 can shift to page 2 if a row is inserted at top | Yes - `OFFSET 1000` | Nothing, works with any `ORDER BY` | Admin tables with page numbers and small data. Count + page numbers needed. |
+| `Keyset` | `WHERE id > last_id` seeks via index | Fast - index seek to `last_id`, always 20 rows read even on page 50000 | Yes - new rows before cursor do not move current page | No - must walk from start, cannot jump to page 50 without scanning | Unique, indexed, ordered column like `id` or `(created_at, id)` | Infinite scroll, feeds, APIs, any big data. The default for production. |
+| `Cursor` | Opaque cursor token `eyJpZCI6NDB9` encodes last key | Fast - same as keyset | Yes | No - same as keyset | Same as keyset plus encode/decode in app | Public APIs where you do not want clients to guess ids. Same perf as keyset. |
+
+### Rules for keyset and cursor
+
+1. `ORDER BY` and `WHERE` must use the same columns in the same order. `ORDER BY created_at, id` needs `WHERE (created_at, id) > (last_created, last_id)`.
+2. The key must be unique and indexed or Postgres will still sort. Add `CREATE INDEX ON orders(created_at, id)` or `CREATE INDEX ON orders(id)`.
+3. No `OFFSET` inside keyset - mixing them loses the speed. Use one or the other.
+
+```sql
+-- Wrong - keyset column not in ORDER BY, results are unpredictable
+SELECT * FROM orders WHERE id > 40 ORDER BY amount LIMIT 20;
+
+-- Right - same columns in WHERE and ORDER BY
+SELECT * FROM orders WHERE id > 40 ORDER BY id LIMIT 20;
+
+-- Right - composite key for non-unique sort
+SELECT * FROM orders
+WHERE (created_at, id) > ('2024-01-15 10:00:00', 100)
+ORDER BY created_at, id
+LIMIT 20;
+```
+
+<CopyToPlaygroundButton code={`SELECT * FROM orders WHERE id > 40 ORDER BY id LIMIT 20`} />
+
+See also `## 41. Keyset pagination - the right way to page` for a deeper runnable example with `VALUES`.
+
+---
+
+## 6. Subquery, IN, EXISTS, CTE
 
 ### Problem
 
@@ -244,7 +339,7 @@ graph TD
 
 ---
 
-## 6. UNION vs UNION ALL
+## 7. UNION vs UNION ALL
 
 ### Problem
 
@@ -268,7 +363,7 @@ Use `UNION ALL` unless you need deduping - the dedup is a sort that costs on big
 
 ---
 
-## 7. Window functions - compute without collapsing
+## 8. Window functions - compute without collapsing
 
 ### Problem
 
@@ -308,7 +403,7 @@ graph TD
 
 ---
 
-## 8. NULL, COALESCE, and three-valued logic
+## 9. NULL, COALESCE, and three-valued logic
 
 ### Problem
 
@@ -340,7 +435,7 @@ SELECT * FROM orders WHERE status != 'paid'; -- Postgres allows both
 
 ---
 
-## 9. Constraints, indexes, and EXPLAIN
+## 10. Constraints, indexes, and EXPLAIN
 
 ### Problem
 
@@ -378,7 +473,7 @@ flowchart TD
 
 ---
 
-## 10. Transactions, isolation, and locks
+## 11. Transactions, isolation, and locks
 
 ### Problem
 
@@ -433,7 +528,7 @@ graph TD
 
 ---
 
-## 11. Indexing - why queries are slow and how to fix them
+## 12. Indexing - why queries are slow and how to fix them
 
 ### The problem
 
@@ -608,7 +703,7 @@ When in doubt: `EXPLAIN ANALYZE` first. If the query is fast without an index (<
 
 ---
 
-## 12. WHEN clause - conditional logic in SQL
+## 13. WHEN clause - conditional logic in SQL
 
 ### The problem
 
@@ -668,7 +763,7 @@ Use application code when:
 
 ---
 
-## 13. Aggregates - COUNT, SUM, AVG, MIN, MAX
+## 14. Aggregates - COUNT, SUM, AVG, MIN, MAX
 
 ### The problem
 
@@ -722,7 +817,7 @@ SELECT COUNT(*), COUNT(amount) FROM orders;
 
 ---
 
-## 14. GROUPING SETS, ROLLUP, CUBE - multi-level aggregation
+## 15. GROUPING SETS, ROLLUP, CUBE - multi-level aggregation
 
 ### The problem
 
@@ -762,7 +857,7 @@ GROUP BY CUBE (user_id, status);
 
 ---
 
-## 15. VALUES, LATERAL, and generate_series - ad-hoc data
+## 16. VALUES, LATERAL, and generate_series - ad-hoc data
 
 ### The problem
 
@@ -792,7 +887,7 @@ JOIN LATERAL (
 
 ---
 
-## 16. Benchmarking - how to measure query performance
+## 17. Benchmarking - how to measure query performance
 
 ### The problem
 
@@ -900,7 +995,7 @@ Shows you the slowest queries with their average time, so you know what to fix f
 
 ---
 
-## 17. Monitoring - what's happening right now
+## 18. Monitoring - what's happening right now
 
 ### The problem
 
@@ -958,7 +1053,7 @@ SELECT state, COUNT(*) FROM pg_stat_activity GROUP BY state;
 
 ---
 
-## 18. JSONB - store and query JSON in Postgres
+## 19. JSONB - store and query JSON in Postgres
 
 ### The problem
 
@@ -1012,7 +1107,7 @@ graph TD
 
 ---
 
-## 19. Date/Time - working with timestamps and intervals
+## 20. Date/Time - working with timestamps and intervals
 
 ### The problem
 
@@ -1071,7 +1166,7 @@ graph TD
 
 ---
 
-## 20. Subquery vs JOIN performance
+## 21. Subquery vs JOIN performance
 
 ### The problem
 
@@ -1124,7 +1219,7 @@ flowchart TD
 
 ---
 
-## 21. Data modeling basics - normalize and denormalize
+## 22. Data modeling basics - normalize and denormalize
 
 ### The problem
 
@@ -1173,7 +1268,7 @@ flowchart TD
 
 ---
 
-## 22. Views - named queries
+## 23. Views - named queries
 
 ### The problem
 
@@ -1206,7 +1301,7 @@ REFRESH MATERIALIZED VIEW monthly_revenue;
 
 ---
 
-## 23. Recursive CTEs - tree traversal
+## 24. Recursive CTEs - tree traversal
 
 ### The problem
 
@@ -1251,7 +1346,7 @@ graph TD
 
 ---
 
-## 24. Full Text Search - searching text without external tools
+## 25. Full Text Search - searching text without external tools
 
 ### The problem
 
@@ -1283,7 +1378,7 @@ When to use vs `LIKE`:
 
 ---
 
-## 25. UPSERT - insert or update in one query
+## 26. UPSERT - insert or update in one query
 
 ### The problem
 
@@ -1325,7 +1420,7 @@ flowchart TD
 
 ---
 
-## 26. Postgres memory - shared_buffers and work_mem
+## 27. Postgres memory - shared_buffers and work_mem
 
 ### The problem
 
@@ -1468,7 +1563,7 @@ flowchart TD
 
 ---
 
-## 27. How to choose a database - the decision framework
+## 28. How to choose a database - the decision framework
 
 ### The problem
 
@@ -1548,12 +1643,12 @@ Don't shard until you've exhausted simpler options: indexes, query optimization,
 
 ### Links
 
-*   [Database Comparison](../computer-science/database-comparison.md) - detailed comparison of PostgreSQL, MongoDB, Cassandra, DynamoDB, CockroachDB, Redis
+*   [Database Comparison](./database-comparison.md) - detailed comparison of PostgreSQL, MongoDB, Cassandra, DynamoDB, CockroachDB, Redis
 *   [PlanetScale Postgres vs Vitess](https://planetscale.com/docs/postgres-vs-vitess) - when to choose each
 
 ---
 
-## 28. Selectivity - when Postgres uses an index
+## 29. Selectivity - when Postgres uses an index
 
 ### The problem
 
@@ -1655,7 +1750,7 @@ Adding an index on a low-selectivity column wastes space and slows every `INSERT
 
 ---
 
-## 29. Practice problems - the interview classics
+## 30. Practice problems - the interview classics
 
 These problems show up in almost every SQL interview round. Each one is runnable against the seed.
 
@@ -1780,7 +1875,7 @@ WHERE o.id IS NULL;
 
 ---
 
-## 30. Window function variants - RANK, DENSE_RANK, NTILE
+## 31. Window function variants - RANK, DENSE_RANK, NTILE
 
 ### The problem
 
@@ -1853,7 +1948,7 @@ The `ROWS BETWEEN ... AND ...` defines the window frame. `RANGE BETWEEN` (the de
 
 ---
 
-## 31. String functions and data types - the practical toolkit
+## 32. String functions and data types - the practical toolkit
 
 ### The problem
 
@@ -1908,7 +2003,7 @@ FROM orders;
 
 ---
 
-## 32. ACID and isolation levels - deeper
+## 33. ACID and isolation levels - deeper
 
 ### The problem
 
@@ -1967,7 +2062,7 @@ The default (Read Committed) is usually right. Reach for Serializable only when 
 
 ---
 
-## 33. ORM reality - the N+1 problem and SQL injection
+## 34. ORM reality - the N+1 problem and SQL injection
 
 ### The problem
 
@@ -2026,7 +2121,7 @@ ORMs parameterize by default - the injection bug only comes back if you write `W
 
 ---
 
-## 34. Schema design interviews - relationships and normalization
+## 35. Schema design interviews - relationships and normalization
 
 ### The problem
 
@@ -2077,7 +2172,7 @@ A "wide table" - one table with many nullable columns that are empty for most ro
 
 ---
 
-## 35. Cross-database portability - MySQL and SQL Server
+## 36. Cross-database portability - MySQL and SQL Server
 
 ### The problem
 
@@ -2119,7 +2214,7 @@ Window functions with `OVER (PARTITION BY ... ORDER BY ...)` are standard SQL, s
 
 ---
 
-## 36. INSERT, UPDATE, DELETE, RETURNING - writing data
+## 37. INSERT, UPDATE, DELETE, RETURNING - writing data
 
 ### The problem
 
@@ -2162,7 +2257,7 @@ RETURNING id, amount;
 
 ---
 
-## 37. The classic transaction - transferring money
+## 38. The classic transaction - transferring money
 
 ### The problem
 
@@ -2213,7 +2308,7 @@ If zero rows come back, the balance was too low and nothing was written.
 
 ---
 
-## 38. UPDATE and DELETE based on another table
+## 39. UPDATE and DELETE based on another table
 
 ### The problem
 
@@ -2251,7 +2346,7 @@ Do not list the target table again in `FROM` (`UPDATE orders o ... FROM orders`)
 
 ---
 
-## 39. Deadlocks - two transactions waiting on each other
+## 40. Deadlocks - two transactions waiting on each other
 
 ### The problem
 
@@ -2291,7 +2386,7 @@ Deadlocks show up in the Postgres log. To see who is blocking whom right now, jo
 
 ---
 
-## 40. Keyset pagination - the right way to page
+## 41. Keyset pagination - the right way to page
 
 ### The problem
 
@@ -2337,7 +2432,7 @@ LIMIT 3;
 
 ---
 
-## 41. Islands - grouping consecutive runs
+## 42. Islands - grouping consecutive runs
 
 ### The problem
 
@@ -2368,7 +2463,7 @@ Days 1,2,3 have row numbers 1,2,3, so `day - rn` is 0 for all three. Day 5 has r
 
 ---
 
-## 42. Connection pooling - why Postgres needs it
+## 43. Connection pooling - why Postgres needs it
 
 ### The problem
 
@@ -2415,7 +2510,7 @@ In transaction mode, session-level features do not survive between statements: `
 
 ---
 
-## 43. Permissions - GRANT and Row Level Security
+## 44. Permissions - GRANT and Row Level Security
 
 ### The problem
 
@@ -2463,7 +2558,7 @@ RLS is off by default, so enabling it is step one. And the Supabase `service_rol
 
 ---
 
-## 44. Index-killing query patterns - why your index is ignored
+## 45. Index-killing query patterns - why your index is ignored
 
 ### The problem
 

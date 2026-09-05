@@ -1,0 +1,10 @@
+{
+  "label": "Databases",
+  "position": 2.6,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "doc",
+    "id": "databases/overview"
+  }
+}
