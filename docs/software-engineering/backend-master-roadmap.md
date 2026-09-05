@@ -89,6 +89,9 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Pattern: Generate runnable examples to learn, then orchestrate AI (human verifies) - the gym loop
 *   RAG (Retrieval-Augmented Generation) - chunk, embed, retrieve your docs to ground LLM answers
 
+## 15. Low Level Design (LLD)
+*   OOD, SOLID, Design patterns (Singleton, Factory, Observer), Class diagrams, API design at code level
+
 ---
 
 **Total: ~110 topics** (deduplicated). Start with 3/day deep (Why-First + runnable) for your 10-day sprint. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
