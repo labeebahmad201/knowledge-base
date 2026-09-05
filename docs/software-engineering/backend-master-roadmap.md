@@ -54,15 +54,16 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Eventual vs Strong consistency
 *   Consistent hashing, Gossip protocol, Vector clocks
 
-## 7. Security (12)
-*   OAuth vs JWT vs Session-based auth
-*   SQL injection prevention
-*   CORS, CSRF, XSS prevention
-*   Common backend vulnerabilities + mitigations
+## 7. Security (15+ - OWASP Top 10)
+*   OAuth 2.0 vs JWT vs Session-based auth, SSO, 2FA, RBAC/ABAC
+*   SQL injection prevention (prepared statements, ORM)
+*   CORS, CSRF, XSS prevention, CSP (Content Security Policy), HSTS
+*   OWASP Top 10 (Injection, Broken Auth, Sensitive Data Exposure, XXE, Broken Access Control, Security Misconfig, XSS, Insecure Deserialization, Using Components with Known Vulnerabilities, Insufficient Logging)
 *   Secure password storage (bcrypt/Argon2, salt and pepper)
 *   Hashing (bcrypt) vs Encryption (AES) - when to use which
-*   Authentication methods, 2FA, SSO, RBAC/ABAC
-*   Input validation, Output sanitization
+*   Input validation, Output sanitization, Confidential data in logs
+*   HTTPS, MITM, Stealing sessions, Don't invent cryptography, Security by Default
+*   Secrets management, Environment variables, Don't log secrets
 
 ## 8. Distributed Systems - Senior 13 (2026)
 *   Event sourcing, Saga pattern, Bulkhead isolation, Backpressure, Write-ahead logging, Tombstone records, Bloom filters, Vector clocks, Gossip protocol, Consistent hashing (duplicate), Read-your-writes consistency
