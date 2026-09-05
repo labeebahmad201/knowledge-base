@@ -73,8 +73,9 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 ## 8. Distributed Systems - Senior 13 (2026)
 *   Event sourcing, Saga pattern, Bulkhead isolation, Backpressure, Write-ahead logging, Tombstone records, Bloom filters, Vector clocks, Gossip protocol, Consistent hashing (duplicate), Read-your-writes consistency
 
-## 9. Production & Resilience (10)
-*   Dead letter queue, Circuit breaker, Read replica lag, Retry storm, Write amplification
+## 9. Production & Resilience (12)
+*   Dead letter queue, Circuit breaker, Load Shedding, Read replica lag, Retry storm, Write amplification
+*   Connection Pooling, Thread Pools & Async Processing, Backpressure & Rate Limiting
 *   Concurrency control, Indexes and query plans (deep), Async workflows, Idempotent consumers, Failure handling, Observability basics
 *   How to debug memory leak, Logging and Monitoring, APM, Handling failed transactions in distributed env
 
