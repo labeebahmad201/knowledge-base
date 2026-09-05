@@ -28,7 +28,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Pagination, Filtering and sorting, Full-text search / Elasticsearch
 
 ## 4. Database Deep Dives (11)
-*   SQL vs NoSQL - when to use each
+*   SQL vs NoSQL is outdated framing - pick the database that meets the requirement and say which qualities you rely on (consistency, indexing, query pattern, scale) - via Hello Interview
 *   Database indexing + impact (deep dive)
 *   ACID properties
 *   Deadlocks - how to prevent
