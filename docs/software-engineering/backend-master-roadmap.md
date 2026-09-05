@@ -2,17 +2,47 @@
 
 This is the consolidated list from all sessions, grouped for Why-First learning (problem it solves, when to use, runnable example). Each will become a `problem -> solution` article with a live playground.
 
-## 0. Core 10 - start here (from your latest list)
-*   API Design (REST/GraphQL), SQL & Database Design, Indexing & Query Optimization, Caching (Redis), Authentication & Authorization, Message Queues (Kafka/RabbitMQ), System Design Fundamentals, Concurrency & Transactions, Docker & Deployment, Monitoring & Observability
+## 0. Core 10 - start here
+*   API Design (REST/GraphQL)
+*   SQL & Database Design
+*   Indexing & Query Optimization
+*   Caching (Redis)
+*   Authentication & Authorization
+*   Message Queues (Kafka/RabbitMQ)
+*   System Design Fundamentals
+*   Concurrency & Transactions
+*   Docker & Deployment
+*   Monitoring & Observability
 
 ## 1. Database & SQL (28 topics - done in sql-introduction.md)
-*   SELECT/WHERE, JOIN (inner/left/self/cross), GROUP BY/HAVING, DISTINCT/ORDER BY/LIMIT
-*   Subquery/IN/EXISTS/CTE, UNION vs UNION ALL, Window functions, NULL/COALESCE
-*   Constraints/indexes/EXPLAIN, Transactions/isolation/locks
-*   Indexing deep dive (B-tree, partial, composite), WHEN (CASE), Aggregates, GROUPING SETS/ROLLUP/CUBE
-*   VALUES/LATERAL/generate_series, Benchmarking (EXPLAIN ANALYZE), Monitoring (pg_stat_activity)
-*   JSONB, Date/Time, Subquery vs JOIN, Data modeling (3NF), Views, Recursive CTEs, Full Text Search, UPSERT
-*   Postgres memory (shared_buffers, work_mem), Selectivity, How to choose a database
+*   SELECT/WHERE
+*   JOIN (inner/left/self/cross)
+*   GROUP BY/HAVING
+*   DISTINCT/ORDER BY/LIMIT
+*   Subquery/IN/EXISTS/CTE
+*   UNION vs UNION ALL
+*   Window functions
+*   NULL/COALESCE
+*   Constraints/indexes/EXPLAIN
+*   Transactions/isolation/locks
+*   Indexing deep dive (B-tree, partial, composite)
+*   WHEN (CASE)
+*   Aggregates
+*   GROUPING SETS/ROLLUP/CUBE
+*   VALUES/LATERAL/generate_series
+*   Benchmarking (EXPLAIN ANALYZE)
+*   Monitoring (pg_stat_activity)
+*   JSONB
+*   Date/Time
+*   Subquery vs JOIN
+*   Data modeling (3NF)
+*   Views
+*   Recursive CTEs
+*   Full Text Search
+*   UPSERT
+*   Postgres memory (shared_buffers, work_mem)
+*   Selectivity
+*   How to choose a database
 
 ## 2. Architecture (4)
 *   Monolithic vs Microservices
@@ -24,16 +54,25 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   RESTful APIs vs GraphQL vs gRPC
 *   Idempotency in APIs / Idempotency keys
 *   Rate limiting (Token bucket vs Leaky bucket) + Throttling
-*   API versioning, Middleware, Error handling
-*   Pagination, Filtering and sorting, Full-text search / Elasticsearch
+*   API versioning
+*   Middleware
+*   Error handling
+*   Pagination
+*   Filtering and sorting
+*   Full-text search / Elasticsearch
 *   BFF (Backend for Frontend) - one backend per frontend (web/mobile)
 
 ## 4. Database Deep Dives (16)
 *   SQL vs NoSQL is outdated framing - pick the database that meets the requirement and say which qualities you rely on (consistency, indexing, query pattern, scale) - via Hello Interview
-*   Database indexing + impact (deep dive), B-Trees and B+ Trees, LSM Trees
+*   Database indexing + impact (deep dive)
+*   B-Trees and B+ Trees
+*   LSM Trees
 *   ACID properties
 *   Deadlocks - how to prevent
-*   Replication - why useful, Read Replicas, Materialized Views, Connection Pooling
+*   Replication - why useful
+*   Read Replicas
+*   Materialized Views
+*   Connection Pooling
 *   Query optimization techniques
 *   OLTP vs OLAP
 *   Write-ahead logging (WAL)
@@ -44,11 +83,15 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 ## 5. Caching & Storage (10)
 *   How caching works + 5 layers + strategies
 *   Redis vs Memcached
-*   Cache stampede / Hot partition
-*   CDN (Day 2), Caching, Cache Invalidation
+*   Cache stampede
+*   Hot partition
+*   CDN (Day 2)
+*   Caching
+*   Cache Invalidation
 *   Session Storage vs Local Storage (vs Cookies/IndexedDB)
 *   Distributed file storage
-*   Tombstone records, Bloom filters
+*   Tombstone records
+*   Bloom filters
 
 ## 6. System Design (15)
 *   Scale to millions req/s
@@ -56,62 +99,159 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Messaging queue / Pub/Sub patterns
 *   Load balancing - benefits + types (L4 vs L7)
 *   Eventual vs Strong consistency
-*   CAP theorem, PACELC (extends CAP: even without partition, latency vs consistency)
-*   Consistent hashing, Gossip protocol, Vector clocks
-*   SPOF (Single Point of Failure), Latency vs Throughput vs Bandwidth
+*   CAP theorem
+*   PACELC (extends CAP: even without partition, latency vs consistency)
+*   Consistent hashing
+*   Gossip protocol
+*   Vector clocks
+*   SPOF (Single Point of Failure)
+*   Latency vs Throughput vs Bandwidth
 
 ## 7. Security (15+ - OWASP Top 10)
-*   OAuth 2.0 vs JWT vs Session-based auth, SSO, 2FA, RBAC/ABAC
-*   **OAuth 2.0 is delegation, not authentication - using it for authn without OIDC on top leads to confused deputy and identity substitution bugs**
+*   OAuth 2.0 vs JWT vs Session-based auth
+*   SSO
+*   2FA
+*   RBAC/ABAC
+*   OAuth 2.0 is delegation, not authentication - using it for authn without OIDC on top leads to confused deputy and identity substitution bugs
 *   SQL injection prevention (prepared statements, ORM)
-*   CORS, CSRF, XSS prevention, CSP (Content Security Policy), HSTS
+*   CORS
+*   CSRF
+*   XSS prevention
+*   CSP (Content Security Policy)
+*   HSTS
 *   OWASP Top 10 (Injection, Broken Auth, Sensitive Data Exposure, XXE, Broken Access Control, Security Misconfig, XSS, Insecure Deserialization, Using Components with Known Vulnerabilities, Insufficient Logging)
 *   Secure password storage (bcrypt/Argon2, salt and pepper)
 *   Hashing (bcrypt) vs Encryption (AES) - when to use which
-*   Input validation, Output sanitization, Confidential data in logs
-*   HTTPS, MITM, Stealing sessions, Don't invent cryptography, Security by Default
-*   Secrets management, Environment variables, Don't log secrets
+*   Input validation
+*   Output sanitization
+*   Confidential data in logs
+*   HTTPS
+*   MITM
+*   Stealing sessions
+*   Don't invent cryptography
+*   Security by Default
+*   Secrets management
+*   Environment variables
+*   Don't log secrets
 
 ## 8. Distributed Systems - Senior 13 (2026)
-*   Event sourcing, Saga pattern, Bulkhead isolation, Backpressure, Write-ahead logging, Tombstone records, Bloom filters, Vector clocks, Gossip protocol, Consistent hashing (duplicate), Read-your-writes consistency
+*   Event sourcing
+*   Saga pattern
+*   Bulkhead isolation
+*   Backpressure
+*   Write-ahead logging
+*   Tombstone records
+*   Bloom filters
+*   Vector clocks
+*   Gossip protocol
+*   Consistent hashing (duplicate)
+*   Read-your-writes consistency
 
 ## 9. Production & Resilience (12)
-*   Dead letter queue, Circuit breaker, Load Shedding, Read replica lag, Retry storm, Write amplification
-*   Connection Pooling, Thread Pools & Async Processing, Backpressure & Rate Limiting
-*   Concurrency control, Indexes and query plans (deep), Async workflows, Idempotent consumers, Failure handling, Observability basics
-*   How to debug memory leak, Logging and Monitoring, APM, Handling failed transactions in distributed env
+*   Dead letter queue
+*   Circuit breaker
+*   Load Shedding
+*   Read replica lag
+*   Retry storm
+*   Write amplification
+*   Connection Pooling
+*   Thread Pools & Async Processing
+*   Backpressure & Rate Limiting
+*   Concurrency control
+*   Indexes and query plans (deep)
+*   Async workflows
+*   Idempotent consumers
+*   Failure handling
+*   Observability basics
+*   How to debug memory leak
+*   Logging and Monitoring
+*   APM
+*   Handling failed transactions in distributed env
 
 ## 10. Async Primitives (5)
 *   Queue vs Stream vs Webhook vs Cron job
 *   Kafka vs RabbitMQ - how to choose (log vs queue, replay, ordering, throughput)
 
 ## 11. Cloud & Deployment (4)
-*   Cloud deployment, Cloud services, Redundancy, Backups (PITR), Secrets management, Environment variables, Configuration management, Docker/Kubernetes, CI/CD, Production deployment strategies
+*   Cloud deployment
+*   Cloud services
+*   Redundancy
+*   Backups (PITR)
+*   Secrets management
+*   Environment variables
+*   Configuration management
+*   Docker/Kubernetes
+*   CI/CD
+*   Production deployment strategies
 
 ## 12. Testing (4)
-*   Unit tests, Integration tests, E2E tests, Mocking and stubbing, Debugging techniques
+*   Unit tests
+*   Integration tests
+*   E2E tests
+*   Mocking and stubbing
+*   Debugging techniques
 
 ## 13. Fundamentals (HTTP etc. - ~40 from your last list)
-*   HTTP methods, Status codes, Request/Response headers, Authentication/Authorization, JWT/Session/Cookies/OAuth 2.0, REST/GraphQL/WebSockets/Server-side rendering, Database design/SQL/NoSQL, ORM, Connection pooling, Transactions, Migrations/Seeding, Caching/Redis/Memcached/CDN, Rate limiting, API Gateway/Service mesh, Docker/K8s, etc. (full list in your message - all added)
+*   HTTP methods
+*   Status codes
+*   Request/Response headers
+*   Authentication/Authorization
+*   JWT/Session/Cookies/OAuth 2.0
+*   REST/GraphQL/WebSockets/Server-side rendering
+*   Database design/SQL/NoSQL
+*   ORM
+*   Connection pooling
+*   Transactions
+*   Migrations/Seeding
+*   Caching/Redis/Memcached/CDN
+*   Rate limiting
+*   API Gateway/Service mesh
+*   Docker/K8s
 
 ## 13b. Language Choice
 *   When to use Node (I/O-heavy, JS everywhere) vs Python (data/ML, Django/FastAPI) vs Java (enterprise, Spring) vs Go (concurrency, low latency) vs Rust (systems, safety) - pick by team, hiring, and workload, not hype
 
 ## 14. Senior Java 40 - not big individually, big career boost
-*   CAP Theorem, Consistency Models, Distributed System Architectures
-*   Socket Programming (TCP/IP, UDP), HTTP and RESTful APIs, RPC (gRPC, Thrift, RMI)
+*   CAP Theorem
+*   Consistency Models
+*   Distributed System Architectures
+*   Socket Programming (TCP/IP, UDP)
+*   HTTP and RESTful APIs
+*   RPC (gRPC, Thrift, RMI)
 *   Dependency Injection Container (Spring, Guice, Inversify) - lifecycle, scopes, auto-wiring
-*   Message Queues (Kafka, RabbitMQ, JMS), Apache Kafka for Streaming, Zookeeper for Coordination (x2)
-*   Java Concurrency (ExecutorService, Future, ForkJoinPool), Thread Safety and Synchronization, Java Memory Model, Akka for Actor-based Concurrency
-*   Distributed Databases (Cassandra, MongoDB, HBase), Data Sharding and Partitioning
-*   Caching Mechanisms (Redis, Memcached, Ehcache), In-memory Data Grids (Hazelcast, Infinispan)
-*   Consensus Algorithms (Paxos, Raft), Distributed Locks (Zookeeper, Redis)
-*   Spring Boot and Spring Cloud for Microservices, Service Discovery (Consul, Eureka, Kubernetes), API Gateways (Zuul, NGINX, Spring Cloud Gateway), Inter-service Communication (REST, gRPC, Kafka)
-*   Circuit Breakers and Retry Patterns (Hystrix, Resilience4j), Load Balancing (NGINX, Kubernetes, Ribbon), Failover Mechanisms
-*   Distributed Transactions (2PC, Saga), Event-Driven Architecture: Event Sourcing and CQRS
-*   Logging and Distributed Tracing (ELK, Jaeger, Zipkin), Monitoring and Metrics (Prometheus, Grafana, Micrometer), Alerting Systems
-*   Authentication and Authorization (OAuth, JWT), Encryption (SSL/TLS), Rate Limiting and Throttling
-*   Cluster Management: Kubernetes, Cloud-Native (AWS/GCP/Azure, AWS Lambda), Distributed Data Processing (Spark/Flink), GraphQL, JVM Tuning
+*   Message Queues (Kafka, RabbitMQ, JMS)
+*   Apache Kafka for Streaming
+*   Zookeeper for Coordination (x2)
+*   Java Concurrency (ExecutorService, Future, ForkJoinPool)
+*   Thread Safety and Synchronization
+*   Java Memory Model
+*   Akka for Actor-based Concurrency
+*   Distributed Databases (Cassandra, MongoDB, HBase)
+*   Data Sharding and Partitioning
+*   Caching Mechanisms (Redis, Memcached, Ehcache)
+*   In-memory Data Grids (Hazelcast, Infinispan)
+*   Consensus Algorithms (Paxos, Raft)
+*   Distributed Locks (Zookeeper, Redis)
+*   Spring Boot and Spring Cloud for Microservices
+*   Service Discovery (Consul, Eureka, Kubernetes)
+*   API Gateways (Zuul, NGINX, Spring Cloud Gateway)
+*   Inter-service Communication (REST, gRPC, Kafka)
+*   Circuit Breakers and Retry Patterns (Hystrix, Resilience4j)
+*   Load Balancing (NGINX, Kubernetes, Ribbon)
+*   Failover Mechanisms
+*   Distributed Transactions (2PC, Saga)
+*   Event-Driven Architecture: Event Sourcing and CQRS
+*   Logging and Distributed Tracing (ELK, Jaeger, Zipkin)
+*   Monitoring and Metrics (Prometheus, Grafana, Micrometer)
+*   Alerting Systems
+*   Authentication and Authorization (OAuth, JWT)
+*   Encryption (SSL/TLS)
+*   Rate Limiting and Throttling
+*   Cluster Management: Kubernetes
+*   Cloud-Native (AWS/GCP/Azure, AWS Lambda)
+*   Distributed Data Processing (Spark/Flink)
+*   GraphQL
+*   JVM Tuning
 
 ## 15. Meta Patterns (3)
 *   Modeling system before coding (Event Storming, DDD, C4)
@@ -119,13 +259,31 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   RAG (Retrieval-Augmented Generation) - chunk, embed, retrieve your docs to ground LLM answers
 
 ## 16. Concurrency - 20 must-know (from system_monarch thread)
-*   Concurrency vs Parallelism, Processes vs Threads, Thread Lifecycle (NEW→RUNNABLE→RUNNING→BLOCKED→TERMINATED)
-*   Race Condition, Mutex, Semaphore (counting), Condition Variables, Coarse vs Fine-grained Locking
-*   Reentrant Lock, Try-Lock, CAS (Compare-And-Swap) - lock-free foundation
-*   Deadlock (4 Coffman conditions) vs Livelock, Signaling Pattern, Thread Pool, Producer-Consumer, Reader-Writer Lock, Thread-Safe Cache (LRU), Blocking Queue
+*   Concurrency vs Parallelism
+*   Processes vs Threads
+*   Thread Lifecycle (NEW→RUNNABLE→RUNNING→BLOCKED→TERMINATED)
+*   Race Condition
+*   Mutex
+*   Semaphore (counting)
+*   Condition Variables
+*   Coarse vs Fine-grained Locking
+*   Reentrant Lock
+*   Try-Lock
+*   CAS (Compare-And-Swap) - lock-free foundation
+*   Deadlock (4 Coffman conditions) vs Livelock
+*   Signaling Pattern
+*   Thread Pool
+*   Producer-Consumer
+*   Reader-Writer Lock
+*   Thread-Safe Cache (LRU)
+*   Blocking Queue
 
 ## 17. Low Level Design (LLD)
-*   OOD, SOLID, Design patterns (Singleton, Factory, Observer), Class diagrams, API design at code level
+*   OOD
+*   SOLID
+*   Design patterns (Singleton, Factory, Observer)
+*   Class diagrams
+*   API design at code level
 
 ## 18. OOP & Design Patterns
 *   OOP: Encapsulation, Inheritance, Polymorphism, Abstraction, SOLID
@@ -134,7 +292,14 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Behavioral: Observer, Strategy, Command, State
 
 ## 19. Networking
-*   TCP/IP, UDP, HTTP (1.1/2/3), DNS, TLS/SSL, WebSockets, gRPC transport, Socket programming
+*   TCP/IP
+*   UDP
+*   HTTP (1.1/2/3)
+*   DNS
+*   TLS/SSL
+*   WebSockets
+*   gRPC transport
+*   Socket programming
 
 ## 20. Hands-on Mono-repo - learn by building small projects
 
