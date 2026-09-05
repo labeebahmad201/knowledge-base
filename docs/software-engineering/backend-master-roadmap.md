@@ -46,12 +46,13 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Distributed file storage
 *   Tombstone records, Bloom filters
 
-## 6. System Design (10)
+## 6. System Design (12)
 *   Scale to millions req/s
 *   URL shortener (Bitly) - Day 1-6 done: Load Balancing, CDN, Caching, Cache Invalidation, Rate Limiting, API Gateway
 *   Messaging queue / Pub/Sub patterns
 *   Load balancing - benefits + types (L4 vs L7)
 *   Eventual vs Strong consistency
+*   CAP theorem, PACELC (extends CAP: even without partition, latency vs consistency)
 *   Consistent hashing, Gossip protocol, Vector clocks
 
 ## 7. Security (15+ - OWASP Top 10)
