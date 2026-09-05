@@ -28,12 +28,12 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Pagination, Filtering and sorting, Full-text search / Elasticsearch
 *   BFF (Backend for Frontend) - one backend per frontend (web/mobile)
 
-## 4. Database Deep Dives (11)
+## 4. Database Deep Dives (16)
 *   SQL vs NoSQL is outdated framing - pick the database that meets the requirement and say which qualities you rely on (consistency, indexing, query pattern, scale) - via Hello Interview
-*   Database indexing + impact (deep dive)
+*   Database indexing + impact (deep dive), B-Trees and B+ Trees, LSM Trees
 *   ACID properties
 *   Deadlocks - how to prevent
-*   Replication - why useful
+*   Replication - why useful, Read Replicas, Materialized Views, Connection Pooling
 *   Query optimization techniques
 *   OLTP vs OLAP
 *   Write-ahead logging (WAL)
@@ -50,7 +50,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Distributed file storage
 *   Tombstone records, Bloom filters
 
-## 6. System Design (12)
+## 6. System Design (15)
 *   Scale to millions req/s
 *   URL shortener (Bitly) - Day 1-6 done: Load Balancing, CDN, Caching, Cache Invalidation, Rate Limiting, API Gateway
 *   Messaging queue / Pub/Sub patterns
@@ -58,6 +58,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Eventual vs Strong consistency
 *   CAP theorem, PACELC (extends CAP: even without partition, latency vs consistency)
 *   Consistent hashing, Gossip protocol, Vector clocks
+*   SPOF (Single Point of Failure), Latency vs Throughput vs Bandwidth
 
 ## 7. Security (15+ - OWASP Top 10)
 *   OAuth 2.0 vs JWT vs Session-based auth, SSO, 2FA, RBAC/ABAC
@@ -157,6 +158,6 @@ Each project has: `problem.md` (what it solves), `solution/` (your code), `tests
 
 ---
 
-**Total: ~110 topics** (deduplicated). Start with 3/day deep (Why-First + runnable) for your 10-day sprint. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
+**Total: ~120 topics** (deduplicated, including AlgoMaster 30). Start with 3/day deep (Why-First + runnable) for your 10-day sprint. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
 
 *Last updated: 2026-09-03 - branch docs/sql-introduction*
