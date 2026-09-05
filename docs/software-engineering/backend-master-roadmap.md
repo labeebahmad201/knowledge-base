@@ -92,6 +92,26 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 ## 15. Low Level Design (LLD)
 *   OOD, SOLID, Design patterns (Singleton, Factory, Observer), Class diagrams, API design at code level
 
+## 16. Hands-on Mono-repo - learn by building small projects
+
+A mono-repo with multiple **simply scoped** projects, each covering 1-2 topics from above. Problems are limited so you can finish one in a day and verify with runnable tests.
+
+```
+knowledge-base/
+  mono-repo/
+    01-sql-playground/        -> SQL intro + Supabase (done)
+    02-rate-limiter/          -> Token bucket vs Leaky bucket
+    03-url-shortener/         -> Scale to millions, caching
+    04-message-queue/         -> Queue vs Stream, at-least-once
+    05-auth-service/          -> JWT vs Session, bcrypt, SSO
+    06-load-balancer/         -> L4 vs L7
+    07-circuit-breaker/       -> Bulkhead, retry storm
+    08-event-sourcing/        -> Saga, Event sourcing
+    ... (one project per roadmap topic, simply scoped)
+```
+
+Each project has: `problem.md` (what it solves), `solution/` (your code), `tests/` (non-AI evaluator, 0 cost), `README` (when to use). You write the code by hand in the gym, then orchestrate AI to generate the next one and verify faster.
+
 ---
 
 **Total: ~110 topics** (deduplicated). Start with 3/day deep (Why-First + runnable) for your 10-day sprint. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
