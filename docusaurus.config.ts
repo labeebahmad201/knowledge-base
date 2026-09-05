@@ -78,7 +78,7 @@ const config: Config = {
         },
 
         {
-          to: '/docs/api/api-design-rest-graphql-grpc',
+          to: '/docs/api/rest',
           label: 'API',
           position: 'left',
         },
@@ -116,7 +116,7 @@ const config: Config = {
             },
             {
               label: 'API',
-              to: '/docs/api/api-design-rest-graphql-grpc',
+              to: '/docs/api/rest',
             },
             {
               label: 'Artificial Intelligence',
