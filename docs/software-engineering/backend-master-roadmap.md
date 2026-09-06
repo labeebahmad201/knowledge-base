@@ -137,6 +137,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 ## 8. Distributed Systems - Senior 13 (2026)
 *   Event sourcing
 *   Saga pattern
+*   Outbox pattern - atomically commit DB + publish event
 *   Bulkhead isolation
 *   Backpressure
 *   Write-ahead logging
