@@ -26,4 +26,5 @@ Don't keep paragraph too shot but don't make it verbose as well.
 Include examples.
 Make article exhaustive.
 Article should be in 'problem' and solution format. It should clearly show what this solution is for. Thereby making sure that readers learn to apply knowledge to situations and not just know it.
+For technology that u are writing about make sure that u provide the context that what problem it solved and why this technology was necessary. I say this cause then it will help reader decide that hey I can use it to solve x problem etc.
 Write article based on human written sources instead of generating AI based non sense, make it  properly sourced and backed.
