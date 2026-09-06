@@ -36,6 +36,8 @@ This is why the cache is often described with the 95/5 rule. If 95% of reads hit
 
 ## 2. How a cache works: key, value, TTL, and fill path
 
+A cache is a key-value store. It holds values under keys, and when you ask for a key it returns the matching value, or nothing on a miss. "Store" just means where data lives: the cache store holds the fast copies, and the database is the source-of-truth store. Same key-value shape, opposite roles.
+
 A cache has three parts you control and one you do not:
 
 *   **A bounded store.** Memory is limited, so the cache must evict entries when full (LRU is the usual policy).
@@ -295,7 +297,46 @@ graph TD
 
 **Cache stampede.** The hot key's expiry and a stampede are the same event: the coordinated miss in [Cache Stampede](../production-insights/cache-stampede.md) is exactly what happens to a hot key the instant it expires. Handle hot keys and you handle most of the nasty cache production incidents at once.
 
-## 10. What interviews test under caching
+## 10. Measuring the cache: hit and miss rates
+
+Hit and miss are counted where reads happen. Every read ends in one of two branches: served from the cache is a hit, falling through to the source is a miss. You keep two counters per cache and increment the right one right before returning. Then:
+
+*   **hit rate** = hits / (hits + misses)
+*   **miss rate** = 1 - hit rate
+
+In a monolith this is easy: an in-process atomic counter per cache or route, exposed on a metrics endpoint. One process, one counter, no aggregation.
+
+In a distributed setup every instance counts the same events, so you aggregate by summing the counts: aggregate hit rate = sum(hits) / sum(hits + misses). Do not average the per-instance rates. Averaging weights a quiet replica and a hot replica equally, and the result is a lie about the cache.
+
+Redis also offers its own view: `INFO` reports `keyspace_hits` and `keyspace_misses`, so the cache-side rate is keyspace_hits / (keyspace_hits + keyspace_misses). That is the Redis perspective only. It does not see reads answered by a local in-process cache in front of it, and it treats multi-key calls as one op, so use it as a secondary check, not the primary metric.
+
+Miss rate is the metric to watch, not hit rate. A hit rate that stays high while the miss rate climbs at fixed traffic points at TTL or key-shape trouble. For stampede detection, watch cache miss rate and database connections together, the pattern in [development-stories](./development-stories.md).
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+  READ["Read key"] --> HIT{"In cache?"}
+  HIT -->|"yes"| C1["hits++<br/>serve copy"]
+  HIT -->|"no"| C2["misses++<br/>query source"]
+  C1 --> M["hit rate = hits / (hits + misses)"]
+  C2 --> M
+  M --> AGG["monolith: one counter<br/>distributed: sum counts across instances"]
+  style AGG fill:#fff3e0
+```
+
+</div>
+
+### Is a monolith distributed?
+
+Strictly, yes. A monolith talking to a separate database and external dependencies is a distributed system, because independent components in separate processes coordinate by passing messages over a network, even when the database shares the machine. The label matters less than which kind of cache you use:
+
+*   **In-process cache** lives inside the application process. Zero network round trip, but per instance, so each replica holds its own copy and a write must invalidate everywhere or acceptable divergence.
+*   **Distributed cache** is a separate networked process every instance reads. This is the load-bearing one, the one from the layer 5 discussion.
+
+The measurement rules above work for both. The only difference is whether the counters live in one process or must be summed across the fleet.
+
+## 11. What interviews test under caching
 
 Caching questions appear in every system design round, and they cluster into a small set. Map each cluster to its section in this article so a question maps straight to an answer:
 
@@ -312,7 +353,7 @@ Caching questions appear in every system design round, and they cluster into a s
 
 The framing interviewers reward, from the question banks reviewed: name the source of truth, define the cache key and its scope (per process, shared, per user), describe the workload (read/write ratio, skew, staleness tolerance), choose the load and write path, separate expiration from eviction, protect the miss path on hot keys, and decide what happens when the cache is down. Start answers at the request path, speak in trade-offs, and pick cache-aside as the default unless the workload proves it needs stricter consistency.
 
-## 11. The rules you can keep
+## 12. The rules you can keep
 
 *   Cache reads, design writes. Every strategy question is really a question about the write path.
 *   Add layers from the outside in. Browser and CDN first, proxy and process cache next, shared cache last.
