@@ -60,11 +60,18 @@ A hot key `jobs:feed` has TTL 60s. At 60s it expires. 1000 clients that were hit
 A stampede is a thundering herd on cache miss. It happens on expiry, on cold start, or when a node restarts and cache is empty.
 
 ```js
-// Naive getOrSet that stampedes
+// Naive getOrSet that stampedes — also has no error handling for corrupted cache
 async function getJobs() {
-  let data = await redis.get('jobs:feed')
-  if (data) return JSON.parse(data)
-  data = await db.query('SELECT * FROM jobs WHERE status=$1', ['open']) // 1000 x this
+  let raw = await redis.get('jobs:feed')
+  if (raw) {
+    try {
+      return JSON.parse(raw)
+    } catch {
+      // corrupted value — delete and fall through to rebuild
+      await redis.del('jobs:feed')
+    }
+  }
+  const data = await db.query('SELECT * FROM jobs WHERE status=$1', ['open']) // 1000 x this
   await redis.set('jobs:feed', JSON.stringify(data), 'EX', 60)
   return data
 }
@@ -83,6 +90,8 @@ flowchart TD
 </div>
 
 You see it as p95 latency spike every 60s, or DB CPU correlated with TTL.
+
+Where is p95? Not in the API response. It is in your APM and metrics. Prometheus `histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{route="/jobs"}[5m]))`, Grafana dashboard, Datadog APM, or CloudWatch. You filter by `route="/jobs"` and you see a sawtooth: flat 15ms, then spike to 2s at `t=60, 120, 180`. The `avg` hides it, `p95` and `p99` show it.
 
 ---
 
@@ -103,11 +112,16 @@ graph TD
   KEY["jobs:feed EX 60"] --> T["TTL countdown 60..0"]
   T --> ZERO["0 - key deleted"]
   ZERO --> HERD["Herd: every GET after 0<br/>is a miss until first SET"]
+  KEY2["jobs:feed EX 60 + jitter 5s"] --> T2["TTL 60..65 spread"]
+  T2 --> ZERO2["Expires at 60, 61, 63, 65...<br/>spread herd"]
+  ZERO2 --> SMALL["Small herd<br/>10 misses, not 1000"]
 ```
 
 </div>
 
-Cold start is the same without expiry: deploy clears Redis, first 1000 requests are all misses.
+Without jitter, all keys expire at wall clock `60`. With `EX 60 + rand(5)`, expiry spreads to `60, 61, 63, 65` — 1000 clients still miss but over 5 seconds, 200 per second, not 1000 at once. Jitter helps, does not solve hot key.
+
+Cold start is the same without expiry: deploy clears Redis, first 1000 requests are all misses. You only pre-fetch if you know the hot keys (`jobs:feed`, `jobs:feed:page1`, `user:1:profile`). Unknown keys you let the first stampede fill.
 
 ---
 
@@ -122,22 +136,34 @@ Only one client should rebuild the cache, others wait.
 Use a lock. First client to miss sets `jobs:feed:lock` with `NX` and short TTL, rebuilds, others wait 50ms and retry `GET`.
 
 ```js
-async function getJobsWithLock() {
-  let data = await redis.get('jobs:feed')
-  if (data) return JSON.parse(data)
+async function getJobsWithLock(retries = 3) {
+  let raw = await redis.get('jobs:feed')
+  if (raw) {
+    try { return JSON.parse(raw) } catch { await redis.del('jobs:feed') }
+  }
 
+  // SET NX EX 5 = set only if not exists, auto-expire in 5s if holder crashes
+  // NX prevents two builders, EX 5 avoids deadlock if builder dies before DEL
   const locked = await redis.set('jobs:feed:lock', '1', 'NX', 'EX', 5)
   if (locked) {
     try {
-      data = await db.query('SELECT * FROM jobs WHERE status=$1', ['open'])
+      const data = await db.query('SELECT * FROM jobs WHERE status=$1', ['open'])
       await redis.set('jobs:feed', JSON.stringify(data), 'EX', 60)
       return data
     } finally {
       await redis.del('jobs:feed:lock')
     }
   } else {
-    await sleep(50)
-    return getJobsWithLock() // retry, now likely hit
+    // Another builder is running — wait then retry with backoff
+    // Without backoff, 1000 clients retry at 50ms = another herd and vicious loop
+    if (retries <= 0) {
+      // Circuit breaker: stop hammering, return stale or 503
+      const stale = await redis.get('jobs:feed:stale')
+      if (stale) { try { return JSON.parse(stale) } catch {} }
+      throw new Error('cache rebuild in progress')
+    }
+    await sleep(50 * Math.pow(2, 3 - retries)) // 50, 100, 200ms
+    return getJobsWithLock(retries - 1)
   }
 }
 ```
@@ -155,7 +181,7 @@ graph TD
 
 </div>
 
-This is where the request coalescing you already have fits — same idea, but at the app layer. Use when rebuild is slow and you can tolerate 50ms wait. Needs Redis `SET NX` atomicity.
+This is where the request coalescing you already have fits — same idea, but at the app layer. Use when rebuild is slow and you can tolerate wait. If stale is okay, prefer serving stale (section 5) over waiting — better p95. Needs Redis `SET NX` atomicity. Without `EX 5`, a crashed builder holds the lock forever.
 
 ---
 
@@ -255,14 +281,14 @@ Single flight: if 100 requests for `jobs:feed` are in flight, run DB query once,
 ```js
 const inflight = new Map()
 async function getJobsCoalesced() {
-  let data = await redis.get('jobs:feed')
-  if (data) return JSON.parse(data)
-  if (inflight.has('jobs:feed')) return inflight.get('jobs:feed')
+  let raw = await redis.get('jobs:feed')
+  if (raw) { try { return JSON.parse(raw) } catch { await redis.del('jobs:feed') } }
+  if (inflight.has('jobs:feed')) return inflight.get('jobs:feed') // dedupes parallel inside this instance
   const p = db.query('SELECT * FROM jobs').then(d => {
     redis.set('jobs:feed', JSON.stringify(d), 'EX', 60)
     inflight.delete('jobs:feed')
     return d
-  })
+  }).catch(e => { inflight.delete('jobs:feed'); throw e })
   inflight.set('jobs:feed', p)
   return p
 }
@@ -280,7 +306,7 @@ graph TD
 
 </div>
 
-You already have this pattern in `software-engineering/request-coalescing.md`. Use it per process, combine with Redis lock for multi-instance.
+You already have this pattern in `software-engineering/request-coalescing.md`. It only dedupes **parallel requests inside one instance** — 100 parallel on one instance becomes 1 DB query. With 10 instances, you still get 10 queries. Combine `coalescing (per instance)` + `Redis lock (cross instance)` to cap at 10, not 1000. Single writer needs both.
 
 ---
 
