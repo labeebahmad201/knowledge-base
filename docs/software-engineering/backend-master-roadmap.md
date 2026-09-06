@@ -89,7 +89,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   CDN (Day 2)
 *   Caching
 *   Cache Invalidation
-*   Session Storage vs Local Storage (vs Cookies/IndexedDB)
+*   Session Storage vs Local Storage (vs Cookies/IndexedDB) — see [Browser Storage: Cookies, localStorage, sessionStorage, IndexedDB](../frontend/browser-storage.md) (which store survives tab close, which goes to server, which blocks)
 *   Distributed file storage
 *   Tombstone records
 *   Bloom filters
