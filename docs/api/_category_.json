@@ -1,10 +1,10 @@
 {
-  "label": "APIs",
+  "label": "API",
   "position": 2.7,
   "collapsible": true,
   "collapsed": false,
   "link": {
     "type": "doc",
-    "id": "apis/overview"
+    "id": "api/overview"
   }
 }
