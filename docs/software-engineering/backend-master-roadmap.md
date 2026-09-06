@@ -323,6 +323,6 @@ Each project has: `problem.md` (what it solves), `solution/` (your code), `tests
 
 ---
 
-**Total: ~120 topics** (deduplicated, including AlgoMaster 30). Start with 3/day deep (Why-First + runnable) for your 10-day sprint. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
+**Total: ~257 topics** (257 bullets, one per line). Start with 3/day deep (Why-First + runnable) for your 10-day sprint. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
 
 *Last updated: 2026-09-03 - branch docs/sql-introduction*
