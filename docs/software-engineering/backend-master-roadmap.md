@@ -82,7 +82,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Read/write tradeoffs
 
 ## 5. Caching & Storage (10)
-*   [Caching: how it works + 5 layers + strategies](./caching.md) and [Redis vs Memcached](./caching.md#6-redis-vs-memcached)
+*   [Caching: how it works + 5 layers + strategies](./caching.md) and [Redis vs Memcached](./caching.md#8-redis-vs-memcached)
 *   Cache stampede — see [Cache Stampede: when cache expires and DB falls over](../production-insights/cache-stampede.md) (mutex lock, early recompute, [Stale is Eventual](../production-insights/stale-is-eventual.md), [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md))
 *   Hot partition
 *   CDN (Day 2)

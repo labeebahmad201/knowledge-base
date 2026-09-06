@@ -68,7 +68,38 @@ graph TD
 
 The trade begins here: a cache is a second copy of data, so it can disagree with the source of truth. TTL bounds how long the disagreement may last. Everything else in this article is about shrinking that window without losing the speed benefit.
 
-## 3. The 5 layers of caching
+## 3. The numbers: how much slower is the database, really
+
+Design interviews keep coming back to one table: latency numbers. What matters is the ratio, not the exact value:
+
+| Operation | Typical time |
+|---|---|
+| L1/L2 CPU cache | ~1-10 ns |
+| Main memory (RAM) | ~100 ns |
+| Redis GET/SET | ~0.1-1 ms |
+| Same-datacenter network round trip | ~0.2-0.5 ms |
+| SSD random read | ~100 µs |
+| Simple database query | ~1-10 ms |
+| HDD seek | ~10 ms |
+
+The numbers to quote in an interview: a Redis GET is about 0.1-1 ms and a simple database read about 1-10 ms. A cache hit at ~100 µs against a ~5 ms database read is the 50x improvement people use as the reference figure. That ratio is why the 95/5 rule from section 1 is so powerful: cutting 95% of reads off the database removes almost all of the expensive path.
+
+And here is the point that answers "how can Redis be that much faster if both hit a network." Both paths pay the network. A Redis and a Postgres in the same datacenter share the same round trip, ~0.2-0.5 ms. The gap is what each server does after the packet lands. Postgres parses SQL, builds a plan, walks indexes, touches disk or its buffer pool, and marshals rows. Redis hashes a key in memory. The database does orders of magnitude more work per request for the same network cost, so the difference is memory vs disk plus query work, not network. Say that explicitly and you sound like you have operated the stack, not memorized it.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+  R[Redis: in-memory hash lookup] --> RTT[Same network RTT paid by both]
+  D[Database: parse, plan, index<br/>walk, disk, marshal rows] --> RTT
+  RTT --> GAP[~0.1-1 ms vs ~1-10 ms<br/>gap is memory vs disk, not network]
+  style R fill:#e8f5e9
+  style D fill:#ffebee
+```
+
+</div>
+
+## 4. The 5 layers of caching
 
 Between the user and the database there are five places a copy can sit. Each layer is cheaper to hit than the one behind it, and each layer has a smaller audience than the one in front of it.
 
@@ -100,7 +131,35 @@ graph TD
 
 A request walks the layers from top to bottom and stops at the first hit. That is the practical design rule: put the copy as close to the reader as the freshness requirements allow. Cache static assets in the browser, images at the CDN, aggregated list responses at the proxy, per-request configuration in process, and cross-service hot feeds in Redis.
 
-## 4. The strategies: who fills the cache and who invalidates it
+## 5. Eviction: what leaves when the cache is full
+
+A bounded cache has to drop entries, and it uses two different controls that interviews test separately. Expiration removes an entry because it is too old (TTL). Eviction removes an entry because the cache is out of capacity. A fresh entry can be evicted to make room, and a stale entry can sit in memory until someone reads it. Age and capacity are different decisions.
+
+**LRU, least recently used,** evicts the entry not touched for the longest. It is the default, because recent access predicts near-future reuse, and it is implementable in O(1) with a hash map plus a doubly linked list. That exact "implement an LRU cache" is one of the most asked coding questions, and its LFU variant is the common hard follow up.
+
+**LFU, least frequently used,** evicts the entry with the fewest accesses. It keeps perpetually hot items that LRU would drop as soon as they go quiet for a few seconds. It needs frequency counts and can keep yesterday's favorites forever, so production LFU adds decay, like Redis aging its 24-bit counter over time.
+
+Both share a known failure: a one-time scan touches every key once, fills the cache, and evicts the hot working set. That is the scan resistance problem, fixed with a segmented cache or an admission policy that filters one-time reads. The related failure is thrashing, the cache smaller than the working set, so entries are evicted almost as fast as they load and the hit rate collapses.
+
+FIFO and random exist for simplicity and uniform access patterns. TTL belongs to expiration, LRU and LFU to capacity.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+  E["Expiration: entry too old<br/>TTL"] --> D{Separate controls}
+  V["Eviction: cache full<br/>LRU / LFU / FIFO"] --> D
+  D --> H1["LRU: recent predicts reuse<br/>O(1) hash map + doubly linked list"]
+  D --> H2["LFU: frequency keeps hot items<br/>needs counter decay"]
+  D --> H3["TTL + LRU combined<br/>age then capacity"]
+  D --> H4["Hazard: scans and thrash<br/>kill the hit rate"]
+  style H1 fill:#e8f5e9
+  style H4 fill:#ffebee
+```
+
+</div>
+
+## 6. The strategies: who fills the cache and who invalidates it
 
 The strategies differ in who moves data between the cache and the source of truth. They are easiest to remember by the read path and the write path they imply.
 
@@ -130,7 +189,16 @@ graph TD
 
 Rule of thumb: start with cache-aside. It pairs naturally with the invalidation in the next section, and you can evolve to read-through or write-behind only when a specific hot path proves it needs it.
 
-## 5. Invalidation: the hard part
+The four write strategies differ in what a write costs and what you accept in exchange:
+
+| Strategy | Write path | Read path | Accepts | Best for |
+|---|---|---|---|---|
+| Cache-aside | DB only, invalidate key | fill on miss | stale window | most services, the default |
+| Read-through | DB only | cache fills itself | stale window | read-heavy, cleaner app code |
+| Write-through | DB + cache together | always fresh | slower writes | read-your-writes, sessions |
+| Write-behind | cache only, flush async | always fresh | data loss on crash | write-heavy, counters, analytics |
+
+## 7. Invalidation: the hard part
 
 TTL is the simplest invalidation: accept staleness up to a bound, let expiry take care of the rest. It works, but it gives up precision. When a price changes at 14:00 and the TTL says 60s, you knowingly serve the old price for up to a minute.
 
@@ -156,7 +224,7 @@ graph TD
 
 The invalidation rule that prevents most surprises: never invalidate on a read, only on the write that changes the data. And never pretend the cache is consistent when it is not. The bounded-inconsistency view of all this lives in [Stale is Eventual](../production-insights/stale-is-eventual.md) and [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md).
 
-## 6. Redis vs Memcached
+## 8. Redis vs Memcached
 
 Both are in-memory key-value stores, and for a plain session or lookup-table cache they behave the same. The differences decide the choice:
 
@@ -177,7 +245,27 @@ graph TD
 
 The practical rule: start with Redis. It covers sessions, rate limits, pub/sub, and its data types replace a lot of application code. Reach for Memcached when you have a huge single-node cache, mostly large blobs, and the simplicity and threading model of Memcached beat what Redis gives you.
 
-## 7. Hot keys: when one shard does all the work
+## 9. Failure modes: hot keys, penetration, and the stampede
+
+Three problems show up under load, and interviews ask you to name the failure and its fix for each starts with the demand on the cache.
+
+**Cache penetration.** Reads for keys that never exist fall through the cache every time and hammer the source, because there is nothing to cache. The fix is negative caching: cache the absence with a short, separate TTL so repeated misses stop reaching the database.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+  P1["GET missing id"] --> P2{"Negative cache?"}
+  P2 -->|"no"| P3["First miss hits the database"]
+  P3 --> P4["Cache 'absent' for 30s"]
+  P2 -->|"yes"| P5["Return miss fast, DB untouched"]
+  style P5 fill:#e8f5e9
+  style P3 fill:#ffebee
+```
+
+</div>
+
+**Hot keys and hot partitions.**
 
 A cache is only as safe as its load distribution. With many keys the load spreads evenly, but traffic is rarely even. A single hot key, one event, one celebrity product, one feed, can absorb 90% of the operations.
 
@@ -205,9 +293,26 @@ graph TD
 
 </div>
 
-This is also the demand-side of the stampede problem. The coordinated miss in [Cache Stampede](../production-insights/cache-stampede.md) is what happens to a hot key the instant it expires. Handle hot keys and you handle most of the nasty cache production incidents at once.
+**Cache stampede.** The hot key's expiry and a stampede are the same event: the coordinated miss in [Cache Stampede](../production-insights/cache-stampede.md) is exactly what happens to a hot key the instant it expires. Handle hot keys and you handle most of the nasty cache production incidents at once.
 
-## 8. The rules you can keep
+## 10. What interviews test under caching
+
+Caching questions appear in every system design round, and they cluster into a small set. Map each cluster to its section in this article so a question maps straight to an answer:
+
+| What they test | Sample question | Covered in |
+|---|---|---|
+| Fundamentals | what is a cache, hit vs miss | section 1-2 |
+| Latency ratio | how much slower is a DB read than Redis | section 3 |
+| Placement | where would you put a cache | section 4 |
+| Eviction | LRU vs LFU, implement an LRU cache | section 5 |
+| Write strategies | which pattern fits this workload | section 6 |
+| Invalidation | how do cache and DB stay consistent | section 7 |
+| Tool choice | Redis vs Memcached | section 8 |
+| Failure modes | stampede, penetration, hot key | section 9 |
+
+The framing interviewers reward, from the question banks reviewed: name the source of truth, define the cache key and its scope (per process, shared, per user), describe the workload (read/write ratio, skew, staleness tolerance), choose the load and write path, separate expiration from eviction, protect the miss path on hot keys, and decide what happens when the cache is down. Start answers at the request path, speak in trade-offs, and pick cache-aside as the default unless the workload proves it needs stricter consistency.
+
+## 11. The rules you can keep
 
 *   Cache reads, design writes. Every strategy question is really a question about the write path.
 *   Add layers from the outside in. Browser and CDN first, proxy and process cache next, shared cache last.
@@ -223,6 +328,10 @@ This is also the demand-side of the stampede problem. The coordinated miss in [C
 *   Memcached - [FAQ](https://github.com/memcached/memcached/wiki/FAQ) - threading model and no-persistence design
 *   Martín Kleppmann - [Designing Data-Intensive Applications](https://dataintensive.net/) ch 6 - how caching sits in front of databases and the stale data semantics of replication and caching
 *   HTTP caching - [MDN HTTP Caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching) and RFC 9111 - `Cache-Control`, `ETag`, `stale-while-revalidate` for browser and proxy layers
+*   Jeff Dean and Peter Norvig - [Latency Numbers Every Programmer Should Know](http://norvig.com/21-days.html) - memory, disk, and network latencies that back the 10-100x gap
+*   Redis - [Diagnosing latency issues](https://redis.io/docs/latest/operate/oss_and_stack/management/optimization/latency/) - intrinsic latency floor (~100-200 µs), TCP ~200 µs vs unix socket ~30 µs
+*   Devinterview.io - [50 Caching Interview Questions](https://devinterview.io/questions/software-architecture-and-system-design/caching-interview-questions/), TechPrep - [68 Caching Interview Questions](https://www.techprep.app/blog/caching-interview-questions), and DesignGurus - [Caching for System Design Interviews](http://designgurus.io/system-design-interview/concepts/caching) - the question clusters mapped in section 10
+*   PracHub - [Caching Interview Questions: Eviction, Stampedes, and Consistency](https://prachub.com/resources/caching-interview-questions-for-backend-engineers-eviction-stampedes-and-consistency) - expiration vs eviction as separate controls, negative caching, and the answer framing
 
 ### See also
 
