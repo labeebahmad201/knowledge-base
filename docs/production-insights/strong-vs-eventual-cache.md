@@ -4,7 +4,9 @@ sidebar_label: "Strong vs Eventual Cache"
 
 # Strong vs Eventual Cache - the two flavours
 
-There are only two ways to solve a stampede. Lock and serve strong, or serve stale and be eventual. Everything else is a variant.
+There are only two ways to handle concurrent reads on a miss. Lock and wait for strong data from the source of truth, or return stale quickly and be eventual. This is not cache specific. It is the same PACELC trade that appears in every replicated system: even without a partition, you choose latency or consistency.
+
+This pattern shows up in cache stampede, but also in DB replicas, CDN, and read-through caches. Lock optimizes for freshness, stale optimizes for speed.
 
 <div style={{display: 'flex', justifyContent: 'center'}}>
 
@@ -19,7 +21,7 @@ graph TD
 
 </div>
 
-Sources: Kleppmann DDIA ch5, Vogels eventual, PACELC, Redis `SET NX EX`, Cloudflare stale-while-revalidate.
+Sources: Kleppmann DDIA ch5 (replication = eventual), Vogels 2008 Eventually Consistent (Dynamo, stale reads are eventual), Abadi PACELC 2010 (Else choose Latency or Consistency), Redis `SET NX EX` docs (lock returns OK), Cloudflare and RFC 5861 `stale-while-revalidate`, MDN `Cache-Control`. Checked: Vogels and PACELC do call serving stale bounded eventual, not strong.
 
 ---
 
@@ -146,7 +148,9 @@ flowchart TD
 | Must be fresh | Lock | DB | Strong | `50ms` wait |
 | Can be 30s old | Stale/cache/inflight | Cache | Eventual bounded `30s` or `5ms` | `2ms` |
 
-This is the trade: **consistency vs latency**. PACELC says even without partition you choose one.
+This is the trade: **consistency vs latency**. PACELC (Abadi 2010) says Else (no partition) you still choose Latency or Consistency. Lock pays latency for strong, stale pays staleness for low latency. Verified against Vogels and DDIA: bounded staleness is the textbook example of eventual consistency.
+
+General rule: if the read must see the write you just did, wait with lock. If the reader can be 30s or 5ms behind, serve stale and converge in background. You optimize for fresh or for speed, not both.
 
 ---
 
@@ -154,4 +158,8 @@ This is the trade: **consistency vs latency**. PACELC says even without partitio
 
 *   ./cache-stampede.md - 4 fixes in detail
 *   ./stale-is-eventual.md - bounded staleness windows
-*   Kleppmann DDIA ch5, Vogels Dynamo, Redis `SET NX EX`, Cloudflare SWR
+*   Vogels 2008 - Eventually Consistent (allthingsdistributed.com)
+*   Abadi 2010 - PACELC (dbmsmusings, Wikipedia PACELC) — Else choose Latency or Consistency
+*   Kleppmann DDIA ch5 - replication and eventual consistency
+*   Redis `SET NX EX` docs - `SET resource-name anystring NX EX` lock
+*   MDN `Cache-Control`, RFC 5861 `stale-while-revalidate`, Cloudflare SWR
