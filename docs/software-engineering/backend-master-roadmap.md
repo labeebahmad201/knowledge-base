@@ -84,7 +84,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 ## 5. Caching & Storage (10)
 *   How caching works + 5 layers + strategies
 *   Redis vs Memcached
-*   Cache stampede
+*   Cache stampede — see [Cache Stampede: when cache expires and DB falls over](../production-insights/cache-stampede.md) (mutex lock, early recompute, [Stale is Eventual](../production-insights/stale-is-eventual.md), [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md))
 *   Hot partition
 *   CDN (Day 2)
 *   Caching
@@ -99,9 +99,9 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   URL shortener (Bitly) - Day 1-6 done: Load Balancing, CDN, Caching, Cache Invalidation, Rate Limiting, API Gateway
 *   Messaging queue / Pub/Sub patterns
 *   Load balancing - benefits + types (L4 vs L7)
-*   Eventual vs Strong consistency
+*   Eventual vs Strong consistency — see [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md) (PACELC trade: lock for strong vs stale for eventual) and [Stale is Eventual](../production-insights/stale-is-eventual.md) (bounded staleness)
 *   CAP theorem
-*   PACELC (extends CAP: even without partition, latency vs consistency)
+*   PACELC (extends CAP: even without partition, latency vs consistency) — practiced in [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md)
 *   Consistent hashing
 *   Gossip protocol
 *   Vector clocks
@@ -149,6 +149,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Read-your-writes consistency
 
 ## 9. Production & Resilience (12)
+*   Production Insights — see [overview](../production-insights/overview.md), [Cache Stampede](../production-insights/cache-stampede.md), [Stale is Eventual](../production-insights/stale-is-eventual.md), [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md)
 *   Dead letter queue
 *   Circuit breaker
 *   Load Shedding
