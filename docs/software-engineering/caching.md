@@ -103,17 +103,7 @@ graph TD
 
 ## 4. The 5 layers of caching
 
-Between the user and the database there are five places a copy can sit. Each layer is cheaper to hit than the one behind it, and each layer has a smaller audience than the one in front of it.
-
-**Layer 1: Browser cache.** `Cache-Control` and `ETag` headers let the browser serve assets and GET responses without contacting your server at all. The audience is one user. The cost of staying in sync is HTTP headers.
-
-**Layer 2: CDN.** Copies static assets and cacheable responses at the edge, near the user. The audience is a region or the whole world. See the CDN section of the roadmap for day 2 coverage.
-
-**Layer 3: Reverse proxy.** Nginx, Varnish, HAProxy, sitting one hop in front of the app, cache full responses by URL or by key computed at the proxy. The audience is all requests to that entry point.
-
-**Layer 4: Application in-process cache.** A map or memoization table inside the app instance. Zero network round trip, but per instance: each replica has its own copy, so writes must invalidate everywhere or accept divergence.
-
-**Layer 5: Distributed cache.** Redis or Memcached, a shared store every instance reads. It survives instance restarts and is where "cache" usually means Redis. Bonus on the same level: the database's own buffer pool and query cache sitting under everything.
+Between the user and the database there are five places a copy can sit. Each layer is cheaper to hit than the one behind it, and each layer has a smaller audience than the one in front of it. A request walks the layers from top to bottom and stops at the first hit.
 
 <div style={{display: 'flex', justifyContent: 'center'}}>
 
@@ -131,7 +121,139 @@ graph TD
 
 </div>
 
-A request walks the layers from top to bottom and stops at the first hit. That is the practical design rule: put the copy as close to the reader as the freshness requirements allow. Cache static assets in the browser, images at the CDN, aggregated list responses at the proxy, per-request configuration in process, and cross-service hot feeds in Redis.
+### Layer 1: Browser cache
+
+`Cache-Control` and `ETag` headers tell the browser to serve assets and GET responses without contacting your server at all. The audience is one user, and the cost of staying in sync is HTTP headers. `max-age` is the freshness window: within it the browser serves from its local copy and sends nothing. After it, a conditional request with `If-None-Match` decides whether the copy is still good, and the server answers `304 Not Modified` with an empty body instead of resending the payload.
+
+```ts
+// Express: cache a product list in the browser for 60s, then revalidate
+app.get('/api/products', async (_req, res) => {
+  const products = await getProductsFromDb();
+
+  // max-age: fresh for 60s, no request sent in that window
+  // stale-while-revalidate: after that serve stale locally and refresh in background
+  res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+  res.set('ETag', etag(products));
+  res.json(products);
+});
+```
+
+```ts
+// ETag revalidation: the browser returns If-None-Match, keep it cheap
+app.get('/api/products', async (req, res) => {
+  const products = await getProductsFromDb();
+  const tag = etag(products);
+
+  if (req.headers['if-none-match'] === tag) {
+    res.status(304).end(); // body skipped, browser keeps its copy
+    return;
+  }
+  res.set('Cache-Control', 'public, max-age=60');
+  res.set('ETag', tag);
+  res.json(products);
+});
+```
+
+### Layer 2: CDN
+
+A CDN puts copies at edge nodes near the user and serves the same cacheable responses across a region. It does not need special integration: it obeys the same HTTP cache headers, but the shared-cache directive is `s-maxage`, which browsers ignore. Versioned static assets get `max-age=31536000, immutable` so the edge and browser cache them forever, and when you need to evict before expiry, the CDN exposes a purge API (by URL, tag, or hostname).
+
+```ts
+// s-maxage targets shared caches (CDN + proxy), max-age targets the browser
+app.get('/api/feed', async (_req, res) => {
+  const feed = await getFeed();
+  res.set('Cache-Control', 'public, s-maxage=60, max-age=30, stale-while-revalidate=300');
+  res.json(feed);
+});
+
+// Hashed asset: content never changes for a given name, cache it forever
+app.get('/static/app.3f2a1c.js', (_req, res) => {
+  res.set('Cache-Control', 'public, max-age=31536000, immutable');
+  res.sendFile('app.3f2a1c.js');
+});
+```
+
+### Layer 3: Reverse proxy
+
+Nginx, Varnish, or HAProxy sits one hop in front of the app and caches full responses by a key it computes from the request. This is where "which URL should be cacheable" becomes a config decision, and `X-Cache-Status: HIT/MISS` is the debugging header that shows you which layer answered.
+
+```nginx
+http {
+  # on-disk cache area: 10MB index, 1GB total, drop entries idle 60m
+  proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=api_cache:10m max_size=1g inactive=60m;
+
+  server {
+    location /api/ {
+      proxy_pass http://app_server;
+
+      proxy_cache api_cache;
+      proxy_cache_key "$scheme$request_method$host$request_uri";
+      proxy_cache_valid 200 60s;
+
+      add_header X-Cache-Status $upstream_cache_status; # HIT | MISS | EXPIRED
+    }
+  }
+}
+```
+
+Note the default safety: nginx will not cache responses with a `Set-Cookie` header or without an explicit validity, so authenticated or personal data does not leak into the shared cache unless you opt in.
+
+### Layer 4: Application in-process cache
+
+A map or memoization table inside the app instance. Zero network round trip, but per instance: each replica has its own copy, so writes must invalidate everywhere or accept divergence. It suits per-request configuration, reference data, and anything so hot that even a Redis round trip is too much.
+
+```ts
+class TtlMap<T> {
+  private store = new Map<string, { value: T; expiresAt: number }>();
+
+  get(key: string): T | undefined {
+    const entry = this.store.get(key);
+    if (!entry) return undefined;
+    if (entry.expiresAt < Date.now()) {
+      this.store.delete(key); // expired, lazy cleanup
+      return undefined;
+    }
+    return entry.value;
+  }
+
+  set(key: string, value: T, ttlMs: number): void {
+    this.store.set(key, { value, expiresAt: Date.now() + ttlMs });
+  }
+}
+
+// two replicas => two separate copies; no network, but divergent state
+const configCache = new TtlMap<AppConfig>();
+configCache.set('checkout', await loadConfig('checkout'), 60_000);
+```
+
+### Layer 5: Distributed cache
+
+Redis or Memcached, a shared store every instance reads. It survives instance restarts and is where "cache" usually means Redis. Bonus on the same level: the database's own buffer pool and query cache sitting under everything.
+
+```ts
+import Redis from 'ioredis';
+
+const redis = new Redis(process.env.REDIS_URL!);
+
+async function getProduct(id: string): Promise<Product | null> {
+  const key = `product:${id}`;
+
+  const cached = await redis.get(key);
+  if (cached) return JSON.parse(cached) as Product;
+
+  const product = await db.queryOne(
+    'SELECT * FROM products WHERE id = $1', [id],
+  );
+  if (!product) return null;
+
+  await redis.set(key, JSON.stringify(product), 'EX', 60);
+  return product;
+}
+```
+
+That read path is cache-aside, the pattern from section 6. The moment you run several instances, add single-flight here so concurrent misses do not each hit the database; the mechanism is in [request-coalescing](./request-coalescing.md).
+
+The practical design rule: put the copy as close to the reader as the freshness requirements allow. Cache static assets in the browser, images at the CDN, aggregated list responses at the proxy, per-request configuration in process, and cross-service hot feeds in Redis.
 
 ## 5. Eviction: what leaves when the cache is full
 
