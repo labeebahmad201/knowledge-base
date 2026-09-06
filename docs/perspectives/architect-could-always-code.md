@@ -91,7 +91,11 @@ The solution was to separate architecture from implementation. But the architect
 
 Matteo Collina describes the shift in his essay on the future of the software engineering career. The bottleneck moves from hardware cost (era 1) to code volume (era 2) to judgment and verification (era 3).
 
-LLMs handle code volume. So the senior engineer who can review - because they can code - becomes the bottleneck owner. Not because they type faster, but because they can verify what the agent produced.
+What AI actually changes is the economics of implementation. The cost of turning a well-defined requirement into working code has collapsed. As Malte Ubl, CTO at Vercel, put it: "the cost of software production is trending towards zero." What used to take a team of developers weeks now takes hours. LLMs handle code volume. So the senior engineer who can review - because they can code - becomes the bottleneck owner. Not because they type faster, but because they can verify what the agent produced.
+
+Gergely Orosz recently wrote about what happens when AI writes almost all the code. His conclusion: software engineers become more valuable, not less. But the nature of the work changes. Tech lead traits are in more demand. Being "product-minded" becomes a baseline at startups. Being a solid software engineer, not just a "coder," will be more sought after than before.
+
+What has not changed is that someone still needs to know if the implementation is correct. Someone still needs to understand the business problem well enough to define the requirement. Someone still ought to maintain the system when the business evolves. The bottleneck has shifted from coding to judgment.
 
 ### The human in the loop
 
@@ -129,3 +133,5 @@ The crafter era proves one person could always build and design. The industrial 
 10. [Matteo Collina](https://blog.platformatic.dev/the-human-in-the-loop) - "The Human in the Loop", "You should always own the decision"
 11. [History of Software Engineering](https://en.wikipedia.org/wiki/History_of_software_engineering) - Wikipedia: 1945-1965 origins, 1965-1985 software crisis, 1985-1989 No Silver Bullet
 12. [VB6 Support FAQ](https://learn.microsoft.com/en-us/dotnet/visual-basic/reference/vb6/vb6-support-faq) - Microsoft: VB6 extended support ended 2008
+13. [Gergely Orosz](https://newsletter.pragmaticengineer.com/p/when-ai-writes-almost-all-code-what) - "When AI writes almost all code, what happens to software engineering?" (Jan 2026): engineers more valuable, tech lead and product-minded traits in demand
+14. [Malte Ubl, CTO at Vercel](https://www.linkedin.com/posts/malteubl_its-been-a-crazy-holiday-period-i-built-activity-7413979798030585856-Qpcs) - "the cost of software production is trending towards zero" (via Pragmatic Engineer, Jan 2026)
