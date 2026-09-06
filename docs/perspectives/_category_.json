@@ -1,0 +1,8 @@
+{
+  "label": "Perspectives",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Opinion pieces on how the industry is changing — not docs, but takes with sources."
+  }
+}
