@@ -78,12 +78,6 @@ const config: Config = {
         },
 
         {
-          to: '/docs/api/rest',
-          label: 'API',
-          position: 'left',
-        },
-
-        {
           to: '/insights',
           label: 'Insights',
           position: 'left',
