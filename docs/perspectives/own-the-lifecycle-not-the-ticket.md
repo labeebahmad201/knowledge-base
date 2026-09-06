@@ -65,6 +65,25 @@ Two checks make this practical before you start typing:
 *   **Benefit and fit:** why this feature, what problem it removes for the customer, and where it fits in the existing system. If that is vague, the implementation will be vague too, no matter how fast you generate it.
 *   **How it will be lived with:** how it scales with load and data growth, what breaks first, how you will know, and how a new teammate will change it in six months. Name the maintenance shape, not just the launch shape.
 
+You need this understanding because you are the one who will be on call for it. When the alert fires or the support ticket lands, there is no ticket author to hand it back to. You are the one who has to read the system, locate the failure, and fix it while the feature is live. If you only knew the slice you typed, you will not know where the feature stores state, what it assumed about retries, or what to roll back. Deep understanding is not extra credit. It is what makes on call survivable and support honest.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+  Ship[You shipped the feature] --> Page[Alert or support issue at 2am]
+  Page --> KnowsSlice[Only knew the ticket slice]
+  KnowsSlice --> Stuck[Cannot trace flow, state, or rollback]
+  Page --> KnowsFeature[Understood the feature end to end]
+  KnowsFeature --> Fixes[Finds root cause and fixes safely]
+  style Stuck fill:#ffebee
+  style Fixes fill:#e8f5e9
+```
+
+</div>
+
+That is the maintainability and support side of the same ownership. Docs and diagrams are not bureaucracy. They are the map you will need when you are the one holding the pager.
+
 ## 3. What changes when you own this way
 
 You plan differently. Instead of asking what the ticket wants, you ask what the feature needs to stay useful. You choose boundaries that are cheap to change later, not just cheap to demo now. You leave a short design note, a diagram, or a README that says the trade off and the rollback, because maintainability is part of building, not a follow up task.
