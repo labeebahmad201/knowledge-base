@@ -142,8 +142,8 @@ async function getJobsWithLock(retries = 3) {
     try { return JSON.parse(raw) } catch { await redis.del('jobs:feed') }
   }
 
-  // SET NX EX 5 = set only if not exists, auto-expire in 5s if holder crashes
-  // NX prevents two builders, EX 5 avoids deadlock if builder dies before DEL
+  // SET key value NX EX 5 — Redis lock: NX = only if Not eXists (atomic), EX 5 = expire in 5s, 1 = arbitrary value (use uuid for safe DEL)
+  // Produced at top: only one builder gets OK, others get null. EX 5 is safety: if builder crashes before DEL, lock auto-expires and does not deadlock forever
   const locked = await redis.set('jobs:feed:lock', '1', 'NX', 'EX', 5)
   if (locked) {
     try {
@@ -182,6 +182,8 @@ graph TD
 </div>
 
 This is where the request coalescing you already have fits — same idea, but at the app layer. Use when rebuild is slow and you can tolerate wait. If stale is okay, prefer serving stale (section 5) over waiting — better p95. Needs Redis `SET NX` atomicity. Without `EX 5`, a crashed builder holds the lock forever.
+
+Production use: `SET NX EX` is the standard single-instance Redis lock per Redis docs Patterns: `SET resource-name anystring NX EX max-lock-time` returns `OK` if acquired. Companies use it for cache rebuild, job queues, and rate limiting. For multi-instance Redis, Redis recommends Redlock ( quorum of instances, random token, Lua unlock script `if redis.call("get",KEYS[1]) == ARGV[1] then return redis.call("del",KEYS[1]) else return 0 end`). See Redis `SET` docs and Redlock spec.
 
 ---
 
