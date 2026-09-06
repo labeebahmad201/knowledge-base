@@ -21,7 +21,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Background jobs
 
 ## 3. API Design (8)
-*   RESTful APIs vs GraphQL vs gRPC
+*   RESTful APIs vs GraphQL vs gRPC — see [REST APIs](../api/rest.md) and [GraphQL vs REST](../api/graphql-vs-rest.md)
 *   Idempotency in APIs / Idempotency keys
 *   Rate limiting (Token bucket vs Leaky bucket) + Throttling
 *   API versioning, Middleware, Error handling
