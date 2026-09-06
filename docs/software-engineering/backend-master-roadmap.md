@@ -36,7 +36,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Date/Time
 *   Subquery vs JOIN
 *   Data modeling (3NF)
-*   Views
+*   Views — see [SQL Views: Stored Queries That Act Like Tables](../databases/views.md) (what they are, updatable views, WITH CHECK OPTION, security_barrier, materialized views, interview questions)
 *   Recursive CTEs
 *   Full Text Search
 *   UPSERT
