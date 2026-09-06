@@ -1,5 +1,7 @@
 # Caching, Messaging & Search
 
+Caching deep dive: [Caching: How It Works, the 5 Layers, and the Strategies](./caching.md).
+
 ## Cache Patterns
 
 Cache-aside, read-through, write-through, write-behind.

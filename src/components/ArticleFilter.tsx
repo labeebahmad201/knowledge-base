@@ -38,6 +38,7 @@ const articles: Article[] = [
   {title: 'Aggregates, Behavior, and Querying', path: '/docs/software-engineering/aggregates-behavior-and-querying', category: 'DDD'},
 
   {title: 'Data Ownership in Redis', path: '/docs/software-engineering/redis-data-ownership', category: 'Engineering'},
+  {title: 'Caching: How It Works, the 5 Layers, and the Strategies', path: '/docs/software-engineering/caching', category: 'Engineering'},
 
   {title: 'Sagas: Managing Transactions That Span Multiple Services', path: '/docs/software-engineering/sagas', category: 'Architecture'},
   {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
