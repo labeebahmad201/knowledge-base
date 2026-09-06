@@ -43,15 +43,16 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Postgres memory (shared_buffers, work_mem)
 *   Selectivity
 *   How to choose a database
+## 2. Architecture (5)
 
-## 2. Architecture (4)
+*   Software Design vs Architecture — distinction — see [Architecture vs Design: Where Does This Code Belong?](./architecture-vs-design.md) (design is how a unit is built locally, architecture is where it lives system-wide and decides cost of change)
 *   Monolithic vs Microservices
 *   Event-driven architecture (with example)
 *   Synchronous vs Asynchronous processing
 *   Background jobs
 
 ## 3. API Design (9)
-*   RESTful APIs vs GraphQL vs gRPC
+*   RESTful APIs vs GraphQL vs gRPC — see [REST APIs](../api/rest.md)
 *   Idempotency in APIs / Idempotency keys
 *   Rate limiting (Token bucket vs Leaky bucket) + Throttling
 *   API versioning
