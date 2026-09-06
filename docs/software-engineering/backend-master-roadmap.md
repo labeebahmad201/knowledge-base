@@ -88,7 +88,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Hot partition
 *   CDN (Day 2)
 *   Caching
-*   Cache Invalidation — see [Cache Stampede](./cache-stampede.md)
+*   Cache Invalidation — see [Cache Stampede](../production-insights/cache-stampede.md) and [Stale is Eventual](../production-insights/stale-is-eventual.md)
 *   Session Storage vs Local Storage (vs Cookies/IndexedDB)
 *   Distributed file storage
 *   Tombstone records

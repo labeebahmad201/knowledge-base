@@ -1,0 +1,10 @@
+{
+  "label": "Production Insights",
+  "position": 4,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "doc",
+    "id": "production-insights/overview"
+  }
+}
