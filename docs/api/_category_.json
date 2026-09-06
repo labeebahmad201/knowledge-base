@@ -1,9 +1,10 @@
 {
   "label": "API",
-  "position": 3,
+  "position": 2.7,
   "collapsible": true,
-  "collapsed": true,
+  "collapsed": false,
   "link": {
-    "type": "generated-index"
+    "type": "doc",
+    "id": "api/overview"
   }
 }
