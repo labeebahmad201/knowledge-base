@@ -84,6 +84,12 @@ const config: Config = {
         },
 
         {
+          to: '/roadmap',
+          label: 'Roadmap',
+          position: 'left',
+        },
+
+        {
           to: '/insights',
           label: 'Insights',
           position: 'left',
