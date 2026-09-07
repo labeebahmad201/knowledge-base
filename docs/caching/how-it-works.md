@@ -128,7 +128,6 @@ graph TD
 
 ### Layer 1: Browser cache
 
-<<<<<<< HEAD:docs/caching/how-it-works.md
 `Cache-Control` and `ETag` headers tell the browser to serve assets and GET responses from its local copy. The audience is one user, and the cost of staying in sync is HTTP headers. This is the layer people most often misunderstand, so the key question is: how much of the caching work is the browser's, and how much is yours as the backend?
 
 **`max-age` is the only part the browser does alone.** Within the `max-age` window the browser serves from its local copy and sends **zero** requests to your server. That is the entire browser-only interval.
@@ -177,7 +176,6 @@ app.get('/api/products', async (req, res) => {
 });
 ```
 
-<<<<<<< HEAD:docs/caching/how-it-works.md
 Within the `max-age` window the browser serves locally and sends nothing. After that, `stale-while-revalidate` lets it keep serving the stale copy while the background refresh hits this same handler. The server recomputes the payload and answers `304` or `200` exactly as above, just in the background instead of on the user's critical path.
 
 The `300` in `stale-while-revalidate=300` is a **time in seconds (5 minutes)**: how long the browser may keep serving the stale copy instead of forcing the user to wait for fresh data. The mechanic is described in the HTTP spec: a cache may serve a stale response while it asynchronously checks in with the origin in the background ([RFC 9111, stale-while-revalidate](https://www.rfc-editor.org/rfc/rfc9111#name-stale-while-revalidate)). Concretely, three visitors on `max-age=60, stale-while-revalidate=300`:
@@ -187,7 +185,7 @@ The `300` in `stale-while-revalidate=300` is a **time in seconds (5 minutes)**: 
 - **At 400s** (past both windows): the browser **must block** and wait on the server before showing anything.
 
 So the trade-off is one dial: a short value like `30` keeps data fresher but makes users wait more often; a long value like `600` keeps the user on stale data longer but never shows a loading spinner. You pick it from how tolerant your readers are of staleness. RFC 9111 also warns the delta-seconds value must not be too large, or a client may stay stuck on stale content for a very long time ([MDN, stale-while-revalidate](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#stale-while-revalidate)).
- 
+
 ### Layer 2: CDN
 
 A CDN puts copies at edge nodes near the user and serves the same cacheable responses across a region. It does not need special integration: it obeys the same HTTP cache headers, but the shared-cache directive is `s-maxage`, which browsers ignore. Versioned static assets get `max-age=31536000, immutable` so the edge and browser cache them forever, and when you need to evict before expiry, the CDN exposes a purge API (by URL, tag, or hostname).
