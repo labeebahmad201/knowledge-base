@@ -82,9 +82,9 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Read/write tradeoffs
 
 ## 5. Caching & Storage (10)
-*   How caching works + 5 layers + strategies
-*   Redis vs Memcached
-*   Cache stampede — see [Cache Stampede: when cache expires and DB falls over](../production-insights/cache-stampede.md) (mutex lock, early recompute, [Stale is Eventual](../production-insights/stale-is-eventual.md), [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md))
+*   [Caching: how it works + 5 layers + strategies](../caching/how-it-works.md) and [Redis vs Memcached](../caching/how-it-works.md#8-redis-vs-memcached)
+*   [Why The Cache: even when indexes are fast](../caching/why-cache.md) (the index speeds up the lookup, the cache removes the repeated work)
+*   Cache stampede — see [Cache Stampede: when cache expires and DB falls over](../caching/cache-stampede.md) (mutex lock, early recompute, [Stale is Eventual](../caching/stale-is-eventual.md), [Strong vs Eventual Cache](../caching/strong-vs-eventual-cache.md))
 *   Hot partition
 *   CDN (Day 2)
 *   Caching
@@ -96,12 +96,13 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 
 ## 6. System Design (15)
 *   Scale to millions req/s
+*   Back-of-the-envelope estimation - rounds numbers to order-of-magnitude (count the digits, 10^x gaps), used for capacity + cost calls, see [Orders of Magnitude: The 10x Language of Scale](../production-insights/order-of-magnitude.md) (a ~5x gap is under one order; a design change, not tuning, is what crosses an order)
 *   URL shortener (Bitly) - Day 1-6 done: Load Balancing, CDN, Caching, Cache Invalidation, Rate Limiting, API Gateway
 *   Messaging queue / Pub/Sub patterns
 *   Load balancing - benefits + types (L4 vs L7)
-*   Eventual vs Strong consistency — see [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md) (PACELC trade: lock for strong vs stale for eventual) and [Stale is Eventual](../production-insights/stale-is-eventual.md) (bounded staleness)
+*   Eventual vs Strong consistency — see [Strong vs Eventual Cache](../caching/strong-vs-eventual-cache.md) (PACELC trade: lock for strong vs stale for eventual) and [Stale is Eventual](../caching/stale-is-eventual.md) (bounded staleness)
 *   CAP theorem
-*   PACELC (extends CAP: even without partition, latency vs consistency) — practiced in [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md)
+*   PACELC (extends CAP: even without partition, latency vs consistency) — practiced in [Strong vs Eventual Cache](../caching/strong-vs-eventual-cache.md)
 *   Consistent hashing
 *   Gossip protocol
 *   Vector clocks
@@ -149,7 +150,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Read-your-writes consistency
 
 ## 9. Production & Resilience (12)
-*   Production Insights — see [overview](../production-insights/overview.md), [Cache Stampede](../production-insights/cache-stampede.md), [Stale is Eventual](../production-insights/stale-is-eventual.md), [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md)
+*   Production Insights — see [overview](../production-insights/overview.md), [Cache Stampede](../caching/cache-stampede.md), [Stale is Eventual](../caching/stale-is-eventual.md), [Strong vs Eventual Cache](../caching/strong-vs-eventual-cache.md)
 *   Dead letter queue
 *   Circuit breaker
 *   Load Shedding
@@ -174,7 +175,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Queue vs Stream vs Webhook vs Cron job
 *   Kafka vs RabbitMQ - how to choose (log vs queue, replay, ordering, throughput)
 
-## 11. Cloud & Deployment (4)
+## 11. Cloud & Deployment (copied from AWS Cloud Services + 14-day chaos plan)
 *   Cloud deployment
 *   Cloud services
 *   Redundancy
@@ -185,6 +186,35 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Docker/Kubernetes
 *   CI/CD
 *   Production deployment strategies
+
+### AWS services a backend dev must know (in order)
+*   **IAM** — roles, policies, least privilege. Everything else depends on it.
+*   **VPC** — subnets, security groups, NAT, CIDR basics. Diagnose connectivity by inspecting route tables + SG rules.
+*   **EC2** — AMI, SSH, EBS volumes, snapshots, recovery when the key is lost.
+*   **RDS** — Postgres/MySQL in the cloud, read replicas, Multi-AZ failover.
+*   **S3** — object storage, versioning, lifecycle policies, presigned URLs.
+*   **ElastiCache (Redis)** — caching, sessions, rate limiting (see [Caching layer analysis](../caching/how-it-works.md)).
+*   **ALB / NLB** — routing, TLS termination, healthy/unhealthy instance handling.
+*   **Route 53** — DNS.
+*   **API Gateway** — versioning, throttling, auth.
+*   **Secrets Manager + KMS** — never hardcode secrets.
+*   **CloudWatch + X-Ray** — logs, metrics, alarms, tracing.
+*   **ECR + CodeBuild/CodePipeline** — image build + deploy.
+*   **EKS + Helm + kubectl** — container orchestration (the polish layer on the above).
+*   Optional high-value: **SQS** (async jobs), **Lambda** (serverless), **Terraform/CloudFormation** (infra as code).
+*   **Cloud cost estimation** — estimate the bill before building: understand per-hour and per-GB prices, where the 80% spend sits (usually compute + data transfer + storage), and round with back-of-the-envelope numbers so a million requests is 1-3 orders, never a fuzzy guess.
+
+### AWS Well-Architected Framework (~3-5 focused days, overlapped with the 14-day plan)
+*   Six pillars: Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization, Sustainability ([AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html)).
+*   ~1.5 days to read all six pillars (each is a compact review checklist, not a course), then ~2 days applying it: run a real Well-Architected review against the stack built in the 14-day plan, score each pillar, and fix the top finding per pillar.
+*   The review question is the skill: "if I fail this pillar, what breaks and how do I recover?" that is the interview answer for "how do you design for reliability/security/cost".
+
+### 14-day chaos plan (for an experienced dev, no tutorials)
+*   Days 1-3 — IAM (deny-all then grant), VPC (public/private + NAT), EC2 (EBS snapshot restore, lose key → serial console recovery), then break each and fix it.
+*   Days 4-6 — RDS (force a failover, kill the primary), S3 (versioning, lifecycle, presigned), ElastiCache Redis in front of a real app, flush it and watch DB pressure spike.
+*   Days 7-9 — Docker → ECR → ALB in front of 2 EC2 instances, Route 53 + ACM TLS + API Gateway. Deregister an instance mid-traffic and watch ALB drain it.
+*   Days 10-14 — EKS (Deployments, Services, Ingress, ConfigMaps, Secrets, HPA). Chaos: kill a pod, drain a node, scale to zero and back. Terraform the whole thing, destroy, recreate. Cost drill: calculate the 14-day bill from the console (back-of-the-envelope first, then the billing dashboard), identify the 80% spend, and size the same workload in EKS vs EC2 vs Lambda.
+*   Two rules: (1) delete & recreate everything at least once, (2) keep a broken-things log — the failures are the interview stories.
 
 ## 12. Testing (4)
 *   Unit tests
@@ -327,4 +357,4 @@ Each project has: `problem.md` (what it solves), `solution/` (your code), `tests
 
 **Total: ~120 topics** (deduplicated, including AlgoMaster 30). Start with 3/day deep (Why-First + runnable) for your 10-day sprint. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
 
-*Last updated: 2026-09-03 - branch docs/sql-introduction*
+*Last updated: 2026-09-06 - branch docs/caching-fundamentals*

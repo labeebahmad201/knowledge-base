@@ -282,4 +282,4 @@ The one nuance to keep straight: coalescing merges requests that overlap in time
 
 ## Related
 
-- [Caching, Messaging & Search](/docs/software-engineering/caching-messaging-search)
+- [Caching, Messaging & Search](/docs/caching/caching-messaging-search)

@@ -84,6 +84,13 @@ const config: Config = {
         },
 
         {
+          type: 'doc',
+          docId: 'caching/index',
+          label: 'Caching',
+          position: 'left',
+        },
+
+        {
           to: '/insights',
           label: 'Insights',
           position: 'left',
@@ -117,6 +124,10 @@ const config: Config = {
             {
               label: 'API',
               to: '/docs/api/rest',
+            },
+            {
+              label: 'Caching',
+              to: '/docs/caching/',
             },
             {
               label: 'Artificial Intelligence',

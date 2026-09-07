@@ -185,6 +185,6 @@ The industry has changed before and this is another shift. The open models mean 
 
 ### See also
 
-*   ../production-insights/cache-stampede.md — judgment example: strong vs eventual, latency vs consistency
-*   ../production-insights/stale-is-eventual.md — bounded staleness as practiced eventual consistency
+*   ../caching/cache-stampede.md — judgment example: strong vs eventual, latency vs consistency
+*   ../caching/stale-is-eventual.md — bounded staleness as practiced eventual consistency
 *   ../software-engineering/backend-master-roadmap.md — where fundamentals sit
