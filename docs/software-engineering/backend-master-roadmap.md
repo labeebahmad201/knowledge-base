@@ -230,6 +230,8 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Authentication/Authorization
 *   JWT/Session/Cookies/OAuth 2.0
 *   REST/GraphQL/WebSockets/Server-side rendering
+*   Rendering models: MPA vs SPA vs hybrid — see [From MPA to SPA to Hybrid](../frontend/spa-vs-mpa.md) (when each model wins, SSR/SSG/CSR/ISR per route, hydration, gated inventory pattern)
+*   JavaScript equality: == vs === vs Object.is vs SameValueZero — see [Object.is](../frontend/javascript-object-is.md) (NaN/-0 edge cases, SameValue vs SameValueZero, why React uses Object.is for bailouts)
 *   Database design/SQL/NoSQL
 *   ORM
 *   Connection pooling
