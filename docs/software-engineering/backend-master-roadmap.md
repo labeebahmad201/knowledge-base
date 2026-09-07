@@ -72,7 +72,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Deadlocks - how to prevent
 *   Replication - why useful
 *   Read Replicas
-*   Materialized Views
+*   Materialized Views — see [SQL Views](../databases/views.md#8-materialized-views--when-fresh-is-too-slow) (stored rows, REFRESH, CONCURRENTLY, locking, vs regular views)
 *   Connection Pooling
 *   Query optimization techniques
 *   OLTP vs OLAP
