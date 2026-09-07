@@ -21,6 +21,7 @@ graph TD
 ```
 
 For every concept add a paragraph and mermaid diagram that renders.
+Add a TLDR section at the very top of the article (right after the title, before the first section) that summarizes the core takeaways in a short bulleted list, so the reader can choose to skim or read the whole thing. Keep it to a handful of short bullets. Cover the "too long, didn't read" ground: what the thing is, the one problem it solves, the key rules/decisions, and any prominent recommendation.
 Make it easy to read for humans. 
 Don't keep paragraph too shot but don't make it verbose as well. 
 Include examples.

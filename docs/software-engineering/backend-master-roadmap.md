@@ -55,7 +55,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   RESTful APIs vs GraphQL vs gRPC — see [REST APIs](../api/rest.md)
 *   Idempotency in APIs / Idempotency keys
 *   Rate limiting (Token bucket vs Leaky bucket) + Throttling
-*   API versioning
+*   API versioning — see [API Versioning](../api/api-versioning.md) (compatible vs breaking, URI/header/media-type/date-pinned strategies, deprecation)
 *   Middleware
 *   Error handling
 *   Pagination
