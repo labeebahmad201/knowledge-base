@@ -1,5 +1,14 @@
 # JavaScript: Object.is - The SameValue Comparison
 
+## TLDR
+
+*   **`===` lies for two values:** `NaN === NaN` is `false` and `0 === -0` is `true`, both wrong for precise bailouts.
+*   **`Object.is(a, b)` is the fix:** SameValue algorithm, no coercion, `Object.is(NaN, NaN)` is `true`, `Object.is(0, -0)` is `false`.
+*   **Four sameness checks exist:** `==` (coerces), `===` (no coerce, wrong for NaN/-0), `Object.is` (SameValue, correct for both), `SameValueZero` (like Object.is but `0 === -0`, used by `Set`/`Map`/`includes`).
+*   **Objects are always compared by reference**, never by content. `Object.is({}, {})` is `false`.
+*   **React uses `Object.is` for every bailout:** `useState`, `React.memo` (shallow per-prop), `useMemo`/`useEffect` dependency arrays, and `Context.Provider` value checks.
+*   **Rule of thumb:** use `===` for everyday code; use `Object.is` when you are writing a bailout that must be correct for `NaN` and `-0`.
+
 ## The problem: `===` lies about two values
 
 JavaScript has two obvious equality operators, but both give wrong answers for the two rarest values in the language.
