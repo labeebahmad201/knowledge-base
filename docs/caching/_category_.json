@@ -1,0 +1,10 @@
+{
+  "label": "Caching",
+  "position": 1.9,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "doc",
+    "id": "caching/index"
+  }
+}

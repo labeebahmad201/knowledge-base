@@ -1,6 +1,6 @@
 # Caching, Messaging & Search
 
-Caching deep dive: [Caching: How It Works, the 5 Layers, and the Strategies](./caching.md).
+Caching deep dive: [Caching: How It Works, the 5 Layers, and the Strategies](../caching/how-it-works.md).
 
 ## Cache Patterns
 

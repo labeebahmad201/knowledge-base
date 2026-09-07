@@ -1,20 +1,25 @@
 ---
-sidebar_label: "Caching"
+title: "Caching: How It Works, the 5 Layers, and the Strategies"
 ---
 
 # Caching: How It Works, the 5 Layers, and the Strategies
 
 > A cache is a faster copy placed closer to the reader. The moment you add one, you accept that the copy can differ from the source of truth. All of caching is choosing where the copy sits and how you keep it good enough.
 
-This is the fundamentals article for roadmap section 5 (Caching & Storage). It covers how caching works, the 5 layers, and the write and invalidation strategies. For what happens when your cache misses all at once, see [Cache Stampede](../production-insights/cache-stampede.md).
+This is the fundamentals article for roadmap section 5 (Caching & Storage). It covers how caching works, the 5 layers, and the write and invalidation strategies. For what happens when your cache misses all at once, see [Cache Stampede](./cache-stampede.md).
 
-## 1. The problem: reads repeat, and each one is expensive
+## 1. Why a cache: the database read is not free
 
-Every read has a cost. A database fetch is ~10ms, an API call 50-500ms, and under load those costs scale with every repeated request. The expensive part is not the query, it is how often the same answer gets computed over and over.
+Caching exists because the alternative, hitting the database on every read, stops working before you get popular. So the question "why a cache" is really "why not just query the database every time". The answer has four parts, and none of them is about the query being slow in isolation:
 
-Caching exists for one reason: the hottest data is read far more often than it changes. A popular product price is read thousands of times a second and changes a few times a day. So instead of recomputing the answer every time, you compute it once, keep the result where it is cheap to read, and serve that copy on the hot path.
+*   **One read is cheap, a million reads are not.** A single indexed DB read is ~10ms, an API call 50-500ms. The cost that breaks systems is the multiplier: 10ms times millions of requests is 10 thousand seconds of DB work per hour. Stand up a reader, then multiply it by traffic and by the same query arriving from every replica, and the same work is computed over and over. Amazon describes the moment they reach for a cache in exactly these terms: *"the database is expensive to scale out as call volume increases... many requests are using the same downstream resource or the same query results"* ([AWS Builders' Library, Caching challenges and strategies](https://aws.amazon.com/builders-library/caching-challenges-and-strategies/)).
+*   **The database is a shared, contended resource.** Every replica and service is a single read away from the same tables. A hot query is not one user's problem; it is every query competing for the same connection pool, same buffer pool, same disk and CPU. When the DB is the bottleneck, no horizontal scaling of stateless app servers helps, because they all run into the same wall. AWS puts it bluntly: disk retrieval "plus the added query processing times generally will put your query response times in double-digit millisecond speeds, at best" ([AWS Database Caching](https://aws.amazon.com/caching/database-caching/)).
+*   **Latency is easier to take out than to add.** A "tens of milliseconds" fetch is fine for one user, but it sits on the critical path of every response. The gap the cache removes is real: a memory read is roughly 10,000x faster than disk and 100x faster than a network round trip ([Jeff Dean and Peter Norvig, Latency Numbers Every Programmer Should Know](http://norvig.com/21-days.html)). And AWS notes a request to a remote in-memory cache is "sub-millisecond... orders of magnitude faster than a disk-based database" ([AWS Database Caching](https://aws.amazon.com/caching/database-caching/)).
+*   **The database has a job better than serving identical copies.** Indexes, transactions, constraints, durability - that work is wasted when the answer is the same as the last thousand answers you served. Caching does not remove the source of truth; it removes the repeated *compute* of the same answer, so the DB only does real work on real changes. The AWS Well-Architected framework states the net effect directly: caching "can improve read latency, read throughput, user experience, and overall efficiency, as well as reduce costs" ([AWS Well-Architected, PERF03-BP05](https://docs.aws.amazon.com/wellarchitected/latest/performance-efficiency-pillar/perf_data_access_patterns_caching.html)).
 
-The read path becomes two paths. The fast path is a memory lookup. The slow path is the source of truth plus refilling the cache. You win when the fast path serves most requests.
+So the shortest reason to cache: the hottest data is read vastly more often than it changes. A popular product price is read thousands of times a second and changes a few times a day. Instead of recomputing the answer on every request, compute it once, keep the result where it is cheap to read, and serve that copy on the hot path.
+
+The read path becomes two paths. The fast path is a memory lookup: microseconds, no query, no DB load. The slow path is the source of truth plus refilling the cache. You win when the fast path serves most requests.
 
 <div style={{display: 'flex', justifyContent: 'center'}}>
 
@@ -123,36 +128,63 @@ graph TD
 
 ### Layer 1: Browser cache
 
-`Cache-Control` and `ETag` headers tell the browser to serve assets and GET responses without contacting your server at all. The audience is one user, and the cost of staying in sync is HTTP headers. `max-age` is the freshness window: within it the browser serves from its local copy and sends nothing. After it, a conditional request with `If-None-Match` decides whether the copy is still good, and the server answers `304 Not Modified` with an empty body instead of resending the payload.
+`Cache-Control` and `ETag` headers tell the browser to serve assets and GET responses from its local copy. The audience is one user, and the cost of staying in sync is HTTP headers. This is the layer people most often misunderstand, so the key question is: how much of the caching work is the browser's, and how much is yours as the backend?
+
+**`max-age` is the only part the browser does alone.** Within the `max-age` window the browser serves from its local copy and sends **zero** requests to your server. That is the entire browser-only interval.
+
+**Every revalidation requires your backend.** Once `max-age` expires, the browser can no longer decide on its own. It must ask the server. And that request always requires the server to participate, no matter which mechanism you use:
+
+- `If-None-Match` / `ETag` revalidation
+- `If-Modified-Since` / `Last-Modified` revalidation
+- the background refresh of `stale-while-revalidate`
+
+There is no browser-only fast path once freshness expires. The only question is how expensive the server's side of the handshake is.
+
+**`ETag` revalidation optimizes bandwidth, not server CPU.** On a request that carries `If-None-Match`, your server must **recompute the current payload**, compute the ETag from it, and compare it to the browser's tag. Only the comparison result decides the response:
+
+- **Match** → `304 Not Modified`, empty body. The browser keeps its copy. **But you already did the full work** of recomputing the payload; you only saved sending the bytes over the wire.
+- **No match** → `200` with the fresh body and a new `ETag`.
+
+So if the expensive part is `getProductsFromDb()`, ETag saves you nothing there. It only saves bandwidth, which matters when the payload is large.
+
+The good news: Express (and most frameworks) already do the compute-and-compare for you. You do **not** hand-roll `etag()`. `res.send()` / `res.json()` computes the ETag automatically, and `req.fresh` tells you whether the browser's `If-None-Match` matched. Your only job is to return the response; the framework decides between `304` and `200`.
 
 ```ts
-// Express: cache a product list in the browser for 60s, then revalidate
-app.get('/api/products', async (_req, res) => {
-  const products = await getProductsFromDb();
-
-  // max-age: fresh for 60s, no request sent in that window
-  // stale-while-revalidate: after that serve stale locally and refresh in background
-  res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-  res.set('ETag', etag(products));
-  res.json(products);
-});
-```
-
-```ts
-// ETag revalidation: the browser returns If-None-Match, keep it cheap
+// Express: browser cache for 60s, then revalidate via ETag.
+// Within max-age the browser sends nothing. After it, Express:
+//   1. recomputes the product list,  2. computes its ETag,
+//   3. compares to If-None-Match,    4. returns 304 or 200.
 app.get('/api/products', async (req, res) => {
-  const products = await getProductsFromDb();
-  const tag = etag(products);
+  const products = await getProductsFromDb();     // (1) recompute the payload
+  res.set('Cache-Control', 'public, max-age=60');
 
-  if (req.headers['if-none-match'] === tag) {
-    res.status(304).end(); // body skipped, browser keeps its copy
+  if (req.fresh) {                                // (3) browser's tag matched
+    res.status(304).end();                        // (4) empty body, bytes saved
     return;
   }
-  res.set('Cache-Control', 'public, max-age=60');
-  res.set('ETag', tag);
+  res.json(products);                             // (2)+(4) auto-ETag, 200 + body
+});
+```
+
+```ts
+// stall-while-revalidate: same backend work, just deferred
+app.get('/api/products', async (req, res) => {
+  const products = await getProductsFromDb();           // recomputed here
+  res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+  if (req.fresh) { res.status(304).end(); return; }
   res.json(products);
 });
 ```
+
+Within the `max-age` window the browser serves locally and sends nothing. After that, `stale-while-revalidate` lets it keep serving the stale copy while the background refresh hits this same handler. The server recomputes the payload and answers `304` or `200` exactly as above, just in the background instead of on the user's critical path.
+
+The `300` in `stale-while-revalidate=300` is a **time in seconds (5 minutes)**: how long the browser may keep serving the stale copy instead of forcing the user to wait for fresh data. The mechanic is described in the HTTP spec: a cache may serve a stale response while it asynchronously checks in with the origin in the background ([RFC 9111, stale-while-revalidate](https://www.rfc-editor.org/rfc/rfc9111#name-stale-while-revalidate)). Concretely, three visitors on `max-age=60, stale-while-revalidate=300`:
+
+- **At 55s** (inside `max-age`): browser shows its copy, sends **no request**, no backend work at all.
+- **At 80s** (past `max-age`, inside SWR): browser shows the **stale copy instantly**, and revalidates in the background against your handler. The user never waits; the server still recomputes the payload and answers `304` or `200`.
+- **At 400s** (past both windows): the browser **must block** and wait on the server before showing anything.
+
+So the trade-off is one dial: a short value like `30` keeps data fresher but makes users wait more often; a long value like `600` keeps the user on stale data longer but never shows a loading spinner. You pick it from how tolerant your readers are of staleness. RFC 9111 also warns the delta-seconds value must not be too large, or a client may stay stuck on stale content for a very long time ([MDN, stale-while-revalidate](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#stale-while-revalidate)).
 
 ### Layer 2: CDN
 
@@ -251,7 +283,7 @@ async function getProduct(id: string): Promise<Product | null> {
 }
 ```
 
-That read path is cache-aside, the pattern from section 6. The moment you run several instances, add single-flight here so concurrent misses do not each hit the database; the mechanism is in [request-coalescing](./request-coalescing.md).
+That read path is cache-aside, the pattern from section 6. The moment you run several instances, add single-flight here so concurrent misses do not each hit the database; the mechanism is in [request-coalescing](../software-engineering/request-coalescing.md).
 
 The practical design rule: put the copy as close to the reader as the freshness requirements allow. Cache static assets in the browser, images at the CDN, aggregated list responses at the proxy, per-request configuration in process, and cross-service hot feeds in Redis.
 
@@ -346,7 +378,7 @@ graph TD
 
 </div>
 
-The invalidation rule that prevents most surprises: never invalidate on a read, only on the write that changes the data. And never pretend the cache is consistent when it is not. The bounded-inconsistency view of all this lives in [Stale is Eventual](../production-insights/stale-is-eventual.md) and [Strong vs Eventual Cache](../production-insights/strong-vs-eventual-cache.md).
+The invalidation rule that prevents most surprises: never invalidate on a read, only on the write that changes the data. And never pretend the cache is consistent when it is not. The bounded-inconsistency view of all this lives in [Stale is Eventual](./stale-is-eventual.md) and [Strong vs Eventual Cache](./strong-vs-eventual-cache.md).
 
 ## 8. Redis vs Memcached
 
@@ -417,7 +449,7 @@ graph TD
 
 </div>
 
-**Cache stampede.** The hot key's expiry and a stampede are the same event: the coordinated miss in [Cache Stampede](../production-insights/cache-stampede.md) is exactly what happens to a hot key the instant it expires. Handle hot keys and you handle most of the nasty cache production incidents at once.
+**Cache stampede.** The hot key's expiry and a stampede are the same event: the coordinated miss in [Cache Stampede](./cache-stampede.md) is exactly what happens to a hot key the instant it expires. Handle hot keys and you handle most of the nasty cache production incidents at once.
 
 ## 10. Measuring the cache: hit and miss rates
 
@@ -432,7 +464,7 @@ In a distributed setup every instance counts the same events, so you aggregate b
 
 Redis also offers its own view: `INFO` reports `keyspace_hits` and `keyspace_misses`, so the cache-side rate is keyspace_hits / (keyspace_hits + keyspace_misses). That is the Redis perspective only. It does not see reads answered by a local in-process cache in front of it, and it treats multi-key calls as one op, so use it as a secondary check, not the primary metric.
 
-Miss rate is the metric to watch, not hit rate. A hit rate that stays high while the miss rate climbs at fixed traffic points at TTL or key-shape trouble. For stampede detection, watch cache miss rate and database connections together, the pattern in [development-stories](./development-stories.md).
+Miss rate is the metric to watch, not hit rate. A hit rate that stays high while the miss rate climbs at fixed traffic points at TTL or key-shape trouble. For stampede detection, watch cache miss rate and database connections together, the pattern in [development-stories](../software-engineering/development-stories.md).
 
 <div style={{display: 'flex', justifyContent: 'center'}}>
 
@@ -498,8 +530,8 @@ The framing interviewers reward, from the question banks reviewed: name the sour
 
 ### See also
 
-*   ../production-insights/cache-stampede.md - the coordinated miss, and 4 fixes trading wait vs stale
-*   ../production-insights/stale-is-eventual.md - why serving stale is bounded eventual consistency
-*   ../production-insights/strong-vs-eventual-cache.md - lock for strong, stale for eventual, the PACELC trade
-*   ./request-coalescing.md - single flight: turning a stampede into one call
-*   ./development-stories.md - a cache on the critical path is load-bearing infrastructure
+*   ./cache-stampede.md - the coordinated miss, and 4 fixes trading wait vs stale
+*   ./stale-is-eventual.md - why serving stale is bounded eventual consistency
+*   ./strong-vs-eventual-cache.md - lock for strong, stale for eventual, the PACELC trade
+*   ../software-engineering/request-coalescing.md - single flight: turning a stampede into one call
+*   ../software-engineering/development-stories.md - a cache on the critical path is load-bearing infrastructure

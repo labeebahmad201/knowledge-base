@@ -66,4 +66,4 @@ A short check helps: what does it assume, what does it cost, how did you test ou
 ### See also
 
 *   ./the-bottleneck-moved.md — why review and judgment are now the bottleneck
-*   ../production-insights/cache-stampede.md — an example where good versus bad is a stale window you must name before you ship
+*   ../caching/cache-stampede.md — an example where good versus bad is a stale window you must name before you ship
