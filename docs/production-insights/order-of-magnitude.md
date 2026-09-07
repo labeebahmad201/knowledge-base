@@ -6,6 +6,15 @@ sidebar_label: "Orders of Magnitude"
 
 > An order of magnitude is a factor of 10. Saying "Redis is orders of magnitude faster than a database" is a claim about power-of-10 gaps, and knowing how to count them keeps that claim honest.
 
+## TLDR
+
+*   **An order of magnitude is a factor of 10.** One order is 10x, two is 100x, three is 1,000x, six is a million.
+*   **It exists to make "faster" precise.** "Way faster" and "1,000x faster" sound similar but are 3 orders apart and lead to totally different architecture decisions.
+*   **Count the gap by subtracting exponents** (10^2 vs 10^5 = 3 orders), or by counting digits and subtracting.
+*   **Every step in the latency ladder is roughly the next order:** L1 cache ~ 0.5 ns, RAM ~ 100 ns, SSD ~ 0.1 ms, disk seek ~ 10 ms, network ~ 100 ms.
+*   **Logging a gap needs a full factor of 10.** A 5x difference is *not* an order; only a whole multiple of 10 counts.
+*   **Estimating is the classic use:** if you need 1,000x more throughput, you need ~1,000 servers, a design change, not a tweak. Within one order of magnitude, differences are noise.
+
 ## 1. The problem: "faster" is not a number
 
 Engineers compare things all the time: Redis vs PostgreSQL, memory vs disk, one API vs another. The casual way to describe the gap is "way faster" or "orders of magnitude faster", but neither says how much faster. In an interview or a design review, "roughly 10 times" and "roughly 1,000 times" sound similar, but they are 3 orders apart and lead to completely different architecture decisions.
