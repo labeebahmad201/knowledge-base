@@ -78,19 +78,6 @@ const config: Config = {
         },
 
         {
-          to: '/docs/api/rest',
-          label: 'API',
-          position: 'left',
-        },
-
-        {
-          type: 'doc',
-          docId: 'caching/index',
-          label: 'Caching',
-          position: 'left',
-        },
-
-        {
           to: '/insights',
           label: 'Insights',
           position: 'left',
