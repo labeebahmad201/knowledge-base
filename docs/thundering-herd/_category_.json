@@ -1,0 +1,10 @@
+{
+  "label": "Thundering Herd",
+  "position": 4.5,
+  "collapsible": true,
+  "collapsed": false,
+  "link": {
+    "type": "doc",
+    "id": "thundering-herd/overview"
+  }
+}
