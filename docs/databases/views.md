@@ -742,7 +742,7 @@ WHERE source_table.relname = 'orders'
 - `security_barrier` ordering guarantee: barrier prevents predicate pushdown that would bypass row filtering ([PostgreSQL, CREATE VIEW security_barrier](https://www.postgresql.org/docs/current/sql-createview.html)).
 - Materialized Views storage, `WITH NO DATA`, and `CONCURRENTLY` requiring a unique index, and indexability: ([PostgreSQL, CREATE MATERIALIZED VIEW](https://www.postgresql.org/docs/current/sql-creatematerializedview.html)) and ([PostgreSQL, REFRESH MATERIALIZED VIEW](https://www.postgresql.org/docs/current/sql-refreshmaterializedview.html)).
 - Dependency tracking in `pg_depend` and `pg_get_viewdef` / `information_schema.views`: ([PostgreSQL, Dependency Tracking](https://www.postgresql.org/docs/current/ddl-depend.html)) and ([PostgreSQL, information_schema.views](https://www.postgresql.org/docs/current/infoschema-views.html)).
-- Table lock modes for `REFRESH MATERIALIZED VIEW` vs `CONCURRENTLY` (`ACCESS EXCLUSIVE` vs `EXCLUSIVE`) ([see Postgres Locks](./postgresql-locks.md#table-lock-modes-weakest-to-strongest)).
+- Table lock modes for `REFRESH MATERIALIZED VIEW` vs `CONCURRENTLY` (`ACCESS EXCLUSIVE` vs `EXCLUSIVE`) ([see Postgres Locks](./postgresql-locks.md#table-level-locks)).
 - Query pipeline and Rewriter stage for View expansion ([see Postgres MVCC — Query Pipeline](./postgresql-mvcc.md#query-pipeline)).
 - General performance note that Views do not imply caching or indexing, analyze `EXPLAIN` first ([Use The Index, Luke, Views](https://use-the-index-luke.com/sql/views)).
 
