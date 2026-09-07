@@ -85,6 +85,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   [Caching: how it works + 5 layers + strategies](../caching/how-it-works.md) and [Redis vs Memcached](../caching/how-it-works.md#8-redis-vs-memcached)
 *   [Why The Cache: even when indexes are fast](../caching/why-cache.md) (the index speeds up the lookup, the cache removes the repeated work)
 *   Cache stampede — see [Cache Stampede: when cache expires and DB falls over](../caching/cache-stampede.md) (mutex lock, early recompute, [Stale is Eventual](../caching/stale-is-eventual.md), [Strong vs Eventual Cache](../caching/strong-vs-eventual-cache.md))
+*   Thundering herd — see [Thundering Herd: the retry storm that took down Braintree](../thundering-herd/thundering-herd.md) (fixed-interval retries retrample, fix is jitter + concurrency limit — category [overview](../thundering-herd/overview.md))
 *   Hot partition
 *   CDN (Day 2)
 *   Caching
@@ -141,6 +142,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Saga pattern
 *   Bulkhead isolation
 *   Backpressure
+*   Thundering herd — see [Thundering Herd: the retry storm that took down Braintree](../thundering-herd/thundering-herd.md) (fixed-interval retries retrample, why it is not backpressure — fix is jitter + concurrency limit)
 *   Write-ahead logging
 *   Tombstone records
 *   Bloom filters
@@ -150,12 +152,12 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   Read-your-writes consistency
 
 ## 9. Production & Resilience (12)
-*   Production Insights — see [overview](../production-insights/overview.md), [Cache Stampede](../caching/cache-stampede.md), [Stale is Eventual](../caching/stale-is-eventual.md), [Strong vs Eventual Cache](../caching/strong-vs-eventual-cache.md)
+*   Production Insights — see [overview](../production-insights/overview.md), [Cache Stampede](../caching/cache-stampede.md), [Thundering Herd](../thundering-herd/thundering-herd.md), [Stale is Eventual](../caching/stale-is-eventual.md), [Strong vs Eventual Cache](../caching/strong-vs-eventual-cache.md)
 *   Dead letter queue
 *   Circuit breaker
 *   Load Shedding
 *   Read replica lag
-*   Retry storm
+*   Retry storm / Thundering herd — see [Thundering Herd: the retry storm that took down Braintree](../thundering-herd/thundering-herd.md) (second wave retramples; fix is jitter + break coupling, not just queuing)
 *   Write amplification
 *   Connection Pooling
 *   Thread Pools & Async Processing
