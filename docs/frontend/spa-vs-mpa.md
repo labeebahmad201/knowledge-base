@@ -4,6 +4,16 @@ The web did not switch from MPA to SPA because SPA is better. It switched becaus
 
 If you remember the pain, you will remember when to use each model.
 
+## TLDR
+
+*   **MPA** (server renders full HTML): fast first paint, great SEO, but every click is a full reload. Good for documents.
+*   **SPA** (client renders with JS + AJAX): snappy interactions, no reloads, but slow first paint and bad for SEO. Good for apps.
+*   **The web evolved in pain steps:** MPA was too slow for apps, SPA broke SEO, so modern frameworks let you choose per page.
+*   **Hybrid rendering per route:** SSR/SSG for content that needs SEO (blog, docs, product pages), CSR for interactive UI behind login (dashboard, editor), ISR for large catalogs.
+*   **Hydration is the trick:** server sends ready HTML for immediate paint and crawlers, then JS takes over so the next navigation is SPA-fast.
+*   **Gated inventory pattern:** the same URL serves a public SSR preview for discovery (Google + anonymous users) and gates the action behind login. View is SSR, action is CSR. Used by LinkedIn Jobs, Airbnb, Upwork, Medium.
+*   **Decision rule:** if the user arrived from Google, that page wants SSR/SSG; if the user is already inside the app clicking around, that interaction wants CSR.
+
 ## The core idea in one line
 
 MPA is fast for the first paint and great for SEO but slow for interactions. SPA is snappy for interactions but slow for the first paint and bad for SEO. Modern frameworks let you choose per page.
