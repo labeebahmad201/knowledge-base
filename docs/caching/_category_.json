@@ -2,7 +2,7 @@
   "label": "Caching",
   "position": 1.9,
   "collapsible": true,
-  "collapsed": false,
+  "collapsed": true,
   "link": {
     "type": "doc",
     "id": "caching/index"
