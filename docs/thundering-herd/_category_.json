@@ -2,7 +2,7 @@
   "label": "Thundering Herd",
   "position": 4.5,
   "collapsible": true,
-  "collapsed": false,
+  "collapsed": true,
   "link": {
     "type": "doc",
     "id": "thundering-herd/overview"
