@@ -10,6 +10,7 @@ const categories = [
   {name: 'Artificial Intelligence', path: '/docs/artificial-intelligence/overview', desc: 'ML, LLMs, prompt engineering, RAG, AI engineering', icon: '🤖'},
   {name: 'Labs', path: '/docs/labs/overview', desc: 'Hands-on walkthroughs — Postgres, bash, Docker, cloud', icon: '🧪'},
   {name: 'Product', path: '/docs/product/overview', desc: 'Product thinking, marketing, and building for users', icon: '📦'},
+  {name: 'Changelog', path: '/docs/changelog', desc: 'What was added, changed, or removed in this knowledge base, date by date', icon: '📝'},
 ];
 
 export default function Home(): ReactNode {

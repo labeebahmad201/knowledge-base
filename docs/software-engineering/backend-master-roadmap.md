@@ -20,7 +20,7 @@ This is the consolidated list from all sessions, grouped for Why-First learning 
 *   GROUP BY/HAVING
 *   DISTINCT/ORDER BY/LIMIT
 *   Subquery/IN/EXISTS/CTE
-*   UNION vs UNION ALL
+*   UNION vs UNION ALL — see [UNION vs UNION ALL](../databases/union-vs-union-all.md) (dedup cost of UNION, ORDER BY/LIMIT traps, INTERSECT/EXCEPT, recursive CTEs)
 *   Window functions
 *   NULL/COALESCE
 *   Constraints/indexes/EXPLAIN

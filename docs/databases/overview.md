@@ -7,6 +7,8 @@ sidebar_position: 0
 SQL, Postgres internals, and how to choose a database. Start here.
 
 *   [SQL - Important Questions](./sql-introduction.md) - 45 sections, runnable in Supabase. The interview and on-the-job guide.
+*   [UNION vs UNION ALL](./union-vs-union-all.md) - combining result sets, dedup cost, ORDER BY traps.
+*   [INTERSECT and EXCEPT](./intersect-except.md) - rows in both, rows in one but not the other.
 *   [Database Comparison](./database-comparison.md) - Postgres, MongoDB, Cassandra, DynamoDB, CockroachDB, Redis when to use which.
 *   [Postgres MVCC](./postgresql-mvcc.md) - how Postgres handles concurrent transactions without blocking reads.
 *   [Postgres Locks](./postgresql-locks.md) - row vs table locks, `FOR UPDATE`, deadlocks.

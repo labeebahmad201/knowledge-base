@@ -359,7 +359,7 @@ SELECT user_id FROM orders WHERE amount > 100;
 
 <CopyToPlaygroundButton code={`SELECT user_id FROM orders WHERE status = 'paid' UNION SELECT user_id FROM orders WHERE amount > 100`} />
 
-Use `UNION ALL` unless you need deduping - the dedup is a sort that costs on big data.
+Use `UNION ALL` unless you need deduping - the dedup is a sort that costs on big data. See [UNION vs UNION ALL](./union-vs-union-all.md) for the deep dive, and [INTERSECT and EXCEPT](./intersect-except.md) for its siblings.
 
 ---
 
