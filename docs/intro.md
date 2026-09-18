@@ -9,3 +9,7 @@ A searchable collection of notes on computer science, software engineering, arti
 - [Frontend](/docs/frontend/overview) — React, hooks, rendering, state, web performance
 - [Artificial Intelligence](/docs/artificial-intelligence/overview) — ML fundamentals, LLMs, prompting, AI engineering
 - [Labs](/docs/labs/overview) — hands-on walkthroughs (Postgres, bash, etc.)
+
+## Latest Changes
+
+- [Changelog](/docs/changelog) — what was added, changed, or removed, date by date.
