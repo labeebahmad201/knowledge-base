@@ -238,7 +238,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- [Event Storming to Bounded Contexts workflow](./software-engineering/event-storming-login-on-the-board.md) ([#22](https://github.com/labeebahmad201/knowledge-base/pull/22)).
+- [Event Storming to Bounded Contexts](./software-engineering/event-storming-read-models-boundaries.md) - the full workflow from workshop output to documented bounded contexts ([#22](https://github.com/labeebahmad201/knowledge-base/pull/22)).
 
 ## [2026-07-29]
 
