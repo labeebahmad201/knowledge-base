@@ -174,9 +174,3 @@ The final thought is the one from the start. We cannot slow the clock, and we do
 *   — [Physicians' responses to time pressure](https://www.sciencedirect.com/science/article/pii/S0168851025000582) — 2025 — time pressure reduced diagnostic accuracy and increased documentation errors.
 *   — [The Role of Time Pressure on Procedural Performance: A Scoping Review](https://journals.sagepub.com/doi/full/10.1177/10711813251369783) — 2025 — time pressure effects differ by industry, with clear effects in aviation, nuclear power and oil and gas.
 *   — [The nonlinear effect of time pressure on innovation performance](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2022.1049174/full) — Frontiers in Psychology, 2022 — supports the inverted U shape of the pressure-performance relationship.
-
-### See also
-
-*   ./the-wave-does-not-wait.md — the theme of not letting an external clock decide your value
-*   ./own-the-lifecycle-not-the-ticket.md — keeping judgment with yourself instead of the system around you
-*   ../software-engineering/reliability-performance.md — why visible performance and real quality diverge under pressure
