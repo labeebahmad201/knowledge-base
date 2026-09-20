@@ -9,6 +9,7 @@
 - **Dictionaries** map keys to values and are how JSON records arrive in your code; a list of them behaves like a table of records.
 - `.format()` templates separate the prompt layout from the data, which is useful when a prompt structure stays fixed but the values change.
 - `.join()` concatenates a list of strings with a delimiter, converting a list of sentences into one formatted block of text.
+- **Keyword arguments** (`f(param=value)`) name which parameter a value fills, so calls with several settings stay readable and order independent, e.g. `generate_with_single_input(prompt="...")`.
 
 ## 1. The problem: LLM apps are mostly data plumbing
 
@@ -283,9 +284,57 @@ graph TD
 
 For retrieval this is the last mile: you have a list of chunk records, you render each into a readable line, and `join` folds them into one context block that goes into the model prompt. The whole lab is that four step pipeline from section 1, applied to real Python records.
 
-## 10. Summary
+## 10. Calling functions with keyword arguments
 
-This refresher covers the small set of Python tools a RAG developer actually uses every day. F-strings and `.format()` templates are how prompts are assembled from data. Lists and list comprehensions are how collections of items are stored and transformed. Dictionaries, and specifically lists of dictionaries, are how structured records arrive from APIs, databases, and retrieval. Finally, `.join()` flattens a list of rendered lines into the final prompt text. Each tool solves one concrete problem in the pipeline, and recognizing which one applies at each step is the skill the lab is trying to build.
+Once the prompt string is built, the next step in any RAG pipeline is handing it to a model. Calls like the ones from this course's lab code show a pattern that looks odd at first:
+
+```python
+output = generate_with_single_input(
+    prompt="What is the capital of France?"
+)
+```
+
+`prompt=` is not a variable assignment and `prompt` is not a variable. It is a **keyword argument**: it names the *parameter* of the function being called and supplies the value for it, filling the spot that the function's definition reserved.
+
+```python
+def generate_with_single_input(prompt):   # the function reserves a parameter named prompt
+    ...                                   # uses prompt internally
+
+question = "What is the capital of France?"
+output = generate_with_single_input(prompt=question)   # same, value now held in a variable
+```
+
+The value after the `=` can be a literal string, as in the first snippet, or any expression that evaluates to one, such as the variable `question` in the second. Either way the parameter name belongs to the function, not to your code.
+
+Why call it this way instead of just passing the string in order? Model calls take several settings, not one. A helper like `generate_with_single_input` typically also accepts a model name, a temperature, a token limit, and so on. Keyword arguments make those calls readable and robust:
+
+```python
+output = generate_with_single_input(
+    prompt=my_prompt,
+    model="gpt-4o",
+    temperature=0.2
+)
+```
+
+Every value is labeled, the order of the arguments no longer matters, and any setting you omit keeps its default. Without keywords you would have to remember both the number and the order of every parameter the function accepts, which is exactly the kind of detail you do not want to juggle while assembling a retrieval pipeline.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+  A[Ready-to-send prompt string] --> B[Call function with keyword arguments]
+  B --> C[Each keyword names the parameter it fills]
+  C --> D[Omitted parameters keep defaults]
+  D --> E[Model completion returned]
+```
+
+</div>
+
+The pattern generalizes to every LLM SDK and framework you will use. Older style calls pass arguments positionally and hope the order is right; keyword arguments say explicitly which string is the prompt, which number is the temperature, and so on. When you read `generate_with_single_input(prompt="What is the capital of France?")`, read it as "call this function with the prompt set to that string".
+
+## 11. Summary
+
+This refresher covers the small set of Python tools a RAG developer actually uses every day. F-strings and `.format()` templates are how prompts are assembled from data. Lists and list comprehensions are how collections of items are stored and transformed. Dictionaries, and specifically lists of dictionaries, are how structured records arrive from APIs, databases, and retrieval. `.join()` flattens a list of rendered lines into the final prompt text, and keyword arguments are how that text is handed to a model in a readable, order independent call. Each tool solves one concrete problem in the pipeline, and recognizing which one applies at each step is the skill the lab is trying to build.
 
 ## Sources
 
