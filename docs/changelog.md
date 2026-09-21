@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - [Metadata Filtering: The Retriever's Rigid Net](./artificial-intelligence/metadata-filtering.md) - the rigid-criteria technique for narrowing retrieval results, with the spreadsheet/SQL mental model, user-driven filters, and its strengths vs limitations.
 - [UNION vs UNION ALL](./databases/union-vs-union-all.md) - combining result sets, the hidden dedup cost, the ORDER BY/LIMIT gotcha, and what columns the dedup compares.
 - [INTERSECT and EXCEPT](./databases/intersect-except.md) - rows in both queries vs rows in one but not the other, with data reconciliation use cases.
+- [HTTP Fundamentals: Methods, Status Codes, Headers, and Idempotency](./software-engineering/http-fundamentals.md) - the request/response contract, safe/idempotent/cacheable methods, PUT vs PATCH vs POST, the status codes that matter and what each tells the caller to do next, the headers that cause real bugs, idempotency keys for POST, conditional requests with ETag/If-Match, and caching and statelessness as consequences.
 
 ## [2026-09-09]
 

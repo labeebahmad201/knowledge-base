@@ -10,7 +10,7 @@ The catalog below (sections 0-23) is the reference map. This path is the executi
 Everything assumes you can read code and trace one request end to end.
 1. Language choice (13b)
 2. JS/TS runtime: event loop, call stack, microtasks vs macrotasks, closures, this, prototypes (21a)
-3. Fundamentals (13): HTTP methods, status codes, request/response headers, DB connections and driver basics
+3. Fundamentals (13): [HTTP methods, status codes, request/response headers, idempotency](./http-fundamentals.md), DB connections and driver basics
 4. Networking (19): TCP/IP, UDP, HTTP 1.1/2/3, DNS, TLS/SSL, socket programming, WebSockets, gRPC transport, forward proxy, reverse proxy
 5. OOP and design patterns (18), then LLD (17): SOLID, class diagrams, API design at code level
 
@@ -311,7 +311,7 @@ Section 22: DSA patterns in TS, 2/day, by hand. Section 23: the round-by-round l
 *   Debugging techniques
 
 ## 13. Fundamentals (7 - deduped into deeper sections)
-*   HTTP methods
+*   [HTTP methods, status codes, request/response headers, idempotency](./http-fundamentals.md)
 *   Status codes
 *   Request/Response headers
 *   ORM
