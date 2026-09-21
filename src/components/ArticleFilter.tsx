@@ -26,6 +26,8 @@ const articles: Article[] = [
   {title: 'From Event Storming to Bounded Contexts (DDD)', path: '/docs/software-engineering/event-storming-read-models-boundaries', category: 'DDD'},
   {title: 'Aggregate Sizing: How Big Should an Aggregate Be?', path: '/docs/software-engineering/aggregate-sizing', category: 'DDD'},
   {title: 'Transaction Locking: How Two Updates Block Each Other', path: '/docs/software-engineering/transaction-locking', category: 'DDD'},
+  {title: 'Locks Only Live as Long as Your Transaction: What BEGIN Really Does', path: '/docs/software-engineering/lock-duration-and-begin', category: 'DDD'},
+  {title: "Do Concurrent UPDATEs Serialize in Autocommit? Yes, and Here's the Catch", path: '/docs/software-engineering/serialized-updates-autocommit', category: 'DDD'},
   {title: 'Strong vs Eventual Consistency', path: '/docs/software-engineering/strong-vs-eventual-consistency', category: 'DDD'},
   {title: 'Transactions Live Outside the Aggregate', path: '/docs/software-engineering/transactions-outside-aggregate', category: 'DDD'},
   {title: 'Aggregates and Bounded Contexts', path: '/docs/software-engineering/aggregates-and-boundaries', category: 'DDD'},
@@ -40,6 +42,7 @@ const articles: Article[] = [
   {title: 'Data Ownership in Redis', path: '/docs/software-engineering/redis-data-ownership', category: 'Engineering'},
   {title: 'Caching: How It Works, the 5 Layers, and the Strategies', path: '/docs/software-engineering/caching', category: 'Engineering'},
 
+  {title: 'Distributed Transactions: When 2PC Fails and Saga Is the Answer', path: '/docs/software-engineering/distributed-transactions', category: 'Architecture'},
   {title: 'Sagas: Managing Transactions That Span Multiple Services', path: '/docs/software-engineering/sagas', category: 'Architecture'},
   {title: 'Interface Implementation Pair', path: '/docs/software-engineering/interface-implementation-pair', category: 'Architecture'},
   {title: 'Microservices', path: '/docs/software-engineering/microservices', category: 'Architecture'},

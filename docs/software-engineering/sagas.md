@@ -389,6 +389,73 @@ This is why saga designers must use countermeasures, which Richardson describes 
 
 The countermeasures exist because the isolation problem cannot be fixed with a single mechanism. Each saga picks the countermeasures that match the business risk of its data.
 
+## Sequential or concurrent? How saga steps actually run
+
+Both, at two different levels. Within a single saga the local transactions run in **series**: step 2 is triggered by step 1's event, step 3 by step 2, and so on. There is no fan-out - the next step does not start until the previous one has committed and published its trigger. Compensation runs the same serial way, but in reverse: if step 3 fails, step 2 is compensated, then step 1.
+
+The execution is **asynchronous, not blocking**. After a service commits its local transaction it publishes the event and returns to other work; no thread waits for the whole saga to finish. The order is serial, but the running is event-driven.
+
+Across sagas, execution is **concurrent**. Many different sagas run at the same time and their steps interleave. This is the layer where the isolation problems live: Saga A is mid-flight when Saga B reads or writes the same data.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+    subgraph SA["Saga A - one serial chain"]
+        A1["T1: create order PENDING"] -->|event| A2["T2: reserve credit"]
+        A2 -->|event| A3["T3: approve order"]
+    end
+    subgraph SB["Saga B - runs at the same time"]
+        B1["T1: create order PENDING"] -->|event| B2["T2: reserve credit"]
+        B2 -->|event| B3["T3: approve order"]
+    end
+    A2 -. interleaves .-> B2
+    style A1 fill:#6bf,stroke:#333
+    style A2 fill:#6bf,stroke:#333
+    style A3 fill:#ff9,stroke:#333
+    style B1 fill:#6f6,stroke:#333
+    style B2 fill:#6f6,stroke:#333
+    style B3 fill:#ff9,stroke:#333
+```
+
+
+</div>
+
+
+The only exception to "serial within a saga" is an orchestrator that deliberately fans out commands to several independent participants in parallel. That is possible, but it makes ordering and compensation much harder - you now have to reason about partial failure across branches - so the standard model stays sequential.
+
+From the client's point of view the whole thing is deferred: `POST /orders` returns an `orderId` before the saga finishes, and the client learns the outcome by polling or by a pushed event (see "Telling the client what happened" below).
+
+## The eventual-consistency window
+
+The visible cost of a saga is a window of inconsistency between two local transactions. Step N commits and changes that service's data. Step N+1 has not run yet. For the time in between, the system sits in an intermediate, partially-applied state, and because a saga has no isolation, that state is visible to everyone else.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+    T1["T1 commits:<br/>Order = PENDING<br/>credit not yet reserved"] --> W["Consistency window:<br/>intermediate state visible<br/>to other readers and sagas"]
+    W --> T2["T2 commits:<br/>credit reserved,<br/>system consistent again"]
+    W --> ANOM["If another saga acts here:<br/>lost update / dirty read / fuzzy read"]
+    style T1 fill:#6bf,stroke:#333
+    style W fill:#f96,stroke:#333
+    style T2 fill:#6f6,stroke:#333
+    style ANOM fill:#ff9,stroke:#333
+```
+
+
+</div>
+
+
+The window is not a fixed, tiny amount of time. It is roughly the messaging and processing latency of the next step, so it is milliseconds when everything is healthy, but it stretches to seconds, minutes, or hours when a service is slow, a message is retried, a participant is down, or the saga is running compensations. "Short" is the happy path, not a property of the pattern.
+
+Two clarifications worth stating precisely:
+
+- **You pay it for lost isolation and lost global atomicity, not for atomicity itself.** A monolith with one ACID transaction keeps the intermediate state invisible. A saga exposes it in exchange for scalability and service autonomy, and offers business-level atomicity back through compensation.
+- **The consistency is eventual, and conditional.** If compensation fails (Azure: "compensating transactions might not always succeed, which can leave the system in an inconsistent state"), the system never reaches the consistent end state. The honest description is "eventually consistent and business-level atomic, assuming every compensation succeeds and every step is idempotent."
+
+The window itself is not the bug. It becomes a problem only when a concurrent reader or saga acts on the intermediate state, which is what produces the anomalies - lost updates, dirty reads, fuzzy reads - and why sagas need the countermeasures described above in the section on the lost "I".
+
 ## Reliable messaging: the hidden requirement
 
 For a saga to work, publishing an event must be reliable. The local transaction that updates the database and the message that triggers the next step must happen together. If the database commits but the message is lost, the saga stops silently halfway. If the message is sent but the database rolls back, the next service acts on work that never happened.
