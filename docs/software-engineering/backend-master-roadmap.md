@@ -8,7 +8,7 @@ The catalog below (sections 0-23) is the reference map. This path is the executi
 
 **Phase 1 - Language, runtime, and the wire**
 Everything assumes you can read code and trace one request end to end.
-1. Language choice (13b)
+1. [Language choice](./language-choice.md) (13b)
 2. JS/TS runtime: event loop, call stack, microtasks vs macrotasks, closures, this, prototypes (21a)
 3. Fundamentals (13): HTTP methods, status codes, request/response headers, DB connections and driver basics
 4. Networking (19): TCP/IP, UDP, HTTP 1.1/2/3, DNS, TLS/SSL, socket programming, WebSockets, gRPC transport, forward proxy, reverse proxy
@@ -320,7 +320,7 @@ Section 22: DSA patterns in TS, 2/day, by hand. Section 23: the round-by-round l
 *   Database connections & driver basics
 
 ## 13b. Language Choice
-*   When to use Node (I/O-heavy, JS everywhere) vs Python (data/ML, Django/FastAPI) vs Java (enterprise, Spring) vs Go (concurrency, low latency) vs Rust (systems, safety) - pick by team, hiring, and workload, not hype
+*   [Language Choice: How to Pick the Right Language for the Job](./language-choice.md) - when to use Node (I/O-heavy, JS everywhere) vs Python (data/ML, Django/FastAPI) vs Java (enterprise, Spring) vs Go (concurrency, low latency) vs Rust (systems, safety) - pick by team, hiring, and workload, not hype
 
 ## 14. Java & Big-Tech Depth (24) - not big individually, big career boost
 *   Distributed System Architectures

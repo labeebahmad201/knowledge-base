@@ -74,6 +74,7 @@ const articles: Article[] = [
   {title: 'Git Squash and Merge', path: '/docs/software-engineering/git-squash-and-merge', category: 'Engineering'},
   {title: 'Delete Branch After Merge', path: '/docs/software-engineering/delete-branch-after-merge', category: 'Engineering'},
   {title: 'Languages & Runtimes', path: '/docs/software-engineering/languages-runtimes', category: 'Engineering'},
+  {title: 'Language Choice: How to Pick the Right Language for the Job', path: '/docs/software-engineering/language-choice', category: 'Engineering'},
   {title: 'Leadership', path: '/docs/software-engineering/leadership', category: 'Engineering'},
   {title: 'Observability', path: '/docs/software-engineering/observability', category: 'Engineering'},
   {title: 'Debugging a Down System: Where to Start', path: '/docs/software-engineering/debugging-down-system', category: 'Engineering'},
