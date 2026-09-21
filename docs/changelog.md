@@ -13,6 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- [You Cannot Catch What You Cannot Read](./perspectives/you-cannot-catch-what-you-cannot-read.md) - why delegating a spec to AI means delegating hundreds of small decisions, why AI speed cuts both ways (build and break), and why the surviving skill is the ability to read generated code and spot the wrong choice, demonstrated with the lock-duration/2PC nuance.
+- [Do Concurrent UPDATEs Serialize in Autocommit? Yes, and Here's the Catch](./software-engineering/serialized-updates-autocommit.md) - why concurrent UPDATEs on the same row always serialize (row-level exclusive lock at FOR NO KEY UPDATE strength), what `BEGIN` really changes (the size of the lock window), and why the real autocommit danger is the read-then-write race.
+- [Locks Only Live as Long as Your Transaction: What BEGIN Really Does](./software-engineering/lock-duration-and-begin.md) - why a row lock is gone the moment the transaction ends, what `BEGIN` actually does, why autocommit releases locks instantly, and why row locks do not block plain readers (MVCC).
+- [Distributed Transactions: When 2PC Fails and Saga Is the Answer](./software-engineering/distributed-transactions.md) - the two mechanisms for atomicity across services, why two-phase commit blocks and couples, and when a saga with compensating transactions is the answer.
+- [Hybrid Search](./artificial-intelligence/hybrid-search.md) - how a retriever combines keyword search, semantic search, and metadata filtering into one final ranking, with the strengths of each technique and how to tune the balance.
+- [Keyword Search: Matching the Words](./artificial-intelligence/keyword-search.md) - the bag-of-words sparse-vector technique behind retrieval, from simple presence scoring through length normalization and TF-IDF to BM25's saturation, length normalization, and tunable hyperparameters.
+- [Metadata Filtering: The Retriever's Rigid Net](./artificial-intelligence/metadata-filtering.md) - the rigid-criteria technique for narrowing retrieval results, with the spreadsheet/SQL mental model, user-driven filters, and its strengths vs limitations.
 - [UNION vs UNION ALL](./databases/union-vs-union-all.md) - combining result sets, the hidden dedup cost, the ORDER BY/LIMIT gotcha, and what columns the dedup compares.
 - [INTERSECT and EXCEPT](./databases/intersect-except.md) - rows in both queries vs rows in one but not the other, with data reconciliation use cases.
 

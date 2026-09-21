@@ -21,7 +21,7 @@ graph TD
 ```
 
 For every concept add a paragraph and mermaid diagram that renders.
-Add a TLDR section at the very top of the article (right after the title, before the first section) that summarizes the core takeaways in a short bulleted list, so the reader can choose to skim or read the whole thing. Keep it to a handful of short bullets. Cover the "too long, didn't read" ground: what the thing is, the one problem it solves, the key rules/decisions, and any prominent recommendation.
+Add a TLDR section at the very top of the article (right after the title, before the first section) that summarizes the core takeaways in a short bulleted list, so the reader can choose to skim or read the whole thing. Keep it to a handful of short bullets. Cover the "too long, didn't read" ground: what the thing is, the one problem it solves, the key rules/decisions, and any prominent recommendation. Make sure that TLDR mentions all nuances.
 Make it easy to read for humans. 
 Don't keep paragraph too shot but don't make it verbose as well. 
 Include examples.
@@ -29,3 +29,4 @@ Make article exhaustive.
 Article should be in 'problem' and solution format. It should clearly show what this solution is for. Thereby making sure that readers learn to apply knowledge to situations and not just know it.
 For technology that u are writing about make sure that u provide the context that what problem it solved and why this technology was necessary. I say this cause then it will help reader decide that hey I can use it to solve x problem etc.
 Write article based on human written sources instead of generating AI based non sense, make it  properly sourced and backed.
+As LLM hallucinates, so you need to properly source everything in the article that you write.
