@@ -489,8 +489,23 @@ Knowledge and DSA are necessary, not sufficient. This is the actual test harness
 *   Golden rule across all rounds: explain like a teacher, not a memorizer - say the trade-off, not just the pattern
 *   The "why hire developers if AI builds everything" question — see [You Cannot Catch What You Cannot Read](../perspectives/you-cannot-catch-what-you-cannot-read.md) (delegating a spec = delegating hundreds of decisions; speed cuts both ways; the surviving skill is reading generated code and spotting the wrong choice, trained by the lock-duration/transaction fundamentals)
 
+## Perspectives - the industry context around all of this
+
+The catalog above is *what* to learn. These are takes on *why it matters and where it is going*, kept in the [Perspectives](../perspectives/overview.md) section. Read them alongside the plan for context, not as study material.
+
+*   [The Bottleneck Moved](../perspectives/the-bottleneck-moved.md) - the bottleneck shifts from writing code to judgment; the scarce skill is deciding what correct means
+*   [Developers Will Move Closer to the Customer](../perspectives/developers-closer-to-customer.md) - when coding gets cheap, understanding what to build is what is left, and that forces a conversation
+*   [Ownership Stays With You](../perspectives/ownership-stays-with-you.md) - the agent ships, but you review it, ship it, and answer for it
+*   [Own the Lifecycle, Not the Ticket](../perspectives/own-the-lifecycle-not-the-ticket.md) - a ticket tells you what to type; a feature asks you to own the whole arc
+*   [The Architect Could Always Code](../perspectives/architect-could-always-code.md) - three eras of software, and why the unease is the bottleneck moving rather than the skill dying
+*   [The Wave Does Not Wait](../perspectives/the-wave-does-not-wait.md) - shifts happen whether you accept them or not; your choice is which side of the wave you are on
+*   [Where the Value Actually Sits](../perspectives/where-the-value-actually-sits.md) - the leverage is the retrieval, the tools, the loop, and the judgment that supervises them
+*   [You Can Slow Time](../perspectives/you-can-slow-time.md) - attention dilates perceived time, which matters when the incident is live and the pressure is high
+*   [You Cannot Catch What You Cannot Read](../perspectives/you-cannot-catch-what-you-cannot-read.md) - delegating a spec delegates hundreds of decisions; the surviving skill is reading generated code and spotting the wrong choice
+*   **[The Software Factory Mirage](../perspectives/the-software-factory-mirage.md)** - the "coding is solved" narrative and the "you are holding it wrong" rebuttal describe the same tool; choose your own integration level and protect the domain expertise that lets you supervise it
+
 ---
 
 **Total: ~271 topics** (deduplicated from ~305; every topic now appears exactly once, duplicates removed). AWS services, Well-Architected, the 14-day chaos plan and the mono-repo are plans/action-items, not topics. Work the topics in the **Learning Path** order at the top, roughly 2-3 deep per day (Why-First + runnable), and finish each phase by building its mono-repo project. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
 
-*Last updated: 2026-09-21 - added dependency-ordered Learning Path and gap topics (outbox/inbox, SLI/SLO, Little's Law, deployment strategies, zero-downtime migrations)*
+*Last updated: 2026-09-21 - added dependency-ordered Learning Path and gap topics (outbox/inbox, SLI/SLO, Little's Law, deployment strategies, zero-downtime migrations); linked the Perspectives reading list and added The Software Factory Mirage*
