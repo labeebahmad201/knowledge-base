@@ -1,0 +1,10 @@
+{
+  "label": "Go",
+  "position": 1,
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "doc",
+    "id": "software-engineering/go/golang"
+  }
+}
