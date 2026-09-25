@@ -8,7 +8,7 @@ The catalog below (sections 0-23) is the reference map. This path is the executi
 
 **Phase 1 - Language, runtime, and the wire**
 Everything assumes you can read code and trace one request end to end.
-1. Language choice (13b), and the [Go origin story](./go/golang.md) (what Go is, who built it, why it exists) for context on the concurrency and cloud-infra picks
+1. Language choice (13b), and the [Go fundamentals series](./go/golang.md) (13c, the concurrency and cloud-infra pick)
 2. JS/TS runtime: event loop, call stack, microtasks vs macrotasks, closures, this, prototypes (21a)
 3. Fundamentals (13): [HTTP methods, status codes, request/response headers, idempotency](./http-fundamentals.md), DB connections and driver basics
 4. Networking (19): TCP/IP, UDP, HTTP 1.1/2/3, DNS, TLS/SSL, socket programming, WebSockets, gRPC transport, forward proxy, reverse proxy
@@ -321,7 +321,22 @@ Section 22: DSA patterns in TS, 2/day, by hand. Section 23: the round-by-round l
 
 ## 13b. Language Choice
 *   When to use Node (I/O-heavy, JS everywhere) vs Python (data/ML, Django/FastAPI) vs Java (enterprise, Spring) vs Go (concurrency, low latency) vs Rust (systems, safety) - pick by team, hiring, and workload, not hype
-*   [Go (Golang): What It Is, Who Built It, and Why](./go/golang.md) - Go's origin (Griesemer, Pike, Thompson, Sept 21 2007 at Google), the problems it was built to solve (slow builds, uncontrolled dependencies, multicore concurrency), its design bets (goroutines + channels, no type hierarchy, errors as values), and when to reach for it vs avoid it
+
+## 13c. Go (Golang) - the concurrency and cloud-infra pick
+
+Go is the language the roadmap leans on for the concurrency and cloud-infra sections: fast builds, goroutines + channels, and a single static binary. Start at the [Go series hub](./go/golang.md) for context on what Go is and who built it, then work through the fundamentals in order:
+
+*   [Variables and type inference](./go/go-variables.md) - `var` vs `:=`, how Go keeps static typing without the ceremony, and function vs package level declarations
+*   [Constants](./go/go-constants.md) - `const`, the block form, untyped constants, and why they cannot use `:=`
+*   [Bit-shift operators](./go/go-bit-shift-operators.md) - expressing powers of two and bit masks with the `<<` and `>>` operators
+*   [Functions, multiple return values, and named results](./go/go-functions.md) - the `(value, error)` idiom and bare returns
+*   [Function values (anonymous functions)](./go/go-function-values.md) - functions as values, closures, callbacks
+*   [Printing: `fmt` vs the built-in `print`](./go/go-printing-fmt.md) - `Println`, `Printf`, and `Sprintf`
+*   [Packages and the `main` entry point](./go/go-packages.md) - `package main`, `func main`, and package naming
+*   [Imports and code location (GOPATH)](./go/go-imports-gopath.md) - import paths, `go get`, and the `src`/`pkg`/`bin` layout, plus GOPATH vs Go modules
+*   [Exported names (the capital letter rule)](./go/go-exported-names.md) - Go's `public`/`private` replacement
+*   [Pointers](./go/go-pointers.md) - `&`, `*`, no pointer arithmetic, and pointer receivers
+*   [Mutability: pass by value vs pass by reference](./go/go-mutability.md) - why your function did not change your variable
 
 ## 14. Java & Big-Tech Depth (24) - not big individually, big career boost
 *   Distributed System Architectures
