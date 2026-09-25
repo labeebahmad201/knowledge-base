@@ -8,7 +8,7 @@ The catalog below (sections 0-23) is the reference map. This path is the executi
 
 **Phase 1 - Language, runtime, and the wire**
 Everything assumes you can read code and trace one request end to end.
-1. Language choice (13b)
+1. Language choice (13b), and the [Go origin story](./go/golang.md) (what Go is, who built it, why it exists) for context on the concurrency and cloud-infra picks
 2. JS/TS runtime: event loop, call stack, microtasks vs macrotasks, closures, this, prototypes (21a)
 3. Fundamentals (13): [HTTP methods, status codes, request/response headers, idempotency](./http-fundamentals.md), DB connections and driver basics
 4. Networking (19): TCP/IP, UDP, HTTP 1.1/2/3, DNS, TLS/SSL, socket programming, WebSockets, gRPC transport, forward proxy, reverse proxy
@@ -321,6 +321,7 @@ Section 22: DSA patterns in TS, 2/day, by hand. Section 23: the round-by-round l
 
 ## 13b. Language Choice
 *   When to use Node (I/O-heavy, JS everywhere) vs Python (data/ML, Django/FastAPI) vs Java (enterprise, Spring) vs Go (concurrency, low latency) vs Rust (systems, safety) - pick by team, hiring, and workload, not hype
+*   [Go (Golang): What It Is, Who Built It, and Why](./go/golang.md) - Go's origin (Griesemer, Pike, Thompson, Sept 21 2007 at Google), the problems it was built to solve (slow builds, uncontrolled dependencies, multicore concurrency), its design bets (goroutines + channels, no type hierarchy, errors as values), and when to reach for it vs avoid it
 
 ## 14. Java & Big-Tech Depth (24) - not big individually, big career boost
 *   Distributed System Architectures

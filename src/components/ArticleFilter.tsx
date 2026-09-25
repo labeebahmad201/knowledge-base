@@ -85,6 +85,18 @@ const articles: Article[] = [
   {title: 'Error Log: Hand-Coding Sessions', path: '/docs/software-engineering/error-log', category: 'Engineering'},
   {title: 'Request Coalescing: Turning a Stampede into a Single Call', path: '/docs/software-engineering/request-coalescing', category: 'Engineering'},
   {title: 'HTTP Fundamentals: Methods, Status Codes, Headers, and Idempotency', path: '/docs/software-engineering/http-fundamentals', category: 'Engineering'},
+  {title: 'Go: The Series Hub', path: '/docs/software-engineering/go/golang', category: 'Go'},
+  {title: 'Go Variables and Type Inference', path: '/docs/software-engineering/go/go-variables', category: 'Go'},
+  {title: 'Go Constants', path: '/docs/software-engineering/go/go-constants', category: 'Go'},
+  {title: 'Go Bit-Shift Operators', path: '/docs/software-engineering/go/go-bit-shift-operators', category: 'Go'},
+  {title: 'Go Functions, Multiple Return Values, and Named Results', path: '/docs/software-engineering/go/go-functions', category: 'Go'},
+  {title: 'Go Function Values (Anonymous Functions)', path: '/docs/software-engineering/go/go-function-values', category: 'Go'},
+  {title: 'Go Printing: fmt vs the Built-in print', path: '/docs/software-engineering/go/go-printing-fmt', category: 'Go'},
+  {title: 'Go Packages and the main Entry Point', path: '/docs/software-engineering/go/go-packages', category: 'Go'},
+  {title: 'Go Imports and Code Location (GOPATH)', path: '/docs/software-engineering/go/go-imports-gopath', category: 'Go'},
+  {title: 'Go Exported Names (Capital Letter Rule)', path: '/docs/software-engineering/go/go-exported-names', category: 'Go'},
+  {title: 'Go Pointers', path: '/docs/software-engineering/go/go-pointers', category: 'Go'},
+  {title: 'Go Mutability: Pass by Value vs Reference', path: '/docs/software-engineering/go/go-mutability', category: 'Go'},
   {title: 'DDIA: Designing Data-Intensive Applications', path: '/docs/software-engineering/books/ddia', category: 'Books'},
 
   {title: 'The AI Application Stack', path: '/docs/software-engineering/ai-application-stack', category: 'AI'},
@@ -92,7 +104,7 @@ const articles: Article[] = [
   {title: 'The Evolving Developer: How AI Reshapes Software Engineering', path: '/docs/artificial-intelligence/the-evolving-developer', category: 'AI'},
 ];
 
-const categoryOrder = ['Architecture', 'Testing', 'Engineering', 'Books', 'AI', 'DDD'];
+const categoryOrder = ['Architecture', 'Testing', 'Go', 'Engineering', 'Books', 'AI', 'DDD'];
 
 export default function ArticleFilter(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
