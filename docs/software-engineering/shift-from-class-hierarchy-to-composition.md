@@ -70,7 +70,7 @@ flowchart TD
 
 ## The industry confirmed the direction
 
-The GoF made it a rule in 1994 (*Design Patterns*, p. 20). React's documentation says "we recommend using composition instead of inheritance to reuse code between components." Go ships no type hierarchy at all (composition through interfaces and embedding), and Rust replaced inheritance with traits. The full principle, the deciding tests, and the refactorings are in [Favor Object Composition Over Class Inheritance](./composition-over-inheritance.md).
+The GoF made it a rule in 1994 (*Design Patterns*, p. 20). React's documentation says "we recommend using composition instead of inheritance to reuse code between components." Go ships no type hierarchy at all (composition through interfaces and embedding), and Rust replaced inheritance with traits.
 
 ## The one rule
 
@@ -83,4 +83,3 @@ Reach for composition first: hold a collaborator behind an interface and delegat
 - Alan Snyder, "Encapsulation and Inheritance in Object-Oriented Programming Languages", *OOPSLA '86* (fragile base class problem).
 - The Go Programming Language, [FAQ](https://go.dev/doc/faq), "Why is there no type inheritance?" (no type hierarchy; relationships "often could be derived automatically").
 - React documentation, [Composition vs Inheritance](https://legacy.reactjs.org/docs/composition-vs-inheritance.html) ("we recommend using composition instead of inheritance").
-- Related: [Favor Object Composition Over Class Inheritance](./composition-over-inheritance.md), [Modeling Variation](./modeling-variation.md).
