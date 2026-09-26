@@ -20,6 +20,18 @@ Go is a statically typed, compiled language built at Google by Robert Griesemer,
 - [Pointers](./go-pointers.md) - `&`, `*`, no pointer arithmetic, and pointer receivers.
 - [Mutability: pass by value vs pass by reference](./go-mutability.md) - why your function did not change your variable.
 
+## Types and data
+
+- [Basic types](./go-basic-types.md) - `bool`, `string`, the numeric types, and the `byte`/`rune` aliases.
+- [Type conversion (and the `string(int)` gotcha)](./go-type-conversion.md) - `T(v)` and why `string(65)` is `"A"`, not `"65"`.
+- [Structs](./go-structs.md) - fields, keyed vs positional literals, zero values, and `&T{}` vs `new(T)`.
+
+## Interfaces and composition
+
+- [Interfaces](./go-interfaces.md) - method signatures only, implicit satisfaction, and Go's polymorphism.
+- [Type assertions and type switches](./go-type-assertions.md) - the comma-ok form and recovering a concrete value from `interface{}`.
+- [Composition (struct embedding)](./go-composition.md) - embedding structs and pointers, method promotion.
+
 ## Still to come
 
 - What Go is and who built it (one-page intro)
