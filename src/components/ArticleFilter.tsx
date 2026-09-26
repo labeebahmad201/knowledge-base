@@ -104,6 +104,7 @@ const articles: Article[] = [
   {title: 'Go Interfaces', path: '/docs/software-engineering/go/go-interfaces', category: 'Go'},
   {title: 'Go Type Assertions and Type Switches', path: '/docs/software-engineering/go/go-type-assertions', category: 'Go'},
   {title: 'Go Composition (Struct Embedding)', path: '/docs/software-engineering/go/go-composition', category: 'Go'},
+  {title: 'Why Go Has No Type Inheritance', path: '/docs/software-engineering/go/why-go-has-no-type-inheritance', category: 'Go'},
   {title: 'DDIA: Designing Data-Intensive Applications', path: '/docs/software-engineering/books/ddia', category: 'Books'},
 
   {title: 'The AI Application Stack', path: '/docs/software-engineering/ai-application-stack', category: 'AI'},
