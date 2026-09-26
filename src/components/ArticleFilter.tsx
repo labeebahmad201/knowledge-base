@@ -97,6 +97,12 @@ const articles: Article[] = [
   {title: 'Go Exported Names (Capital Letter Rule)', path: '/docs/software-engineering/go/go-exported-names', category: 'Go'},
   {title: 'Go Pointers', path: '/docs/software-engineering/go/go-pointers', category: 'Go'},
   {title: 'Go Mutability: Pass by Value vs Reference', path: '/docs/software-engineering/go/go-mutability', category: 'Go'},
+  {title: 'Go Basic Types', path: '/docs/software-engineering/go/go-basic-types', category: 'Go'},
+  {title: 'Go Type Conversion (and the string(int) Gotcha)', path: '/docs/software-engineering/go/go-type-conversion', category: 'Go'},
+  {title: 'Go Structs', path: '/docs/software-engineering/go/go-structs', category: 'Go'},
+  {title: 'Go Interfaces', path: '/docs/software-engineering/go/go-interfaces', category: 'Go'},
+  {title: 'Go Type Assertions and Type Switches', path: '/docs/software-engineering/go/go-type-assertions', category: 'Go'},
+  {title: 'Go Composition (Struct Embedding)', path: '/docs/software-engineering/go/go-composition', category: 'Go'},
   {title: 'DDIA: Designing Data-Intensive Applications', path: '/docs/software-engineering/books/ddia', category: 'Books'},
 
   {title: 'The AI Application Stack', path: '/docs/software-engineering/ai-application-stack', category: 'AI'},
