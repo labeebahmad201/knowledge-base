@@ -34,13 +34,25 @@ flowchart TD
 
 ## What Go's designers objected to
 
-The Go FAQ answers the question "Why is there no type inheritance?" directly:
-
-> Object-oriented programming, at least in the best-known languages, involves too much discussion of the relationships between types, relationships that often could be derived automatically. Go takes a different approach.
+The Go FAQ answers the question "Why is there no type inheritance?" directly. Its opening sentence names the objection: object-oriented programming, "at least in the best-known languages, involves too much discussion of the relationships between types, relationships that often could be derived automatically."
 
 The complaint is about **bookkeeping**. In Java or C++, the compiler already knows that `Dog` has a `bark` method and an `Animal` has a `bark` method. The programmer still has to spell out `extends Animal`, and the whole program is shaped around that declaration. Go's position is that the relationship "Dog is usable as an Animal" is implied by the method set, so making the programmer write it down adds ceremony without adding information. The FAQ's guiding-principles section states the same idea from the design side: "there is no type hierarchy: types just are, they don't have to announce their relationships."
 
 The FAQ's "Why did you create a new language?" entry lists this as one of the foundational choices: Go has "a compositional rather than hierarchical type system."
+
+## The original answer
+
+Here is the Go FAQ's full answer, verbatim:
+
+> Object-oriented programming, at least in the best-known languages, involves too much discussion of the relationships between types, relationships that often could be derived automatically. Go takes a different approach.
+>
+> Rather than requiring the programmer to declare ahead of time that two types are related, in Go a type automatically satisfies any interface that specifies a subset of its methods. Besides reducing the bookkeeping, this approach has real advantages. Types can satisfy many interfaces at once, without the complexities of traditional multiple inheritance. Interfaces can be very lightweight—an interface with one or even zero methods can express a useful concept. Interfaces can be added after the fact if a new idea comes along or for testing—without annotating the original types. Because there are no explicit relationships between types and interfaces, there is no type hierarchy to manage or discuss.
+>
+> It’s possible to use these ideas to construct something analogous to type-safe Unix pipes. For instance, see how `fmt.Fprintf` enables formatted printing to any output, not just a file, or how the `bufio` package can be completely separate from file I/O, or how the `image` packages generate compressed image files. All these ideas stem from a single interface (`io.Writer`) representing a single method (`Write`). And that’s only scratching the surface. Go’s interfaces have a profound influence on how programs are structured.
+>
+> It takes some getting used to but this implicit style of type dependency is one of the most productive things about Go.
+
+Source: [Go FAQ, "Why is there no type inheritance?"](https://go.dev/doc/faq#inheritance).
 
 ## The quote, explained
 
@@ -48,7 +60,7 @@ Each claim in the FAQ answer is a design decision. Taken one at a time:
 
 ### Relationships are derived, not declared
 
-> Rather than requiring the programmer to declare ahead of time that two types are related, in Go a type automatically satisfies any interface that specifies a subset of its methods. Besides reducing the bookkeeping, this approach has real advantages.
+> Rather than requiring the programmer to declare ahead of time that two types are related, in Go a type automatically satisfies any interface that specifies a subset of its methods.
 
 This is **implicit (or structural) interface satisfaction**. An interface is just a set of method signatures. Any type whose method set is a superset of that interface satisfies it, with no registration anywhere. `Dog` does not mention `Speaker`; it merely has `Speak() string`, and that is enough.
 
