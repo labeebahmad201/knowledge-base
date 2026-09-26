@@ -19,6 +19,7 @@ const articles: Article[] = [
   {title: 'Decoupling Moves Complexity', path: '/docs/software-engineering/decoupling-moves-complexity', category: 'Architecture'},
   {title: 'Decoupling Case Studies: When to Apply Each Level', path: '/docs/software-engineering/decoupling-case-studies', category: 'Architecture'},
   {title: 'Refactoring', path: '/docs/software-engineering/refactoring', category: 'Architecture'},
+  {title: 'The Shift from Class Hierarchy to Composition: Why the Industry Moved', path: '/docs/software-engineering/shift-from-class-hierarchy-to-composition', category: 'Architecture'},
   {title: 'Abstract Factory: Creating a Family of Objects Without Naming Them', path: '/docs/software-engineering/abstract-factory', category: 'Architecture'},
   {title: 'Deployment is a Configuration Choice (If You Have Boundaries)', path: '/docs/software-engineering/deployment-configuration-choice', category: 'Architecture'},
   {title: 'From Event Storming to Bounded Contexts', path: '/docs/software-engineering/event-storming-read-models-boundaries', category: 'Architecture'},
