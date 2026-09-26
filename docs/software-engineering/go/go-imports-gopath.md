@@ -20,7 +20,7 @@ An import statement names a package, but the compiler does not automatically dow
 
 ```mermaid
 flowchart TD
-    IMP["import \"github.com/x/y\""] --> TELLS["tells compiler which package to use"]
+    IMP["import 'github.com/x/y'"] --> TELLS["tells compiler which package to use"]
     TELLS --> NEED["does NOT download anything"]
     FETCH["go get github.com/x/y"] --> DOWN["downloads code into GOPATH"]
     DOWN --> FOUND["compiler now finds it"]
