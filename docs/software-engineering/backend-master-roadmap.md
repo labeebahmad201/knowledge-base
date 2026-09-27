@@ -520,9 +520,12 @@ The catalog above is *what* to learn. These are takes on *why it matters and whe
 *   [You Can Slow Time](../perspectives/you-can-slow-time.md) - attention dilates perceived time, which matters when the incident is live and the pressure is high
 *   [You Cannot Catch What You Cannot Read](../perspectives/you-cannot-catch-what-you-cannot-read.md) - delegating a spec delegates hundreds of decisions; the surviving skill is reading generated code and spotting the wrong choice
 *   **[The Software Factory Mirage](../perspectives/the-software-factory-mirage.md)** - the "coding is solved" narrative and the "you are holding it wrong" rebuttal describe the same tool; choose your own integration level and protect the domain expertise that lets you supervise it
+*   [The Review-Only Paradox](../perspectives/review-only-paradox.md) - reviewing code you did not write erodes the judgment you review with; skill is fed by producing, so keep writing some code, predicting the diff, and explaining the code back
 
 ---
 
 **Total: ~271 topics** (deduplicated from ~305; every topic now appears exactly once, duplicates removed). AWS services, Well-Architected, the 14-day chaos plan and the mono-repo are plans/action-items, not topics. Work the topics in the **Learning Path** order at the top, roughly 2-3 deep per day (Why-First + runnable), and finish each phase by building its mono-repo project. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
 
-*Last updated: 2026-09-21 - added dependency-ordered Learning Path and gap topics (outbox/inbox, SLI/SLO, Little's Law, deployment strategies, zero-downtime migrations); linked the Perspectives reading list and added The Software Factory Mirage*
+*Last updated: 2026-09-27 - added The Review-Only Paradox to the Perspectives reading list*
+
+*Previous (2026-09-21): added dependency-ordered Learning Path and gap topics (outbox/inbox, SLI/SLO, Little's Law, deployment strategies, zero-downtime migrations); linked the Perspectives reading list and added The Software Factory Mirage*
