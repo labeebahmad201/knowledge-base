@@ -326,17 +326,31 @@ Section 22: DSA patterns in TS, 2/day, by hand. Section 23: the round-by-round l
 
 Go is the language the roadmap leans on for the concurrency and cloud-infra sections: fast builds, goroutines + channels, and a single static binary. Start at the [Go series hub](./go/golang.md) for context on what Go is and who built it, then work through the fundamentals in order:
 
+*   [Packages and the `main` entry point](./go/go-packages.md) - `package main`, `func main`, and package naming
+*   [Imports and code location (GOPATH)](./go/go-imports-gopath.md) - import paths, `go get`, and the `src`/`pkg`/`bin` layout, plus GOPATH vs Go modules
+*   [Exported names (the capital letter rule)](./go/go-exported-names.md) - Go's `public`/`private` replacement
 *   [Variables and type inference](./go/go-variables.md) - `var` vs `:=`, how Go keeps static typing without the ceremony, and function vs package level declarations
 *   [Constants](./go/go-constants.md) - `const`, the block form, untyped constants, and why they cannot use `:=`
+*   [Basic types](./go/go-basic-types.md) - booleans, strings, the numeric family, the `byte`/`rune` aliases, and zero values
+*   [Type conversion](./go/go-type-conversion.md) - explicit `T(v)`, why Go never converts implicitly, and the `string(int)` gotcha
+*   [For loops](./go/go-for-loops.md) - the single loop form: `for init; cond; post`, the while-style drop, and `for { }`
+*   [If statements](./go/go-if.md) - no parentheses, required braces, and the scoped `if v := f(); v < lim`
+*   [Switch](./go/go-switch.md) - same-type cases, multiple values, `default`, `fallthrough`, and `break`
 *   [Bit-shift operators](./go/go-bit-shift-operators.md) - expressing powers of two and bit masks with the `<<` and `>>` operators
 *   [Functions, multiple return values, and named results](./go/go-functions.md) - the `(value, error)` idiom and bare returns
 *   [Function values (anonymous functions)](./go/go-function-values.md) - functions as values, closures, callbacks
 *   [Printing: `fmt` vs the built-in `print`](./go/go-printing-fmt.md) - `Println`, `Printf`, and `Sprintf`
-*   [Packages and the `main` entry point](./go/go-packages.md) - `package main`, `func main`, and package naming
-*   [Imports and code location (GOPATH)](./go/go-imports-gopath.md) - import paths, `go get`, and the `src`/`pkg`/`bin` layout, plus GOPATH vs Go modules
-*   [Exported names (the capital letter rule)](./go/go-exported-names.md) - Go's `public`/`private` replacement
 *   [Pointers](./go/go-pointers.md) - `&`, `*`, no pointer arithmetic, and pointer receivers
 *   [Mutability: pass by value vs pass by reference](./go/go-mutability.md) - why your function did not change your variable
+*   [Structs](./go/go-structs.md) - collections of fields, struct literals, exported fields, and composition without inheritance
+*   [Arrays](./go/go-arrays.md) - the fixed-length `[n]T` with the length as part of the type
+*   [Slices](./go/go-slices.md) - the resizable view over an array, `append`, `len`/`cap`, and shared backing arrays
+*   [Range](./go/go-range.md) - iterating slices and maps with `range`, the index/key and value, and `break`/`continue`
+*   [Maps](./go/go-maps.md) - key-value collections, `make` vs nil, and the two-value presence test
+*   [Interfaces](./go/go-interfaces.md) - method signatures only, implicit satisfaction, and runtime dispatch
+*   [Type assertions](./go/go-type-assertions.md) - recovering the concrete value, the comma-ok form, and type switches
+*   [Composition](./go/go-composition.md) - embedding for reuse via promoted fields and methods
+*   [Why Go has no type inheritance](./go/why-go-has-no-type-inheritance.md) - the Go FAQ's case against type inheritance, and what replaces it
 
 ## 14. Java & Big-Tech Depth (24) - not big individually, big career boost
 *   Distributed System Architectures
@@ -520,9 +534,12 @@ The catalog above is *what* to learn. These are takes on *why it matters and whe
 *   [You Can Slow Time](../perspectives/you-can-slow-time.md) - attention dilates perceived time, which matters when the incident is live and the pressure is high
 *   [You Cannot Catch What You Cannot Read](../perspectives/you-cannot-catch-what-you-cannot-read.md) - delegating a spec delegates hundreds of decisions; the surviving skill is reading generated code and spotting the wrong choice
 *   **[The Software Factory Mirage](../perspectives/the-software-factory-mirage.md)** - the "coding is solved" narrative and the "you are holding it wrong" rebuttal describe the same tool; choose your own integration level and protect the domain expertise that lets you supervise it
+*   [The Review-Only Paradox](../perspectives/review-only-paradox.md) - reviewing code you did not write erodes the judgment you review with; skill is fed by producing, so keep writing some code, predicting the diff, and explaining the code back
 
 ---
 
 **Total: ~271 topics** (deduplicated from ~305; every topic now appears exactly once, duplicates removed). AWS services, Well-Architected, the 14-day chaos plan and the mono-repo are plans/action-items, not topics. Work the topics in the **Learning Path** order at the top, roughly 2-3 deep per day (Why-First + runnable), and finish each phase by building its mono-repo project. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
 
-*Last updated: 2026-09-21 - added dependency-ordered Learning Path and gap topics (outbox/inbox, SLI/SLO, Little's Law, deployment strategies, zero-downtime migrations); linked the Perspectives reading list and added The Software Factory Mirage*
+*Last updated: 2026-09-27 - added The Review-Only Paradox to the Perspectives reading list and synced the Go series list to all 25 written articles*
+
+*Previous (2026-09-21): added dependency-ordered Learning Path and gap topics (outbox/inbox, SLI/SLO, Little's Law, deployment strategies, zero-downtime migrations); linked the Perspectives reading list and added The Software Factory Mirage*
