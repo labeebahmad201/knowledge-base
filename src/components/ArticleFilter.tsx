@@ -109,6 +109,9 @@ const articles: Article[] = [
   {title: 'Go Slices', path: '/docs/software-engineering/go/go-slices', category: 'Go'},
   {title: 'Go Range', path: '/docs/software-engineering/go/go-range', category: 'Go'},
   {title: 'Go Maps', path: '/docs/software-engineering/go/go-maps', category: 'Go'},
+  {title: 'Go For Loops', path: '/docs/software-engineering/go/go-for-loops', category: 'Go'},
+  {title: 'Go If Statements', path: '/docs/software-engineering/go/go-if', category: 'Go'},
+  {title: 'Go Switch Case', path: '/docs/software-engineering/go/go-switch', category: 'Go'},
   {title: 'DDIA: Designing Data-Intensive Applications', path: '/docs/software-engineering/books/ddia', category: 'Books'},
 
   {title: 'The AI Application Stack', path: '/docs/software-engineering/ai-application-stack', category: 'AI'},

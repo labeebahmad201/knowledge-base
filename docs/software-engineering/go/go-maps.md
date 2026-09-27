@@ -1,5 +1,5 @@
 ---
-sidebar_position: 19
+sidebar_position: 22
 ---
 
 # Go Maps
@@ -217,6 +217,53 @@ if ok {
 ```
 
 When the key is present, `ok` is `true` and `count` holds the stored value, even if that value is `0`. When the key is absent, `ok` is `false` and `count` is the zero value. So `ok` is the signal you use when a real zero value is meaningful and must be distinguished from a missing key.
+
+## Practice: distributing coins
+
+This exercise ties maps together with `for`, `range`, and `if`. You have 50 bitcoins to distribute to ten users, weighted by the vowels in each name, where `a` is 1 coin, `e` is 1, `i` is 2, `o` is 3, and `u` is 4. No user may receive more than 10 coins. The result should be a map from each name to its coins, with 2 coins left over.
+
+```go
+package main
+
+import (
+    "fmt"
+    "strings"
+)
+
+func main() {
+    coins := 50
+    users := []string{
+        "Matthew", "Sarah", "Augustus", "Heidi", "Emilie",
+        "Peter", "Giana", "Adriano", "Aaron", "Elizabeth",
+    }
+
+    vowelsToCoins := map[string]int{
+        "a": 1, "e": 1, "i": 2, "o": 3, "u": 4,
+    }
+
+    distribution := make(map[string]int, len(users))
+    for _, name := range users {
+        total := 0
+        for _, char := range name {
+            if total >= 10 {
+                break
+            }
+            v := vowelsToCoins[strings.ToLower(string(char))]
+            if total+v > 10 {
+                v = 10 - total // only take what fits under the cap
+            }
+            total += v
+            coins -= v
+        }
+        distribution[name] = total
+    }
+
+    fmt.Println(distribution)
+    fmt.Println("Coins left:", coins) // 2
+}
+```
+
+Three map ideas do the work. `vowelsToCoins` maps each vowel to its coin value, and looking up a consonant returns the zero value `0`, so non-vowels contribute nothing. `distribution` is pre-sized with `make(..., len(users))` and filled by name. The `10 - total` adjustment caps each user without special-casing the last coin, and the `coins -= v` running total leaves exactly 2 coins.
 
 ## Summary
 

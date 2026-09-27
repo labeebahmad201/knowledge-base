@@ -1,5 +1,5 @@
 ---
-sidebar_position: 10
+sidebar_position: 13
 ---
 
 # Go Printing: `fmt` vs the Built-in `print`
