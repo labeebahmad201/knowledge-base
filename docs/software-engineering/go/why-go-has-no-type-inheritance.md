@@ -1,5 +1,5 @@
 ---
-sidebar_position: 19
+sidebar_position: 23
 ---
 
 # Why Go Has No Type Inheritance
