@@ -42,6 +42,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Backend Master Roadmap now links the new OOP object-discovery article from Phase 1, section 17 (LLD), and section 18.
+- Backend Master Roadmap section 13c now links the new Go modules/type aliases and defined types articles, and the Go series list is synced to all 27 written articles.
 
 ## [2026-09-09]
 
