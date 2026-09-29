@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- [How to Decide What the Objects Are in OOP](./software-engineering/deciding-objects-oop.md) - the object-discovery method: what an object is (state, behavior, identity), the eight steps from domain study to refinement, the filter that separates objects from attributes/synonyms/out-of-scope nouns, the library worked example, the core vocabulary (object, class, encapsulation, abstraction, inheritance, polymorphism), why grammatical noun extraction (Abbott's technique) is only a starting point and responsibility-driven design is the correction, and CRC cards (Beck and Cunningham, OOPSLA 1989).
 - [Go For Loops](./software-engineering/go/go-for-loops.md) - Go's single loop: the `for init; cond; post` form, dropping init/post for a `while`-style loop, `for { }` as an infinite loop, and a C++ `while`-to-Go-`for` conversion exercise.
 - [Go If Statements](./software-engineering/go/go-if.md) - `if`/`else` with no parentheses and required braces, the short-statement form `if v := f(); v < lim`, and the scope rule that the variable lives only in the `if` and its `else` branches.
 - [Go Switch Case](./software-engineering/go/go-switch.md) - `switch` as a replacement for `if else` chains: same-type comparisons, `default`, expressions and multiple values per case, `fallthrough`, and `break`.
@@ -35,6 +36,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - [UNION vs UNION ALL](./databases/union-vs-union-all.md) - combining result sets, the hidden dedup cost, the ORDER BY/LIMIT gotcha, and what columns the dedup compares.
 - [INTERSECT and EXCEPT](./databases/intersect-except.md) - rows in both queries vs rows in one but not the other, with data reconciliation use cases.
 - [HTTP Fundamentals: Methods, Status Codes, Headers, and Idempotency](./software-engineering/http-fundamentals.md) - the request/response contract, safe/idempotent/cacheable methods, PUT vs PATCH vs POST, the status codes that matter and what each tells the caller to do next, the headers that cause real bugs, idempotency keys for POST, conditional requests with ETag/If-Match, and caching and statelessness as consequences.
+
+### Changed
+
+- Backend Master Roadmap now links the new OOP object-discovery article from Phase 1, section 17 (LLD), and section 18.
 
 ## [2026-09-09]
 
