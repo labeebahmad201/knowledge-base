@@ -328,6 +328,7 @@ Go is the language the roadmap leans on for the concurrency and cloud-infra sect
 
 *   [Packages and the `main` entry point](./go/go-packages.md) - `package main`, `func main`, and package naming
 *   [Imports and code location (GOPATH)](./go/go-imports-gopath.md) - import paths, `go get`, and the `src`/`pkg`/`bin` layout, plus GOPATH vs Go modules
+*   [Modules, packages, and type aliases](./go/go-modules-and-type-aliases.md) - what `go.mod` and `go.sum` are for, `internal/` encapsulation, and type aliases for safe API migration across packages
 *   [Exported names (the capital letter rule)](./go/go-exported-names.md) - Go's `public`/`private` replacement
 *   [Variables and type inference](./go/go-variables.md) - `var` vs `:=`, how Go keeps static typing without the ceremony, and function vs package level declarations
 *   [Constants](./go/go-constants.md) - `const`, the block form, untyped constants, and why they cannot use `:=`
@@ -343,6 +344,7 @@ Go is the language the roadmap leans on for the concurrency and cloud-infra sect
 *   [Pointers](./go/go-pointers.md) - `&`, `*`, no pointer arithmetic, and pointer receivers
 *   [Mutability: pass by value vs pass by reference](./go/go-mutability.md) - why your function did not change your variable
 *   [Structs](./go/go-structs.md) - collections of fields, struct literals, exported fields, and composition without inheritance
+*   [Defined types](./go/go-defined-types.md) - adding methods to types you do not own, `type T U` vs `type T = U`, and compile-time type safety
 *   [Arrays](./go/go-arrays.md) - the fixed-length `[n]T` with the length as part of the type
 *   [Slices](./go/go-slices.md) - the resizable view over an array, `append`, `len`/`cap`, and shared backing arrays
 *   [Range](./go/go-range.md) - iterating slices and maps with `range`, the index/key and value, and `break`/`continue`
@@ -540,7 +542,7 @@ The catalog above is *what* to learn. These are takes on *why it matters and whe
 
 **Total: ~271 topics** (deduplicated from ~305; every topic now appears exactly once, duplicates removed). AWS services, Well-Architected, the 14-day chaos plan and the mono-repo are plans/action-items, not topics. Work the topics in the **Learning Path** order at the top, roughly 2-3 deep per day (Why-First + runnable), and finish each phase by building its mono-repo project. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
 
-*Last updated: 2026-09-29 - added [How to Decide What the Objects Are in OOP](./deciding-objects-oop.md) and linked it from Phase 1, section 17 (LLD), and section 18*
+*Last updated: 2026-09-29 - added [How to Decide What the Objects Are in OOP](./deciding-objects-oop.md) and linked it from Phase 1, section 17 (LLD), and section 18; synced the Go series list to all 27 written articles with [Modules, packages, and type aliases](./go/go-modules-and-type-aliases.md) and [Defined types](./go/go-defined-types.md) linked from section 13c*
 
 *Previous (2026-09-27): added The Review-Only Paradox to the Perspectives reading list and synced the Go series list to all 25 written articles*
 

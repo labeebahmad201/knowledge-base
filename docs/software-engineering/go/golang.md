@@ -25,12 +25,17 @@ Go is a statically typed, compiled language built at Google by Robert Griesemer,
 - [Basic types](./go-basic-types.md) - `bool`, `string`, the numeric types, and the `byte`/`rune` aliases.
 - [Type conversion (and the `string(int)` gotcha)](./go-type-conversion.md) - `T(v)` and why `string(65)` is `"A"`, not `"65"`.
 - [Structs](./go-structs.md) - fields, keyed vs positional literals, zero values, and `&T{}` vs `new(T)`.
+- [Defined types: adding methods to types you do not own](./go-defined-types.md) - `type T U` vs `type T = U`, what the underlying type gives you, and compile-time type safety.
 
 ## Interfaces and composition
 
 - [Interfaces](./go-interfaces.md) - method signatures only, implicit satisfaction, and Go's polymorphism.
 - [Type assertions and type switches](./go-type-assertions.md) - the comma-ok form and recovering a concrete value from `interface{}`.
 - [Composition (struct embedding)](./go-composition.md) - embedding structs and pointers, method promotion.
+
+## Modules and API evolution
+
+- [Modules, packages, and type aliases](./go-modules-and-type-aliases.md) - `go.mod`, defined types vs aliases, and safe API migration across packages.
 
 ## Still to come
 

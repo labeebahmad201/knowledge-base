@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- [Go Modules, Packages, and Type Aliases: Safe API Migration](./software-engineering/go/go-modules-and-type-aliases.md) - the difference between packages (unit of compilation) and modules (unit of distribution), what `go.mod`/`go.sum` are for, `internal/` encapsulation, type aliases for gradual code repair (`type Client = client.Client`), the `context` migration, and the multi-repo deprecation lifecycle (add, alias, `Deprecated:`, SA1019 lint gate, major version removal) with monorepo codemods as the alternative.
+- [Go Defined Types: Adding Methods to Types You Do Not Own](./software-engineering/go/go-defined-types.md) - why the receiver base type must be declared in the same package, how `type MyStr string` defines a new owned type (`type T U` vs `type T = U`), what the underlying type actually gives you (representation, operators/built-ins, and convertibility, which is why `MyStr("aaa")` works), attaching behavior vs compile-time type safety, when a struct is better, and the standard library examples (`time.Duration`, `net/http.HandlerFunc`, `io/fs.FileMode`, `net.IP`).
 - [How to Decide What the Objects Are in OOP](./software-engineering/deciding-objects-oop.md) - the object-discovery method: what an object is (state, behavior, identity), the eight steps from domain study to refinement, the filter that separates objects from attributes/synonyms/out-of-scope nouns, the library worked example, the core vocabulary (object, class, encapsulation, abstraction, inheritance, polymorphism), why grammatical noun extraction (Abbott's technique) is only a starting point and responsibility-driven design is the correction, and CRC cards (Beck and Cunningham, OOPSLA 1989).
 - [Go For Loops](./software-engineering/go/go-for-loops.md) - Go's single loop: the `for init; cond; post` form, dropping init/post for a `while`-style loop, `for { }` as an infinite loop, and a C++ `while`-to-Go-`for` conversion exercise.
 - [Go If Statements](./software-engineering/go/go-if.md) - `if`/`else` with no parentheses and required braces, the short-statement form `if v := f(); v < lim`, and the scope rule that the variable lives only in the `if` and its `else` branches.
@@ -40,6 +42,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Backend Master Roadmap now links the new OOP object-discovery article from Phase 1, section 17 (LLD), and section 18.
+- Backend Master Roadmap section 13c now links the new Go modules/type aliases and defined types articles, and the Go series list is synced to all 27 written articles.
 
 ## [2026-09-09]
 
