@@ -27,6 +27,11 @@ Go is a statically typed, compiled language built at Google by Robert Griesemer,
 - [Structs](./go-structs.md) - fields, keyed vs positional literals, zero values, and `&T{}` vs `new(T)`.
 - [Defined types: adding methods to types you do not own](./go-defined-types.md) - `type T U` vs `type T = U`, what the underlying type gives you, and compile-time type safety.
 
+## Methods and object-oriented style
+
+- [Methods and method receivers](./go-methods-and-receivers.md) - defining methods on types, value vs pointer receivers, method sets, and why `v.Scale(5)` works without `&`.
+- [Code organization](./go-code-organization.md) - the package is one directory, methods can live in any file, and a readable layout for types, functions, and methods.
+
 ## Interfaces and composition
 
 - [Interfaces](./go-interfaces.md) - method signatures only, implicit satisfaction, and Go's polymorphism.

@@ -345,6 +345,8 @@ Go is the language the roadmap leans on for the concurrency and cloud-infra sect
 *   [Mutability: pass by value vs pass by reference](./go/go-mutability.md) - why your function did not change your variable
 *   [Structs](./go/go-structs.md) - collections of fields, struct literals, exported fields, and composition without inheritance
 *   [Defined types](./go/go-defined-types.md) - adding methods to types you do not own, `type T U` vs `type T = U`, and compile-time type safety
+*   [Methods and method receivers](./go/go-methods-and-receivers.md) - object-oriented style without inheritance, value vs pointer receivers, method sets, and why `v.Scale(5)` works without `&`
+*   [Code organization](./go/go-code-organization.md) - a package is one directory that can span files, methods can live in any file, and a readable layout for types, functions, and methods
 *   [Arrays](./go/go-arrays.md) - the fixed-length `[n]T` with the length as part of the type
 *   [Slices](./go/go-slices.md) - the resizable view over an array, `append`, `len`/`cap`, and shared backing arrays
 *   [Range](./go/go-range.md) - iterating slices and maps with `range`, the index/key and value, and `break`/`continue`
@@ -542,7 +544,9 @@ The catalog above is *what* to learn. These are takes on *why it matters and whe
 
 **Total: ~271 topics** (deduplicated from ~305; every topic now appears exactly once, duplicates removed). AWS services, Well-Architected, the 14-day chaos plan and the mono-repo are plans/action-items, not topics. Work the topics in the **Learning Path** order at the top, roughly 2-3 deep per day (Why-First + runnable), and finish each phase by building its mono-repo project. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
 
-*Last updated: 2026-09-29 - added [How to Decide What the Objects Are in OOP](./deciding-objects-oop.md) and linked it from Phase 1, section 17 (LLD), and section 18; synced the Go series list to all 27 written articles with [Modules, packages, and type aliases](./go/go-modules-and-type-aliases.md) and [Defined types](./go/go-defined-types.md) linked from section 13c*
+*Last updated: 2026-09-29 - added [Methods and method receivers](./go/go-methods-and-receivers.md) and [Code organization](./go/go-code-organization.md) to section 13c; synced the Go series list to all 29 written articles*
+
+*Previous (2026-09-29): added [How to Decide What the Objects Are in OOP](./deciding-objects-oop.md) and linked it from Phase 1, section 17 (LLD), and section 18; synced the Go series list to all 27 written articles with [Modules, packages, and type aliases](./go/go-modules-and-type-aliases.md) and [Defined types](./go/go-defined-types.md) linked from section 13c*
 
 *Previous (2026-09-27): added The Review-Only Paradox to the Perspectives reading list and synced the Go series list to all 25 written articles*
 
