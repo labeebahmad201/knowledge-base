@@ -12,7 +12,7 @@ Everything assumes you can read code and trace one request end to end.
 2. JS/TS runtime: event loop, call stack, microtasks vs macrotasks, closures, this, prototypes (21a)
 3. Fundamentals (13): [HTTP methods, status codes, request/response headers, idempotency](./http-fundamentals.md), DB connections and driver basics
 4. Networking (19): TCP/IP, UDP, HTTP 1.1/2/3, DNS, TLS/SSL, socket programming, WebSockets, gRPC transport, forward proxy, reverse proxy
-5. OOP and design patterns (18), then LLD (17): the catalog starts with [Abstract Factory: creating a family of objects without naming them](./abstract-factory.md); then SOLID, class diagrams, API design at code level
+5. OOP and design patterns (18): start with [How to Decide What the Objects Are in OOP](./deciding-objects-oop.md) (domain, noun extraction, filtering, behaviors, encapsulation, CRC cards), then the catalog starts with [Abstract Factory: creating a family of objects without naming them](./abstract-factory.md); then LLD (17): SOLID, class diagrams, API design at code level
 
 **Phase 2 - Data and SQL**
 1. SQL surface (section 1): SELECT/WHERE, JOIN, GROUP BY/HAVING, DISTINCT/ORDER BY/LIMIT, subqueries/IN/EXISTS/CTE, UNION vs UNION ALL, window functions, NULL/COALESCE, CASE, aggregates, GROUPING SETS/ROLLUP/CUBE, VALUES/LATERAL/generate_series, subquery vs JOIN, recursive CTEs, full text search, UPSERT, date/time, JSONB
@@ -404,14 +404,14 @@ Go is the language the roadmap leans on for the concurrency and cloud-infra sect
 *   Blocking Queue
 
 ## 17. Low Level Design (LLD)
-*   OOD
+*   OOD — see [How to Decide What the Objects Are in OOP](./deciding-objects-oop.md) (state, behavior, and identity; nouns as candidates; the filter; responsibilities; CRC cards)
 *   SOLID
 *   Design patterns (Singleton, Factory, Observer)
 *   Class diagrams
 *   API design at code level
 
 ## 18. OOP & Design Patterns
-*   OOP: Encapsulation, Inheritance, Polymorphism, Abstraction, SOLID
+*   OOP: [How to Decide What the Objects Are in OOP](./deciding-objects-oop.md) (object discovery, the filtering method, CRC cards) and the vocabulary: Encapsulation, Inheritance, Polymorphism, Abstraction, SOLID
 *   Creational: Singleton, Factory, Builder, Prototype
 *   Start the catalog with [Abstract Factory](./abstract-factory.md): creating a family of related objects without naming their concrete classes; the two separate problems it solves (the client naming a concrete class, fixed by the abstract product; nothing keeping the products matched, fixed by the abstract factory); why the key word is "families"; the abstract product as the type the client binds to (and why Java forces the annotation); the abstract factory as the single source that keeps the set consistent; the asymmetric cost (a new family is cheap, a new product kind is expensive); and the book's class diagram
 *   Structural: Adapter, Decorator, Proxy, Facade
@@ -540,6 +540,8 @@ The catalog above is *what* to learn. These are takes on *why it matters and whe
 
 **Total: ~271 topics** (deduplicated from ~305; every topic now appears exactly once, duplicates removed). AWS services, Well-Architected, the 14-day chaos plan and the mono-repo are plans/action-items, not topics. Work the topics in the **Learning Path** order at the top, roughly 2-3 deep per day (Why-First + runnable), and finish each phase by building its mono-repo project. Each will be a `knowledge-base` article with StackBlitz/Supabase playground.
 
-*Last updated: 2026-09-27 - added The Review-Only Paradox to the Perspectives reading list and synced the Go series list to all 25 written articles*
+*Last updated: 2026-09-29 - added [How to Decide What the Objects Are in OOP](./deciding-objects-oop.md) and linked it from Phase 1, section 17 (LLD), and section 18*
+
+*Previous (2026-09-27): added The Review-Only Paradox to the Perspectives reading list and synced the Go series list to all 25 written articles*
 
 *Previous (2026-09-21): added dependency-ordered Learning Path and gap topics (outbox/inbox, SLI/SLO, Little's Law, deployment strategies, zero-downtime migrations); linked the Perspectives reading list and added The Software Factory Mirage*
