@@ -503,7 +503,7 @@ This roadmap treats full-stack breadth as the way to round out a TS profile: the
 ## 22. Coding Interview Prep (DSA - the actual gate for a TS role)
 
 The previous ~250 topics get you the *knowledge*; this lane gets you *through the screen*. The weed-out for a TS role is a DSA round (often the 45-min side by side with an LLM in the room). Patterns from the [LeetCode index](../computer-science/leetcode/index.mdx), practiced in TS:
-*   Two pointers / sliding window — see [Valid Palindrome](../computer-science/leetcode/lc-125-valid-palindrome.md), [Longest Substring w/o Repeats](../computer-science/leetcode/lc-3-longest-substring-without-repeating-characters.md)
+*   Two pointers / sliding window — see [Valid Palindrome](../computer-science/leetcode/lc-125-valid-palindrome.md), [Longest Substring w/o Repeats](../computer-science/leetcode/lc-3-longest-substring-without-repeating-characters.md), [Longest Repeating Character Replacement](../computer-science/leetcode/lc-424-longest-repeating-character-replacement.md)
 *   Hash maps: counting, grouping, "seen before" — see [Two Sum](../computer-science/leetcode/lc-1-two-sum.md), [Valid Anagram](../computer-science/leetcode/lc-242-valid-anagram.md)
 *   Frequencies / top-k (heap) — see [Top K Frequent Elements](../computer-science/leetcode/lc-347-top-k-frequent-elements.md)
 *   Arrays & intervals, prefix products — see [Container with Most Water](../computer-science/leetcode/lc-11-container-with-most-water.md), [Product of Array Except Self](../computer-science/leetcode/lc-238-product-of-array-except-self.md)
