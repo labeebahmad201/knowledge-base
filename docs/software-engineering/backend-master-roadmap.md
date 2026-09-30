@@ -23,7 +23,7 @@ Everything assumes you can read code and trace one request end to end.
 
 **Phase 3 - Transactions, locks, and concurrency**
 You are already strong here; finish it before any distributed work.
-1. Concurrency primitives (16): concurrency vs parallelism, processes vs threads, thread lifecycle, race conditions, mutex, semaphore, condition variables, coarse vs fine-grained locking, reentrant lock, try-lock, CAS, deadlock vs livelock, signaling, thread pool, producer-consumer, reader-writer lock, thread-safe LRU, blocking queue
+1. Concurrency primitives (16): [concurrency vs parallelism](./concurrency-vs-parallelism.md), processes vs threads, thread lifecycle, race conditions, mutex, semaphore, condition variables, coarse vs fine-grained locking, reentrant lock, try-lock, CAS, deadlock vs livelock, signaling, thread pool, producer-consumer, reader-writer lock, thread-safe LRU, blocking queue
 2. Transactions/isolation/locks (1) and the row-lock cluster (4): row locks + BEGIN lifetime, concurrent UPDATE serialization, deadlocks and prevention
 3. MVCC, WAL, write amplification, isolation levels and their anomalies
 4. Distributed locks (14): the single-node machinery stretched across nodes
