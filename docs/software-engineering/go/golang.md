@@ -35,8 +35,13 @@ Go is a statically typed, compiled language built at Google by Robert Griesemer,
 ## Interfaces and composition
 
 - [Interfaces](./go-interfaces.md) - method signatures only, implicit satisfaction, and Go's polymorphism.
+- [Implicit interfaces and interface composition](./go-implicit-interfaces.md) - why there is no `implements` keyword, how decoupling works, and embedding interfaces such as `io.ReadWriter`.
 - [Type assertions and type switches](./go-type-assertions.md) - the comma-ok form and recovering a concrete value from `interface{}`.
 - [Composition (struct embedding)](./go-composition.md) - embedding structs and pointers, method promotion.
+
+## Errors
+
+- [Errors: the `error` interface and returning errors](./go-errors.md) - the built-in `error` interface, custom error types, `fmt` formatting, and wrapping with `%w`.
 
 ## Modules and API evolution
 
