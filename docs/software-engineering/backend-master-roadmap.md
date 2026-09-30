@@ -352,8 +352,10 @@ Go is the language the roadmap leans on for the concurrency and cloud-infra sect
 *   [Range](./go/go-range.md) - iterating slices and maps with `range`, the index/key and value, and `break`/`continue`
 *   [Maps](./go/go-maps.md) - key-value collections, `make` vs nil, and the two-value presence test
 *   [Interfaces](./go/go-interfaces.md) - method signatures only, implicit satisfaction, and runtime dispatch
+*   [Implicit interfaces and interface composition](./go/go-implicit-interfaces.md) - no `implements` keyword, decoupling, and embedding interfaces like `io.ReadWriter`
 *   [Type assertions](./go/go-type-assertions.md) - recovering the concrete value, the comma-ok form, and type switches
 *   [Composition](./go/go-composition.md) - embedding for reuse via promoted fields and methods
+*   [Errors: the `error` interface and returning errors](./go/go-errors.md) - the built-in `error`, custom error types, `fmt` formatting, and wrapping with `%w`
 *   [Why Go has no type inheritance](./go/why-go-has-no-type-inheritance.md) - the Go FAQ's case against type inheritance, and what replaces it
 
 ## 14. Java & Big-Tech Depth (24) - not big individually, big career boost
