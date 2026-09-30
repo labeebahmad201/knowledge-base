@@ -175,7 +175,12 @@ class Solution:
 
 It relies on two facts, both consequences of `max_freq` being non-decreasing.
 
-**`if` is enough, no `while`.** Just before `right` is added, the window satisfies `length <= max_freq + k`. Adding one character raises the length by one and can only raise `max_freq` by one. If `max_freq` rises, the window is still valid. If it does not, the window is invalid by at most one, and a single removal brings it back to `max_freq + k`. So the `while` in the version above never actually loops more than once; an `if` with one removal is sufficient.
+**`if` is enough, no `while`.** Let `L` be the window length and `m` the stored `max_freq`. The invariant before each step is `L - m <= k`. Adding one character does exactly two things: `L` goes up by one, and `m` goes up by at most one (only the count of `s[right]` changed, and a single count rising by one can raise the max by at most one). So:
+
+- If `m` rises by one, `(L+1) - (m+1) = L - m <= k`, still valid.
+- If `m` does not rise, `(L+1) - m = (L - m) + 1 <= k + 1`, over budget by at most one.
+
+In the second case, removing one character drops `L` back by one while `m` stays put, returning `L - m` to `<= k`. So one removal always suffices, and the `while` loop never actually loops more than once.
 
 **`return len(s) - left`, no max tracking.** The window length never decreases. Each step either grows the window by one (the `if` did not fire) or slides it by one keeping the same length (the `if` fired). So the final window size is the largest window size ever reached, and it equals `len(s) - left`. This is the same identity as the previous version: `answer = min(n, max_frequent_final + k)`.
 
