@@ -149,6 +149,36 @@ class Solution:
 
 The only change is that `max(char_to_freq.values())` is replaced by `max_frequent = max(max_frequent, freq_map[s[right]])`. This saves the O(26) scan, which is a constant-factor speedup.
 
+### The never-shrink variant
+
+The most common version you will see drops the `while` loop and the `longest_substring` variable entirely:
+
+```python
+from collections import Counter
+
+class Solution:
+    def characterReplacement(self, s: str, k: int) -> int:
+        char_count = Counter()
+        left = 0
+        max_freq = 0
+
+        for right, char in enumerate(s):
+            char_count[char] += 1
+            max_freq = max(max_freq, char_count[char])
+
+            if (right - left + 1) - max_freq > k:
+                char_count[s[left]] -= 1
+                left += 1
+
+        return len(s) - left
+```
+
+It relies on two facts, both consequences of `max_freq` being non-decreasing.
+
+**`if` is enough, no `while`.** Just before `right` is added, the window satisfies `length <= max_freq + k`. Adding one character raises the length by one and can only raise `max_freq` by one. If `max_freq` rises, the window is still valid. If it does not, the window is invalid by at most one, and a single removal brings it back to `max_freq + k`. So the `while` in the version above never actually loops more than once; an `if` with one removal is sufficient.
+
+**`return len(s) - left`, no max tracking.** The window length never decreases. Each step either grows the window by one (the `if` did not fire) or slides it by one keeping the same length (the `if` fired). So the final window size is the largest window size ever reached, and it equals `len(s) - left`. This is the same identity as the previous version: `answer = min(n, max_frequent_final + k)`.
+
 ### The asymmetry: add vs remove
 
 When `right` advances, exactly one count goes up, so the only entry that can beat the current max is the one that just changed. Comparing it against the running max is enough.
