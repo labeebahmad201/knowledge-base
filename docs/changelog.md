@@ -51,6 +51,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - [Tracking Max Frequency in a Sliding Window](./computer-science/leetcode/lc-sliding-window-max-frequency.md) corrected: a stale-high `max_frequent` makes the validity check more permissive, not stricter, and the shrink-side `max()` is a no-op.
 - [JS/TS Interview Questions](./software-engineering/js-ts-questions.md) gains a note that `dict.values()` returns a `dict_values` view (not a list) that `max()`/`min()`/`sum()` accept directly, contrasting `Math.max(...Object.values(obj))`.
 - Backend Master Roadmap section 22 now links LC-424 in the sliding-window bullet.
+- [LC-424 — Longest Repeating Character Replacement](./computer-science/leetcode/lc-424-longest-repeating-character-replacement.md) gains a never-shrink variant of the stale-`max_frequent` optimization: a single `if` shrink (no `while`) and `return len(s) - left` instead of tracking a running max, with why the window length never decreases and why one removal always suffices.
 
 ## [2026-09-09]
 

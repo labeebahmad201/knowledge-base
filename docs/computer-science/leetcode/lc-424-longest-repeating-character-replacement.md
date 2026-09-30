@@ -149,6 +149,51 @@ class Solution:
 
 The only change is that `max(char_to_freq.values())` is replaced by `max_frequent = max(max_frequent, freq_map[s[right]])`. This saves the O(26) scan, which is a constant-factor speedup.
 
+### The never-shrink variant
+
+The most common version you will see drops the `while` loop and the `longest_substring` variable entirely:
+
+```python
+from collections import Counter
+
+class Solution:
+    def characterReplacement(self, s: str, k: int) -> int:
+        char_count = Counter()
+        left = 0
+        max_freq = 0
+
+        for right, char in enumerate(s):
+            char_count[char] += 1
+            max_freq = max(max_freq, char_count[char])
+
+            if (right - left + 1) - max_freq > k:
+                char_count[s[left]] -= 1
+                left += 1
+
+        return len(s) - left
+```
+
+It relies on two facts, both consequences of `max_freq` being non-decreasing.
+
+**`if` is enough, no `while`.** The shrink is what fixes an invalid window, and one shrink always fixes it. Take `s = "AABB"`, `k = 1`. The full window is invalid: `4 - 2 = 2 > 1`. Shrink one from the left and it becomes `"ABB"`: `3 - 2 = 1 <= 1`, valid. The length dropped by one, and `length - max_freq` dropped with it.
+
+Why one shrink always does the job: before a step the window satisfies `length - max_freq <= k`. Adding a character raises `length` by one and raises `max_freq` by at most one (only `s[right]` changed). If `max_freq` rises, `(length+1) - (max_freq+1) = length - max_freq <= k`, still valid. If it does not, `(length+1) - max_freq = (length - max_freq) + 1 <= k + 1`, over budget by at most one, and removing one character drops `length` back by one to restore `length - max_freq <= k`.
+
+**`return len(s) - left`, no max tracking.** The window length never decreases. Each step either grows the window by one (the `if` did not fire) or slides it by one keeping the same length (the `if` fired). So the final window size is the largest window size ever reached, and it equals `len(s) - left`. This is the same identity as the previous version: `answer = min(n, max_frequent_final + k)`.
+
+One caveat on that single shrink: it restores the *check* (`length - max_freq <= k`), not genuine validity. Because `max_freq` can be stale, the shrunk window can still be genuinely invalid, exactly as in the `"AAB"`, `k = 0` trace above. That is harmless for the same reason as before: the length did not grow, so the answer is unaffected.
+
+**Dry run.** `s = "AABB"`, `k = 1`:
+
+| right | add | window after add | size | max_freq | size - max_freq | action | left after |
+|-------|-----|------------------|------|----------|-----------------|--------|-----------|
+| 0 | `A` | `A` | 1 | 1 | 0 | grow | 0 |
+| 1 | `A` | `AA` | 2 | 2 | 0 | grow | 0 |
+| 2 | `B` | `AAB` | 3 | 2 | 1 | grow | 0 |
+| 3 | `B` | `AABB` | 4 | 2 | 2 | shrink | 1 |
+
+The window grows while `size - max_freq <= 1`. At `right = 3` the full window gives `4 - 2 = 2 > 1`, so we shrink one from the left to `"ABB"`, back to `3 - 2 = 1 <= 1`. The answer is `len(s) - left = 4 - 1 = 3`.
+
 ### The asymmetry: add vs remove
 
 When `right` advances, exactly one count goes up, so the only entry that can beat the current max is the one that just changed. Comparing it against the running max is enough.
