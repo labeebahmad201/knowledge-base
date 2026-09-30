@@ -175,12 +175,9 @@ class Solution:
 
 It relies on two facts, both consequences of `max_freq` being non-decreasing.
 
-**`if` is enough, no `while`.** Let `L` be the window length and `m` the stored `max_freq`. The invariant before each step is `L - m <= k`. Adding one character does exactly two things: `L` goes up by one, and `m` goes up by at most one (only the count of `s[right]` changed, and a single count rising by one can raise the max by at most one). So:
+**`if` is enough, no `while`.** The shrink is what fixes an invalid window, and one shrink always fixes it. Take `s = "AABB"`, `k = 1`. The full window is invalid: `4 - 2 = 2 > 1`. Shrink one from the left and it becomes `"ABB"`: `3 - 2 = 1 <= 1`, valid. The length dropped by one, and `length - max_freq` dropped with it.
 
-- If `m` rises by one, `(L+1) - (m+1) = L - m <= k`, still valid.
-- If `m` does not rise, `(L+1) - m = (L - m) + 1 <= k + 1`, over budget by at most one.
-
-In the second case, removing one character drops `L` back by one while `m` stays put, returning `L - m` to `<= k`. So one removal always suffices, and the `while` loop never actually loops more than once.
+Why one shrink always does the job: before a step the window satisfies `length - max_freq <= k`. Adding a character raises `length` by one and raises `max_freq` by at most one (only `s[right]` changed). If `max_freq` rises, `(length+1) - (max_freq+1) = length - max_freq <= k`, still valid. If it does not, `(length+1) - max_freq = (length - max_freq) + 1 <= k + 1`, over budget by at most one, and removing one character drops `length` back by one to restore `length - max_freq <= k`.
 
 **`return len(s) - left`, no max tracking.** The window length never decreases. Each step either grows the window by one (the `if` did not fire) or slides it by one keeping the same length (the `if` fired). So the final window size is the largest window size ever reached, and it equals `len(s) - left`. This is the same identity as the previous version: `answer = min(n, max_frequent_final + k)`.
 
