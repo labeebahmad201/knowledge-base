@@ -17,6 +17,8 @@ while end < n:
 
 The key insight: when a character enters the window (at `end`), its count increases by 1. The new max frequency is either the previous max or this character's new count — nothing else can become the new max without increasing. So a single `max()` call is sufficient.
 
+This is a special case of a general rule: if a step mutates one entry, only that entry can change the aggregate. The reverse is not true, and that asymmetry is covered under Shrinking below.
+
 ---
 
 ## The validity check
@@ -35,9 +37,11 @@ This computes the number of characters that are NOT the most frequent (i.e., cha
 
 When the window shrinks (moving `start` forward), a character exits the window and its count decrements. You might think you need to scan all frequencies to find the new max — but you don't.
 
-The max frequency can only **decrease or stay the same** as characters leave. It never increases during a shrink. Since you're only computing the longest valid window seen so far, a slightly stale `max_frequent` that's too high doesn't cause incorrect results — it just means the validity check becomes stricter temporarily. The true max will "catch up" as the window expands again.
+The `max()` on the shrink side (`max_frequent = max(freq_map[s[start]], max_frequent)`) can never lower the stored value, so `max_frequent` can only **stay the same or become stale-high** during a shrink. It never goes below the true max.
 
-This is the same reason we don't need a `max()` call during shrinking — we only update `max_frequent` when a character enters (at `end`), not when one leaves (at `start`).
+Stale-high makes the validity check **more permissive**, not stricter: `window_size - max_frequent` comes out too small, so a window that genuinely needs `k + 1` replacements can pass the `<= k` test. The algorithm then stops shrinking early and may record a window that does not actually qualify.
+
+That is still safe for LC-424, because a recorded length never exceeds the true optimum. An under-shrunk window can never be longer than a genuinely valid window of the same era, so the final `max` lands on the right answer.
 
 ---
 
@@ -51,9 +55,9 @@ This is the same reason we don't need a `max()` call during shrinking — we onl
 
 ## Common mistakes
 
-1. **Recomputing max from scratch on every step** — this makes the solution O(n * charset) instead of O(n). The incremental `max()` is sufficient.
-2. **Shrinking and recomputing max during shrink** — unnecessary. The max can only decrease during shrink, so leaving it stale is safe. It will self-correct on the next expand.
-3. **Forgetting that max_frequent can lag** — this is actually fine. A stale (too-high) max_frequent makes the validity check stricter, so you might shrink more than needed, but you'll never miss a valid window. The answer is still correct.
+1. **Recomputing max from scratch on every step** — costs O(charset) per step, so O(26n) for lowercase letters. That is still O(n) and perfectly fast for a fixed small alphabet, but it is unnecessary: the incremental `max()` is sufficient. Scanning `max(freq_map.values())` is the exact, obviously correct baseline if you would rather not reason about the stale value.
+2. **Shrinking and recomputing max during shrink** — unnecessary for this problem. A full rescan per removal would push the solution to O(n * charset), and the stale value still yields a correct answer.
+3. **Forgetting that max_frequent can lag** — fine here, but for the right reason. A stale (too-high) `max_frequent` makes the validity check *permissive*, so you shrink too late and may record a window that does not qualify. That is safe only because the recorded length never exceeds the true optimum. If the answer *were* the max itself (LC-239), this would be a bug.
 
 ---
 

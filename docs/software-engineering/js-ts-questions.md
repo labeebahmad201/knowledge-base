@@ -1152,6 +1152,17 @@ for key, freq in freq_map.items():  # unpack each (key, value) tuple
 
 `freq_map` iterates keys by default. `.keys()` is the explicit version. `.values()` gives just the values. `.items()` yields `(key, value)` **tuples** that you unpack inline as `for key, freq in ...`.
 
+**What `.values()` actually returns.** `freq_map.values()` does not build a list. It returns a `dict_values` view object, a live window onto the dict that reflects later mutations. You rarely notice, because the view is iterable, so anything that accepts an iterable takes it directly, including `max()`, `min()`, and `sum()`:
+
+```python
+freq_map = {"a": 3, "b": 5, "c": 2}
+max(freq_map.values())   # 5, no list() needed
+```
+
+This is a real divergence from JS. `Object.values(obj)` materializes an actual array, and `Math.max` takes numbers as separate arguments rather than an iterable, so JS needs `Math.max(...Object.values(obj))`. Python's `max` accepts the iterable itself, which is why `max(freq_map.values())` just works. Wrap it in `list()` only when you truly need a list, for indexing, slicing, or reuse after the dict changes.
+
+The same is true of `.keys()` and `.items()`: they are views too, not lists. This is why `for key, freq in freq_map.items()` unpacks cleanly without ever building an intermediate list.
+
 **The practical pattern** — counting character frequency, the basis of anagram and "top K frequent" problems:
 
 ```python

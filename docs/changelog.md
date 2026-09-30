@@ -47,6 +47,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Go hub (`golang.md`) gains a "Methods and object-oriented style" section linking the new methods/receivers and code organization articles.
 - Backend Master Roadmap now links the new OOP object-discovery article from Phase 1, section 17 (LLD), and section 18.
 - Backend Master Roadmap section 13c now links the new Go modules/type aliases and defined types articles, and the Go series list is synced to all 27 written articles.
+- [LC-424 — Longest Repeating Character Replacement](./computer-science/leetcode/lc-424-longest-repeating-character-replacement.md) rewritten around the exact `max(char_to_freq.values())` check as the primary solution, with the running-`max_frequent` version kept as a documented constant-factor optimization: the add/remove asymmetry, the `"AAB", k=0` trace where a stale max falsely marks the invalid `"AB"` window valid, and the two reasons it is still correct (the check is only ever permissive, never rejecting a valid window, and the length only grows on honest steps, so the answer stays `min(n, max_frequent_final + k)`).
+- [Tracking Max Frequency in a Sliding Window](./computer-science/leetcode/lc-sliding-window-max-frequency.md) corrected: a stale-high `max_frequent` makes the validity check more permissive, not stricter, and the shrink-side `max()` is a no-op.
+- [JS/TS Interview Questions](./software-engineering/js-ts-questions.md) gains a note that `dict.values()` returns a `dict_values` view (not a list) that `max()`/`min()`/`sum()` accept directly, contrasting `Math.max(...Object.values(obj))`.
+- Backend Master Roadmap section 22 now links LC-424 in the sliding-window bullet.
 
 ## [2026-09-09]
 
