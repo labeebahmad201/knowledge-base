@@ -183,19 +183,16 @@ Why one shrink always does the job: before a step the window satisfies `length -
 
 One caveat on that single shrink: it restores the *check* (`length - max_freq <= k`), not genuine validity. Because `max_freq` can be stale, the shrunk window can still be genuinely invalid, exactly as in the `"AAB"`, `k = 0` trace above. That is harmless for the same reason as before: the length did not grow, so the answer is unaffected.
 
-**Dry run.** `s = "AABABBA"`, `k = 1`:
+**Dry run.** `s = "AABB"`, `k = 1`:
 
 | right | add | window after add | size | max_freq | size - max_freq | action | left after |
 |-------|-----|------------------|------|----------|-----------------|--------|-----------|
 | 0 | `A` | `A` | 1 | 1 | 0 | grow | 0 |
 | 1 | `A` | `AA` | 2 | 2 | 0 | grow | 0 |
 | 2 | `B` | `AAB` | 3 | 2 | 1 | grow | 0 |
-| 3 | `A` | `AABA` | 4 | 3 | 1 | grow | 0 |
-| 4 | `B` | `AABAB` | 5 | 3 | 2 | shrink | 1 |
-| 5 | `B` | `ABABB` | 5 | 3 | 2 | shrink | 2 |
-| 6 | `A` | `BABBA` | 5 | 3 | 2 | shrink | 3 |
+| 3 | `B` | `AABB` | 4 | 2 | 2 | shrink | 1 |
 
-The window grows while `size - max_freq <= 1`. At `right = 4` it reaches `2 > 1`, so it starts sliding: each step removes one from the left and the size stays at `5`. It never grows again because `max_freq` never rises above `3`. The answer is `len(s) - left = 7 - 3 = 4`.
+The window grows while `size - max_freq <= 1`. At `right = 3` the full window gives `4 - 2 = 2 > 1`, so we shrink one from the left to `"ABB"`, back to `3 - 2 = 1 <= 1`. The answer is `len(s) - left = 4 - 1 = 3`.
 
 ### The asymmetry: add vs remove
 
