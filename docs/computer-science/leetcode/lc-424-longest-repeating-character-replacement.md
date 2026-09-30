@@ -179,6 +179,8 @@ It relies on two facts, both consequences of `max_freq` being non-decreasing.
 
 **`return len(s) - left`, no max tracking.** The window length never decreases. Each step either grows the window by one (the `if` did not fire) or slides it by one keeping the same length (the `if` fired). So the final window size is the largest window size ever reached, and it equals `len(s) - left`. This is the same identity as the previous version: `answer = min(n, max_frequent_final + k)`.
 
+One caveat on that single shrink: it restores the *check* (`length - max_freq <= k`), not genuine validity. Because `max_freq` can be stale, the shrunk window can still be genuinely invalid, exactly as in the `"AAB"`, `k = 0` trace above. That is harmless for the same reason as before: the length did not grow, so the answer is unaffected.
+
 ### The asymmetry: add vs remove
 
 When `right` advances, exactly one count goes up, so the only entry that can beat the current max is the one that just changed. Comparing it against the running max is enough.
