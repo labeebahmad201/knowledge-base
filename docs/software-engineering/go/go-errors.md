@@ -294,7 +294,7 @@ if errors.As(err, &e) {
 
 ```mermaid
 graph TD
-    TOP["fmt.Errorf(\"read %w\", err)"] --> MID["*QueryError<br/>Unwrap() -> inner"]
+    TOP["fmt.Errorf with %w verb"] --> MID["*QueryError<br/>Unwrap() -> inner"]
     MID --> INNER["sql.ErrNoRows<br/>(sentinel)"]
     IS["errors.Is(err, sql.ErrNoRows)"] --> TOP
     AS["errors.As(err, &qe)"] --> TOP
