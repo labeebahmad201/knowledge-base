@@ -11,7 +11,7 @@ sidebar_position: 40
 - The context is a **child of the parent you pass**. `context.Background()` is the empty root, so the only thing that will cancel it is a signal.
 - `<-ctx.Done()` **blocks** the goroutine until the context is cancelled, then returns. `Done()` is a method that returns a channel; `<-` receives from it and throws the (empty) value away.
 - `context.Cause(ctx)` reports *why* it was cancelled, e.g. `interrupt signal received`.
-- `stop()` unregisters the handler. Call it (via `defer`) to release resources and restore the default kill behavior.
+- `stop()` undoes the signal registration: it stops catching the signals, frees the watcher goroutine, and restores the default "signal exits the program" behavior. Call it via `defer`, and call it early if you want a second Ctrl-C to force-kill during slow shutdown.
 
 ## The problem: your program is killed, not asked to stop
 
@@ -100,6 +100,30 @@ flowchart TD
 ```
 
 </div>
+
+## What `stop` actually does
+
+`stop` is the cleanup function returned alongside the context. Calling `signal.NotifyContext` does two things for you: it installs a handler so `SIGINT`/`SIGTERM` no longer use the default "kill the program" behavior, and it starts a background goroutine that waits for those signals and cancels the context. `stop` reverses both: it **unregisters the signal handling and releases the watcher goroutine**. After it runs, those signals go back to their default behavior, and a Go program receiving `SIGINT` exits.
+
+The doc is explicit:
+
+> The stop function unregisters the signal behavior ... may restore the default behavior for a given signal. ... Future interrupts received will not trigger the default (exit) behavior until the returned stop function is called.
+
+There are two reasons to call it:
+
+- **Resource hygiene.** Do not leave the handler and its goroutine installed after you are done with them. `defer stop()` is the standard form, so it runs when `main` returns.
+- **Restore hard-kill.** While the handler is installed, a *second* Ctrl-C does **not** kill your program; it only cancels the context again. If shutdown is slow and you want a second Ctrl-C to force-kill, call `stop()` at the **start** of shutdown (not only in the `defer`), which hands control back to the default behavior.
+
+```go
+ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+defer stop() // normal cleanup when main returns
+
+<-ctx.Done()
+stop() // optional: restore default behavior so a second Ctrl-C force-kills
+// ... run graceful shutdown ...
+```
+
+In one line: `stop` unregisters the signal handler, freeing its resources and restoring the default "signal exits the program" behavior.
 
 ## Blocking is free, and where shutdown actually runs
 
