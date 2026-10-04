@@ -54,6 +54,8 @@ Go is a statically typed, compiled language built at Google by Robert Griesemer,
 - [The Go runtime architecture: goroutines, threads, and the GMP scheduler](./go-runtime-scheduler-architecture.md) - the stacked layers G, M, and P, why an M needs a P to run, syscall handoff, and work stealing.
 - [Channels](./go-channels) - typed pipes between goroutines, the send/receive rendezvous, buffering, close/range, and why blocking is the synchronization.
 - [Buffered vs unbuffered channels](./go-buffered-vs-unbuffered-channels) - how capacity sets the coupling between goroutines, when a buffer earns its place, and why buffering removes synchronization.
+- [`os.Exit`, deferred functions, and exit codes](./go-os-exit) - why `os.Exit` skips every `defer`, why `main` cannot return a status, and where a non-zero exit code belongs.
+- [Defer with multiple lines](./go-defer-multiple-lines) - `defer` takes one call, so wrap several statements in `defer func() { ... }()` and mind the trailing `()`.
 
 ## Still to come
 
