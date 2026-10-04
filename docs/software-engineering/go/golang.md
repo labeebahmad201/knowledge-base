@@ -56,6 +56,7 @@ Go is a statically typed, compiled language built at Google by Robert Griesemer,
 - [Buffered vs unbuffered channels](./go-buffered-vs-unbuffered-channels) - how capacity sets the coupling between goroutines, when a buffer earns its place, and why buffering removes synchronization.
 - [`os.Exit`, deferred functions, and exit codes](./go-os-exit) - why `os.Exit` skips every `defer`, why `main` cannot return a status, and where a non-zero exit code belongs.
 - [Defer with multiple lines](./go-defer-multiple-lines) - `defer` takes one call, so wrap several statements in `defer func() { ... }()` and mind the trailing `()`.
+- [Unix signals: graceful shutdown with `signal.NotifyContext`](./go-signals) - turn `SIGINT`/`SIGTERM` into a context cancellation, block on `<-ctx.Done()`, and read the cause.
 
 ## Still to come
 
