@@ -47,11 +47,19 @@ Go is a statically typed, compiled language built at Google by Robert Griesemer,
 
 - [Modules, packages, and type aliases](./go-modules-and-type-aliases.md) - `go.mod`, defined types vs aliases, and safe API migration across packages.
 
+## Concurrency
+
+- [Goroutines: why `main` exits before your goroutine finishes](./go-goroutines-and-main-exit.md) - `go f()` returns immediately, `main` returns and kills every goroutine, and why `time.Sleep` only hides the race.
+- [`main` runs in a goroutine too](./go-main-runs-in-a-goroutine.md) - the runtime calls `main.main` and then `exit(0)`, so nothing is drained and the exit code is still `0`.
+- [The Go runtime architecture: goroutines, threads, and the GMP scheduler](./go-runtime-scheduler-architecture.md) - the stacked layers G, M, and P, why an M needs a P to run, syscall handoff, and work stealing.
+- [Channels](./go-channels) - typed pipes between goroutines, the send/receive rendezvous, buffering, close/range, and why blocking is the synchronization.
+- [Buffered vs unbuffered channels](./go-buffered-vs-unbuffered-channels) - how capacity sets the coupling between goroutines, when a buffer earns its place, and why buffering removes synchronization.
+
 ## Still to come
 
 - What Go is and who built it (one-page intro)
 - Go vs JavaScript/Node: which to pick
-- Go's concurrency model: goroutines and channels
+- `select` and context: waiting on many channels and cancelling waits
 - Why Go is fast (build, run, deploy)
 - Garbage collection in Go: what it costs you
 - Header files vs Go's import model
