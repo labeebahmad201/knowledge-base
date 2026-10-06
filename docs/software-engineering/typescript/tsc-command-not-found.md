@@ -66,6 +66,17 @@ $ hash -r                # clear zsh's command cache
 
 `hash -r` (or `rehash`) matters because zsh caches each command's location in a hash table. After installing a new global binary, the cache can be stale until it is rebuilt. Reopening the terminal also works.
 
+## Running `tsc` on your files
+
+Once `tsc` resolves, this is how you point it at code:
+
+- **One file:** `tsc testing.ts`
+- **Every `.ts` file in the current folder:** `tsc *.ts` (the shell expands the glob)
+- **A whole project:** `tsc` uses the `tsconfig.json` in the current or parent folder
+- **Recursively:** add `"include": ["**/*.ts"]` to a `tsconfig.json` (create one with `tsc --init`) and run `tsc`
+
+By default the emitted `.js` files are written next to their sources. Add `--outDir dist` to collect them in one place.
+
 ## Recommendation
 
 For a project, do not install TypeScript globally. Keep it as a local dependency and drive it through `npx tsc` or an npm script. That keeps every project on its own TypeScript version, which is exactly what you want when different repos pin different versions.
