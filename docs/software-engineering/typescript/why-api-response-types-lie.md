@@ -100,6 +100,10 @@ This is correct and has zero dependencies. It also does not scale. For a realist
 
 ## The fix, part 2: why Zod exists
 
+> There is a saying about all this: if you are validating types with the type checker in TypeScript, you are either lying or working too hard.
+
+The first half is the annotation and `as` approach: you tell the compiler a shape that nothing at runtime ever verified, which is a lie. The second half is the hand-written guard from part 1: correct, but you are re-deriving field by field what the type already claims, which is working too hard. Both are symptoms of the same missing tool.
+
 The problem is not "check the data". The problem is doing it **once, at the boundary, without maintaining the shape twice**. That is the gap Zod was built for.
 
 Zod is a "TypeScript-first schema validation with static type inference" library. You declare a schema a single time, and from that one declaration you get two things:
