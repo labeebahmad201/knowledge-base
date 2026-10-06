@@ -17,3 +17,7 @@ TypeScript adds a static type system on top of JavaScript. This page is the hub 
 - [Type guards](./type-guards) - how runtime checks narrow `unknown` and unions into real types, from `typeof` and `in` to type predicates and assertion functions.
 - [Zod `safeParse`](./zod-safeparse) - validate without exceptions by returning a discriminated union result instead of throwing.
 - [Structural typing and branded types](./structural-typing-and-branded-types) - why TypeScript is duck typed, the Go and Rust criticism, and the brand fix (including Zod `.brand()`).
+
+## Modules
+
+- [TS2393 duplicate function implementation](./scripts-vs-modules-ts2393) - a file with no top-level `import` or `export` is a global script, so its declarations collide across the project; make it a module with `export {};`.
