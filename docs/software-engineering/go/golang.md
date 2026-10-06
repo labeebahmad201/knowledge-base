@@ -42,6 +42,7 @@ Go is a statically typed, compiled language built at Google by Robert Griesemer,
 ## Errors
 
 - [Errors: the `error` interface and returning errors](./go-errors.md) - the built-in `error` interface, custom error types, `fmt` formatting, and wrapping with `%w`.
+- [`defer`, `panic`, and `recover`](./go-panic) - `defer` for guaranteed cleanup and its three rules, `panic` unwinding the stack, `recover` only inside a deferred function, and why the two belong in different functions.
 
 ## Modules and API evolution
 
