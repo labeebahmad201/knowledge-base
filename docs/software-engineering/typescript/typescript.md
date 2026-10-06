@@ -10,3 +10,7 @@ TypeScript adds a static type system on top of JavaScript. This page is the hub 
 
 - [TypeScript does not run in Node.js](./typescript-does-not-run-in-nodejs) - Node runs JavaScript, so `.ts` is converted first with `tsc` or type stripping.
 - [`tsc: command not found` after installing TypeScript](./tsc-command-not-found) - local installs link the binary into `node_modules/.bin`, which is not on your `PATH`; use `npx tsc`, an npm script, or a global install.
+
+## Type safety
+
+- [Why your API response types are a lie](./why-api-response-types-lie) - types are erased at runtime, so `res.json()` annotation is unchecked; validate boundary data with a schema and why Zod exists.
