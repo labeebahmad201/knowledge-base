@@ -44,7 +44,7 @@ It is not erased. Compiling to ESM keeps `export {};` in the output, and compili
 
 A static `import` loads and evaluates the whole target module, plus everything it imports, before your module's body runs. You only *access* the bindings you name, but every module's code and side effects execute, and evaluation is depth-first: dependencies first.
 
-- `import "./polyfill"` has no `{ }` and no `from`, so it brings no values into your file, but it still runs the module. It is used when the point is the work the module does when it executes (a polyfill patching a prototype, registering a global), not a value it exports.
+- `import "./polyfill"` has no `{ }` and no `from`, so it brings no values into your file, but it still runs the module for its side effects. See [Side-effect imports](./side-effect-imports).
 - `import()` loads on demand, returning a promise, so the module is only fetched and evaluated when that line runs:
 
   ```ts
