@@ -45,7 +45,16 @@ It is not erased. Compiling to ESM keeps `export {};` in the output, and compili
 A static `import` loads and evaluates the whole target module, plus everything it imports, before your module's body runs. You only *access* the bindings you name, but every module's code and side effects execute, and evaluation is depth-first: dependencies first.
 
 - `import "./polyfill"` imports nothing and exists just to run a module's side effects.
-- `import()` loads on demand, returning a promise, so the module is only fetched and evaluated when that line runs.
+- `import()` loads on demand, returning a promise, so the module is only fetched and evaluated when that line runs:
+
+  ```ts
+  button.addEventListener("click", async () => {
+    const { openEditor } = await import("./editor");
+    openEditor();
+  });
+  ```
+
+  `./editor` and its dependencies are not loaded until the click. Unlike a static `import`, `import()` can appear anywhere, such as inside a function or behind a condition.
 - `import type` is erased by TypeScript, so it loads nothing at runtime.
 
 ## Why modules replaced scripts
