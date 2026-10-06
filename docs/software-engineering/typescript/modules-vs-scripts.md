@@ -40,6 +40,14 @@ The file's own syntax decides, with no setting to pick. The Handbook states that
 
 It is not erased. Compiling to ESM keeps `export {};` in the output, and compiling to CommonJS emits the `Object.defineProperty(exports, "__esModule", { value: true })` marker. That surviving syntax is the runtime signal that the file is a module.
 
+## What happens when you import
+
+A static `import` loads and evaluates the whole target module, plus everything it imports, before your module's body runs. You only *access* the bindings you name, but every module's code and side effects execute, and evaluation is depth-first: dependencies first.
+
+- `import "./polyfill"` imports nothing and exists just to run a module's side effects.
+- `import()` loads on demand, returning a promise, so the module is only fetched and evaluated when that line runs.
+- `import type` is erased by TypeScript, so it loads nothing at runtime.
+
 ## Why modules replaced scripts
 
 The script model had three problems: top-level names collided in the shared global scope, dependencies were implicit so `<script>` order mattered, and nothing was encapsulated. The ecosystem tried to fix this over time, from the IIFE pattern to CommonJS (Node, 2009) to AMD for browsers, until ECMAScript 2015 standardized ES modules with `import` and `export`. Modules solve all three problems at once: names are file-scoped, dependencies are declared, and the structure is static so bundlers can trim it. That is why the modern default is to treat every file as a module.
