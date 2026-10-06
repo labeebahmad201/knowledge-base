@@ -96,7 +96,25 @@ if (!Array.isArray(data) || !data.every(isProduct)) {
 // `data` is now Product[]
 ```
 
-This is correct and has zero dependencies. It also does not scale. For a realistic response you end up hand writing a guard for every field and every nested object, keeping those guards in sync with the interface as it changes, and remembering to add new checks when the API adds fields. You now maintain two definitions of the same shape (the type and the validator) and they will drift. That drift is exactly the bug we set out to prevent.
+This is correct and has zero dependencies. It also does not scale, and worse, it quietly reintroduces the very problem it was meant to solve.
+
+The interface and the guard are two separate artifacts, and nothing ties them together. The interface declares the shape; the guard is a hand-written re-implementation of that same shape. They are supposed to evolve together, but nothing forces them to. Rename `title` to `name` in the interface and forget the guard, and the guard still checks the old field. Add a required field to the interface and forget the guard, and the guard still accepts objects that are now missing it. Because the compiler does not verify a predicate's body against its signature, it never notices. The mismatch ships.
+
+That is the real maintenance headache, and its root cause is that the type has become one source of truth and the validator another. Both describe the same data, so both have to change in lockstep, but they live apart and only a human remembers to keep them aligned. Every missed step is a fresh chance to lie to the compiler, exactly like the `as` cast we started with.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+  A["interface Product (source of truth 1)"] --> C{"kept in sync by hand"}
+  B["isProduct guard (source of truth 2)"] --> C
+  C -->|"drift"| D["guard checks a shape the type no longer claims"]
+  D --> E["compiler trusts the predicate, the bug ships"]
+```
+
+</div>
+
+Zod removes the second source of truth. The schema is the single definition, and `z.infer` derives the TypeScript type from it, so there is nothing left to keep in sync by hand.
 
 ## The fix, part 2: why Zod exists
 
