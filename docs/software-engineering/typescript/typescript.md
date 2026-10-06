@@ -23,3 +23,4 @@ TypeScript adds a static type system on top of JavaScript. This page is the hub 
 
 - [TS2393 duplicate function implementation](./scripts-vs-modules-ts2393) - a file with no top-level `import` or `export` is a global script, so its declarations collide across the project; make it a module with `export {};`.
 - [The global namespace and how to extend it](./global-namespace) - what the global scope and `globalThis` are, plus `declare var`, interface merging, and `declare global`.
+- [Adding a property to `window` with `declare global`](./extend-window-declare-global) - why `window.analytics` errors and how to merge the property into the global `Window` interface.
