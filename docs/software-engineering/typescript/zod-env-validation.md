@@ -13,6 +13,7 @@ sidebar_position: 14
 - Fail fast: on failure print `z.prettifyError(error)` and exit before the app starts, so a bad deploy dies at boot with a readable message instead of at request time.
 - Load `.env` before validating: Node's `--env-file`, or `process.loadEnvFile()` / `dotenv`. A variable already set in the real environment takes precedence over the same key in the file.
 - Watch empty strings: `z.coerce.number()` runs `Number()`, so `""` becomes `0`, not an error.
+- You can merge the schema into the global `ProcessEnv` for autocomplete, but it changes only the types, never the values: coerced numbers fail to compile (`TS2411`), typos stay allowed, and some bundlers tree-shake the variables. Prefer the exported `env` object.
 
 ## The problem
 
@@ -128,6 +129,48 @@ A caution on secrets: Zod error messages can include the received value, so a va
 
 This pattern is not limited to Node backends. Frontend build tools expose their own env object (for example Vite's `import.meta.env`), but the approach is the same: define the schema, parse once, export a typed object.
 
+## Typing `process.env` with the schema
+
+Instead of importing `env`, you can merge the schema's inferred type into the global `NodeJS.ProcessEnv` interface, so `process.env` itself is typed and autocompletes everywhere:
+
+```ts
+const EnvSchema = z.object({
+  DATABASE_URL: z.url(),
+  NODE_ENV: z.enum(["development", "test", "production"]),
+});
+
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv extends z.infer<typeof EnvSchema> {}
+  }
+}
+```
+
+Now `process.env.DATABASE_URL` is `string` and `process.env.NODE_ENV` is the union of the three literals, with no import. This is plain declaration merging: you are adding members to an interface the compiler already knows.
+
+It looks free, but it has sharp edges, and they all come from one root: the augmentation changes only the *types*. It never changes the runtime values or the `process.env` object.
+
+- **It lies about coerced values.** If the schema coerces `PORT` to a `number`, `z.infer` types `process.env.PORT` as `number`, but the value in `process.env` is still the string `"3000"`. Any `z.coerce`, `transform`, or `default` makes the type disagree with the value. The T3 Env docs call this out directly: because the augmentation does not mutate `process.env`, transforms make the types lie, and defaults cannot be applied.
+- **Non-string fields can fail to compile.** Node's own types declare `ProcessEnv` with a `[key: string]: string | undefined` index signature, and an added property must be assignable to that index type. A `PORT: number` from `z.coerce.number()` does not fit, so `tsc` reports `TS2411: Property 'PORT' of type 'number' is not assignable to 'string' index type 'string | undefined'`. The trick only compiles when every inferred field is string-compatible.
+- **Typos still are not caught.** The same index signature means `process.env.TYPO` is still allowed and typed `string | undefined`. You get autocomplete for known keys, but not exhaustiveness.
+- **Some bundlers tree-shake variables.** Frameworks such as Next.js include only the variables you access as `process.env.X`, so a variable read only through the exported `env` object can be dropped from the bundle.
+
+So the practical guidance is: keep the exported `env` object as the source of truth for typed, coerced values, and treat the `ProcessEnv` augmentation as optional sugar for string-only variables. If you want the typed-`process.env` experience without hand-rolling coercion, defaults, and bundler handling, a library like `@t3-oss/env-core` (the engine behind create-t3-app) packages all of it.
+
+<div style={{display: 'flex', justifyContent: 'center'}}>
+
+```mermaid
+graph TD
+  A["EnvSchema"] --> B["z.infer: type only"]
+  B --> C["declare global NodeJS.ProcessEnv"]
+  C --> D["process.env.X typed + autocomplete"]
+  A --> E["parse once -> env object"]
+  E --> F["env.X: coerced, matches runtime"]
+  D -.->|coerce/transform/default| G["type can lie, TS2411, no typo check"]
+```
+
+</div>
+
 ## Sources
 
 - Zod Documentation, [Defining schemas: Coercion, URLs, Stringbools](https://zod.dev/api) (`z.coerce.string/number/boolean/bigint` run the matching constructor; top-level `z.url()` / `z.httpUrl()`; `z.stringbool()` for env-style booleans).
@@ -137,3 +180,5 @@ This pattern is not limited to Node backends. Frontend build tools expose their 
 - Node.js Documentation, [Command-line API: `--env-file`](https://nodejs.org/api/cli.html) (environment values take precedence over the file; multiple files override in order).
 - dotenv, [README](https://github.com/motdotla/dotenv) (`import "dotenv/config"` loads a `.env` file into `process.env`).
 - The Twelve-Factor App, [Config](https://12factor.net/config) (store configuration in the environment).
+- T3 Env, [Introduction](https://env.t3.gg/docs/introduction) (the `ProcessEnv extends z.infer<...>` snippet; because the augmentation does not mutate `process.env`, transforms make the types lie and defaults cannot be applied; some frameworks tree-shake variables not accessed on `process.env`).
+- Matt Pocock, [How To Strongly Type `process.env`](https://www.totaltypescript.com/how-to-strongly-type-process-env) (augmenting `NodeJS.ProcessEnv` for autocomplete; `@t3-oss/env-core` for runtime validation).
