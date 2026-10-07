@@ -20,6 +20,7 @@ TypeScript adds a static type system on top of JavaScript. This page is the hub 
 - [Structural typing and branded types](./structural-typing-and-branded-types) - why TypeScript is duck typed, the Go and Rust criticism, and the brand fix (including Zod `.brand()`).
 - [What `__brand` is](./brand-property-explained) - how `string & { __brand: "id" }` makes two strings distinct types, what the tag means, and why it is erased at runtime.
 - [Validating environment variables with Zod](./zod-env-validation) - `process.env` is all strings, so parse it once at startup with a schema, export a typed `env`, and fail fast; coercion traps like `"false"` and `""`, plus the `ProcessEnv` augmentation and its pitfalls.
+- [Discriminated unions](./discriminated-unions) - a union of variants sharing a literal tag narrows by `switch`, makes invalid states unrepresentable, and checks exhaustiveness with `never`.
 
 ## Modules
 
