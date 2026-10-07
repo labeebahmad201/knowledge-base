@@ -19,7 +19,7 @@ Start with this, because it is the example people usually reach for:
 
 ```ts
 const id: string = "123";
-const email: string = "labeeb@gmail.com";
+const email: string = "ada@example.com";
 
 function getName(email: string): string {
   return email.split("@")[0];
@@ -154,7 +154,7 @@ function getName(email: Email): string {
 }
 
 const id = "123" as UserId;
-const email = "labeeb@gmail.com" as Email;
+const email = "ada@example.com" as Email;
 
 getName(email); // ok
 getName(id); // error: UserId is not assignable to Email
@@ -178,7 +178,7 @@ const UserIdSchema = z.string().uuid().brand<"UserId">();
 type UserId = z.infer<typeof UserIdSchema>;
 
 // `parse` validates at runtime and returns the branded type
-const email = EmailSchema.parse("labeeb@gmail.com");
+const email = EmailSchema.parse("ada@example.com");
 const id = UserIdSchema.parse("8b0b0c1e-3f9a-4d8e-9c2a-1f2b3c4d5e6f");
 ```
 
