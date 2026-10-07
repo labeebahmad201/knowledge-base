@@ -6,6 +6,10 @@ sidebar_position: 1
 
 TypeScript adds a static type system on top of JavaScript. This page is the hub for the TypeScript article series; each topic below is its own short page.
 
+## Fundamentals
+
+- [What is a statically typed language?](./statically-typed-language) - types checked before the program runs, how that differs from dynamic typing and from strong versus weak typing, and where TypeScript fits.
+
 ## Runtime and tooling
 
 - [TypeScript does not run in Node.js](./typescript-does-not-run-in-nodejs) - Node runs JavaScript, so `.ts` is converted first with `tsc` or type stripping.
