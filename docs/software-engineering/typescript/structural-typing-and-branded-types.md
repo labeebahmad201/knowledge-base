@@ -10,7 +10,7 @@ sidebar_position: 7
 - **Nominal** languages (Java, C#, Go, Rust) tie a type to its declaration, so two identical shapes stay distinct and cannot be mixed. This is a common criticism of TypeScript from Go and Rust developers.
 - Structural typing is not always the culprit in the classic complaint. `const id: string` and `const email: string` are the **same type** `string`, so passing one for the other is allowed because there is nothing to distinguish them, not because of shape matching.
 - TypeScript does have nominal corners: `class` members marked `private` or `protected` are compared nominally, and `enum` members from different enums are incompatible.
-- The general fix for the primitive case is a **branded (opaque) type**: intersect the primitive with a unique tag so the compiler treats two strings as different types. `declare const brand: unique symbol` is the idiom.
+- The general fix for the primitive case is a **branded (opaque) type**: intersect the primitive with a tag property so the compiler treats two strings as different types. `string & { readonly __brand: "Email" }` is the simplest form; a `unique symbol` tag avoids collisions.
 - Brands are static only. They are erased at runtime, so pair them with a schema. Zod's `.brand()` both validates the value and produces the branded type, keeping a single source of truth.
 
 ## A common confusion about the `id` / `email` example
@@ -19,7 +19,7 @@ Start with this, because it is the example people usually reach for:
 
 ```ts
 const id: string = "123";
-const email: string = "labeeb@gmail.com";
+const email: string = "ada@example.com";
 
 function getName(email: string): string {
   return email.split("@")[0];
@@ -33,6 +33,17 @@ Nothing structural is happening here. Both variables are annotated as `string`, 
 Structural typing shows up when values have a **shape**, and two different shapes with the same members become interchangeable.
 
 ## What structural typing is
+
+```ts
+// A nominal type system means that each type is unique,
+// and even if types have the same data you cannot assign
+// across types.
+
+// TypeScript's type system is structural, which means
+// if the type is shaped like a duck, it's a duck. If a
+// goose has all the same attributes as a duck, then it also
+// is a duck.
+```
 
 The TypeScript Handbook states that type compatibility is "based on structural subtyping", which relates "types based solely on their members. This is in contrast with nominal typing." It also calls this "duck typing", from the saying that if it walks like a duck and quacks like a duck, it is a duck.
 
@@ -128,28 +139,35 @@ These help inside classes, but they do not solve the common case of a plain `str
 
 ## The brand fix
 
-For primitives and other shapes, you can make a type nominal by **branding** it: intersect the base type with a tag that only you can produce. The standard idiom uses a `unique symbol` as the tag, so nothing else can accidentally satisfy it.
+For primitives and other shapes, you can make a type nominal by **branding** it: intersect the base type with a tag property that marks which type it belongs to.
 
 ```ts
-declare const brand: unique symbol;
-
-type Brand<T, B extends string> = T & { readonly [brand]: B };
-
-type UserId = Brand<string, "UserId">;
-type Email = Brand<string, "Email">;
+type UserId = string & { readonly __brand: "UserId" };
+type Email = string & { readonly __brand: "Email" };
 
 function getName(email: Email): string {
   return email.split("@")[0];
 }
 
 const id = "123" as UserId;
-const email = "labeeb@gmail.com" as Email;
+const email = "ada@example.com" as Email;
 
 getName(email); // ok
 getName(id); // error: UserId is not assignable to Email
 ```
 
-Now the compiler keeps the two apart. A branded type is still assignable to its base (`Email` is a `string`), so it flows into every string API, but a plain `string` is **not** assignable back to `Email`. That one-way relationship is what makes it useful: only code that goes through the branded type's constructor can claim a value is a valid `Email`.
+The `__brand` property never exists at runtime. It is only a marker the compiler reads, so a plain `string` (which lacks it) is not assignable to `Email`. A branded type is still assignable to its base (`Email` is a `string`), so it flows into every string API. That one-way relationship is what makes it useful: only code that goes through the branded type's constructor can claim a value is a valid `Email`.
+
+If you want to avoid repeating the tag, factor it into a helper:
+
+```ts
+type Brand<T, B extends string> = T & { readonly __brand: B };
+
+type UserId = Brand<string, "UserId">;
+type Email = Brand<string, "Email">;
+```
+
+The `__brand` tag is a convention, so a real object could in principle carry a property with that name. If you want a marker that can never collide with a real property, use a `unique symbol` instead: `declare const brand: unique symbol`, then `type Brand<T, B extends string> = T & { readonly [brand]: B }`.
 
 The catch is that brands are pure types. They exist only at compile time, are erased in the emitted JavaScript, and are usually created with an `as` cast. A cast on its own is the same lie we saw with type assertions, so the cast belongs behind a function or schema that actually checked the value.
 
@@ -167,7 +185,7 @@ const UserIdSchema = z.string().uuid().brand<"UserId">();
 type UserId = z.infer<typeof UserIdSchema>;
 
 // `parse` validates at runtime and returns the branded type
-const email = EmailSchema.parse("labeeb@gmail.com");
+const email = EmailSchema.parse("ada@example.com");
 const id = UserIdSchema.parse("8b0b0c1e-3f9a-4d8e-9c2a-1f2b3c4d5e6f");
 ```
 
