@@ -11,6 +11,7 @@ TypeScript adds a static type system on top of JavaScript. This page is the hub 
 - [TypeScript does not run in Node.js](./typescript-does-not-run-in-nodejs) - Node runs JavaScript, so `.ts` is converted first with `tsc` or type stripping.
 - [`tsc: command not found` after installing TypeScript](./tsc-command-not-found) - local installs link the binary into `node_modules/.bin`, which is not on your `PATH`; use `npx tsc`, an npm script, or a global install.
 - [`TS2688: Cannot find type definition file for 'node'`](./cannot-find-type-definition-file-for-node) - a dependency's `.d.ts` references Node types, so `tsc` fails until you install `@types/node`.
+- [What is transpiling?](./transpiling) - source-to-source compilation (TS to JS, JSX to JS, ES2022 to ES5), how it differs from compiling and from type checking, and what `tsc`, Babel, swc, and esbuild actually do.
 
 ## Type safety
 
