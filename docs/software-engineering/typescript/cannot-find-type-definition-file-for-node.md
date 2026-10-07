@@ -48,11 +48,11 @@ Two notes:
 
 ```mermaid
 graph TD
-  A["import dotenv"] --> B["TypeScript reads dotenv's index.d.ts"]
-  B --> C["/// <reference types=\"node\" />"]
+  A["import dotenv"] --> B["TypeScript reads the dotenv index.d.ts"]
+  B --> C["triple-slash reference to node types"]
   C --> D{"@types/node installed?"}
-  D -->|no| E["TS2688 for 'node' + TS2591 for Buffer/url"]
-  D -->|yes| F["Node globals and node: modules are typed"]
+  D -->|no| E["TS2688 for node and TS2591 for Buffer and url"]
+  D -->|yes| F["Node globals and node modules are typed"]
   E --> G["npm i -D @types/node"]
 ```
 
