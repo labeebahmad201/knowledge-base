@@ -34,6 +34,17 @@ Structural typing shows up when values have a **shape**, and two different shape
 
 ## What structural typing is
 
+```ts
+// A nominal type system means that each type is unique,
+// and even if types have the same data you cannot assign
+// across types.
+
+// TypeScript's type system is structural, which means
+// if the type is shaped like a duck, it's a duck. If a
+// goose has all the same attributes as a duck, then it also
+// is a duck.
+```
+
 The TypeScript Handbook states that type compatibility is "based on structural subtyping", which relates "types based solely on their members. This is in contrast with nominal typing." It also calls this "duck typing", from the saying that if it walks like a duck and quacks like a duck, it is a duck.
 
 ```ts
