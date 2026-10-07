@@ -72,6 +72,8 @@ They are independent:
 
 So "dynamically typed" does not mean "no types" (Python has types) and "statically typed" does not mean "safe" (C is static but full of implicit conversions).
 
+One caution: unlike static versus dynamic, the strong/weak distinction has **no precise, agreed definition**. Silent coercion such as `1 + "1"` yielding `"11"` is the common criterion, and by it JavaScript is weak, but the line is blurry because most languages allow some implicit conversions (for example `int` to `float`). Treat strong/weak as informal shorthand and rely on a language's specific conversion rules when it matters.
+
 ## What static typing buys
 
 - **Early errors.** Type mismatches are caught by the checker, not by a user.
@@ -94,4 +96,4 @@ TypeScript adds a static layer on top of JavaScript. `tsc` checks the types at c
 - TypeScript Handbook, [TypeScript for JavaScript Programmers](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html) (static type checking; TypeScript's type system runs before code executes and its types do not exist at runtime).
 - TypeScript Documentation, [Why TypeScript](https://www.typescriptlang.org/why-create-typescript) (types as a compile-time aid on top of JavaScript).
 - Wikipedia, [Type system](https://en.wikipedia.org/wiki/Type_system) (static versus dynamic checking, and the separate strong/weak axis).
-- Wikipedia, [Strong and weak typing](https://en.wikipedia.org/wiki/Strong_and_weak_typing) (implicit conversions are a different dimension from static checking).
+- Wikipedia, [Strong and weak typing](https://en.wikipedia.org/wiki/Strong_and_weak_typing) (the distinction is not clearly defined; implicit conversions are a different dimension from static checking).
